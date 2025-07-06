@@ -1,0 +1,314 @@
+<!-- Unified Filter Bar Component -->
+<!-- This component provides consistent filtering UI across all pages with mobile responsive design -->
+{% load checker_tags %}
+
+<div class="filter-bar mb-3">
+    <!-- Mobile: Collapsible Filter Section -->
+    <div class="d-md-none mb-3">
+        <button class="btn btn-outline-primary btn-sm w-100" type="button" data-bs-toggle="collapse" data-bs-target="#mobileFilters" aria-expanded="false" aria-controls="mobileFilters">
+            <i class="bi bi-funnel me-2"></i>Filters & Sorting
+            <i class="bi bi-chevron-down ms-auto"></i>
+        </button>
+    </div>
+    
+    <!-- Filter and Sort Controls Container -->
+    <div class="collapse d-md-block" id="mobileFilters">
+        <div class="d-md-flex justify-content-between align-items-center">
+            <!-- Filter Controls -->
+            <div class="d-flex flex-wrap gap-3 align-items-center mb-2 mb-md-0">
+                <!-- Status Filter Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-1" 
+                            type="button" data-bs-toggle="dropdown" 
+                            data-bs-toggle="tooltip" data-bs-placement="top" 
+                            title="Filter by component status: Active (2024-25+), Inactive (pre-2024-25), or All components"
+                            style="border: none; background: none; color: {% if status_filter == 'all' %}#0066cc{% elif status_filter == 'active' %}#28a745{% else %}#6c757d{% endif %};">
+                        {% if status_filter == 'all' %}
+                            <i class="bi bi-filter-circle-fill" style="font-size: 1.1rem;"></i>
+                            <span>All</span>
+                        {% elif status_filter == 'active' %}
+                            <i class="bi bi-check-circle-fill" style="font-size: 1.1rem;"></i>
+                            <span>Active</span>
+                        {% else %}
+                            <i class="bi bi-x-circle-fill" style="font-size: 1.1rem;"></i>
+                            <span>Inactive</span>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if status_filter == 'all' %} active{% endif %}" href="?{% build_filter_params exclude_param='status' %}&status=all">
+                            <i class="bi bi-filter-circle-fill me-2" style="color: #0066cc;"></i>All
+                        </a></li>
+                        <li><a class="dropdown-item{% if status_filter == 'active' %} active{% endif %}" href="?{% build_filter_params exclude_param='status' %}&status=active">
+                            <i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Active
+                        </a></li>
+                        <li><a class="dropdown-item{% if status_filter == 'inactive' %} active{% endif %}" href="?{% build_filter_params exclude_param='status' %}&status=inactive">
+                            <i class="bi bi-x-circle-fill me-2" style="color: #6c757d;"></i>Inactive
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <!-- Auction Year Filter -->
+                {% if auction_years %}
+                <div class="dropdown">
+                    <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-1" 
+                            type="button" data-bs-toggle="dropdown" 
+                            data-bs-toggle="tooltip" data-bs-placement="top" 
+                            title="Filter by Capacity Market auction year (T-4 auctions held 4 years ahead, T-1 auctions for fine-tuning)"
+                            style="border: none; background: none; color: #0066cc;">
+                        <i class="bi bi-calendar3" style="font-size: 1.1rem;"></i>
+                        <span>{% if auction_filter and auction_filter != 'all' %}{{ auction_filter|shorten_auction_name }}{% else %}All Years{% endif %}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-scrollable">
+                        <li><a class="dropdown-item {% if auction_filter == 'all' or not auction_filter %}active{% endif %}" 
+                               href="?{% build_filter_params exclude_param='auction' %}&auction=all">All Years</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% for year in auction_years %}
+                        <li><a class="dropdown-item {% if auction_filter == year %}active{% endif %}" 
+                               href="?{% build_filter_params exclude_param='auction' %}&auction={{ year|urlencode }}">{{ year|shorten_auction_name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Technology Filter (for company pages) -->
+                {% if technologies %}
+                <div class="dropdown">
+                    <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-1" 
+                            type="button" data-bs-toggle="dropdown" 
+                            style="border: none; background: none; color: #0066cc;">
+                        <i class="bi bi-gear" style="font-size: 1.1rem;"></i>
+                        <span>{% if technology_filter and technology_filter != 'all' %}{{ technology_filter }}{% else %}All Technologies{% endif %}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-scrollable">
+                        <li><a class="dropdown-item {% if technology_filter == 'all' or not technology_filter %}active{% endif %}" 
+                               href="?{% build_filter_params exclude_param='technology' %}&technology=all">All Technologies</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% for tech in technologies %}
+                        <li><a class="dropdown-item {% if technology_filter == tech %}active{% endif %}" 
+                               href="?{% build_filter_params exclude_param='technology' %}&technology={{ tech|urlencode }}">{{ tech }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Company Filter (for technology pages) -->
+                {% if companies %}
+                <div class="dropdown">
+                    <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-1" 
+                            type="button" data-bs-toggle="dropdown" 
+                            style="border: none; background: none; color: #0066cc;">
+                        <i class="bi bi-building" style="font-size: 1.1rem;"></i>
+                        <span>{% if company_filter and company_filter != 'all' %}{{ company_filter }}{% else %}All Companies{% endif %}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-scrollable">
+                        <li><a class="dropdown-item {% if company_filter == 'all' or not company_filter %}active{% endif %}" 
+                               href="?{% build_filter_params exclude_param='company' %}&company=all">All Companies</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% for company in companies %}
+                        <li><a class="dropdown-item {% if company_filter == company %}active{% endif %}" 
+                               href="?{% build_filter_params exclude_param='company' %}&company={{ company|urlencode }}">{{ company }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sort Controls -->
+            <div class="d-flex flex-wrap gap-3 align-items-center">
+                <span class="text-muted small d-none d-md-inline">Sort by:</span>
+                
+                <!-- A-Z Sort -->
+                {% if show_location_sort %}
+                <a href="?{% build_filter_params %}&sort_by=location&sort_order={% if sort_by == 'location' and sort_order == 'asc' %}desc{% else %}asc{% endif %}"
+                   class="text-decoration-none {% if sort_by == 'location' %}fw-bold{% endif %}"
+                   data-bs-toggle="tooltip" data-bs-placement="top" 
+                   title="Sort by location name alphabetically"
+                   style="color: #0066cc;">
+                    A-Z
+                    {% if sort_by == 'location' %}
+                        <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}" style="font-size: 0.8rem;"></i>
+                    {% endif %}
+                </a>
+                {% endif %}
+                
+                <!-- Components Sort -->
+                {% if show_components_sort %}
+                <a href="?{% build_filter_params %}&sort_by=components&sort_order={% if sort_by == 'components' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                   class="text-decoration-none {% if sort_by == 'components' %}fw-bold{% endif %}"
+                   data-bs-toggle="tooltip" data-bs-placement="top" 
+                   title="Sort by number of components at each location"
+                   style="color: #0066cc;">
+                    Components
+                    {% if sort_by == 'components' %}
+                        <i class="bi bi-arrow-{% if sort_order == 'desc' %}down{% else %}up{% endif %}" style="font-size: 0.8rem;"></i>
+                    {% endif %}
+                </a>
+                {% endif %}
+                
+                <!-- MW Sort -->
+                {% if show_capacity_sort %}
+                <a href="?{% build_filter_params %}&sort_by=capacity&sort_order={% if sort_by == 'capacity' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                   class="text-decoration-none {% if sort_by == 'capacity' %}fw-bold{% endif %}"
+                   data-bs-toggle="tooltip" data-bs-placement="top" 
+                   title="Sort by total de-rated capacity (MW) at each location"
+                   style="color: #0066cc;">
+                    MW
+                    {% if sort_by == 'capacity' %}
+                        <i class="bi bi-arrow-{% if sort_order == 'desc' %}down{% else %}up{% endif %}" style="font-size: 0.8rem;"></i>
+                    {% endif %}
+                </a>
+                {% endif %}
+                
+                <!-- Date Sort -->
+                {% if show_date_sort %}
+                <a href="?{% build_filter_params %}&sort_by=date&sort_order={% if sort_by == 'date' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                   class="text-decoration-none {% if sort_by == 'date' %}fw-bold{% endif %}"
+                   data-bs-toggle="tooltip" data-bs-placement="top" 
+                   title="Sort by most recent auction participation date"
+                   style="color: #0066cc;">
+                    Date
+                    {% if sort_by == 'date' %}
+                        <i class="bi bi-arrow-{% if sort_order == 'desc' %}down{% else %}up{% endif %}" style="font-size: 0.8rem;"></i>
+                    {% endif %}
+                </a>
+                {% endif %}
+                
+                <!-- Relevance Sort (for search pages) -->
+                {% if show_relevance_sort %}
+                <a href="?{% build_filter_params %}&sort_by=relevance"
+                   class="text-decoration-none {% if sort_by == 'relevance' or not sort_by %}fw-bold{% endif %}"
+                   data-bs-toggle="tooltip" data-bs-placement="top" 
+                   title="Sort by search relevance to your query"
+                   style="color: #0066cc;">
+                    Relevance
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Filter bar mobile enhancements */
+.filter-bar .btn[data-bs-toggle="collapse"] .bi-chevron-down {
+    transition: transform 0.3s ease;
+}
+.filter-bar .btn[aria-expanded="true"] .bi-chevron-down {
+    transform: rotate(180deg);
+}
+
+/* Scrollable dropdown menus - Show ~8 items with scroll for more */
+.dropdown-menu-scrollable,
+.filter-bar .dropdown-menu {
+    max-height: 320px !important;
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
+    /* Ensure proper scrolling on all devices */
+    -webkit-overflow-scrolling: touch !important;
+    /* Prevent parent scrolling */
+    overscroll-behavior: contain !important;
+    /* Force dropdown to escape parent overflow constraints */
+    position: fixed !important;
+    z-index: 9999 !important;
+    /* Custom scrollbar styling for WebKit browsers */
+    scrollbar-width: thin;
+    scrollbar-color: #6c757d transparent;
+}
+
+.dropdown-menu-scrollable::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dropdown-menu-scrollable::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dropdown-menu-scrollable::-webkit-scrollbar-thumb {
+    background-color: #6c757d;
+    border-radius: 4px;
+    opacity: 0.7;
+}
+
+.dropdown-menu-scrollable::-webkit-scrollbar-thumb:hover {
+    background-color: #495057;
+}
+
+/* Ensure dropdown items don't break scrolling */
+.dropdown-menu-scrollable .dropdown-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Responsive dropdown menus */
+@media (max-width: 576px) {
+    .filter-bar .dropdown-menu-scrollable {
+        font-size: 0.9rem;
+        max-height: 250px !important;
+    }
+    
+    .filter-bar .d-flex.gap-3 {
+        gap: 1rem !important;
+    }
+    
+    .filter-bar .btn-sm {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* Fix for dropdown positioning on mobile */
+@media (max-width: 768px) {
+    .dropdown-menu-scrollable {
+        position: absolute !important;
+        will-change: transform;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Filter bar script loaded');
+    
+    // Debug: Check if dropdowns exist
+    const dropdowns = document.querySelectorAll('.dropdown-menu-scrollable');
+    console.log('Found', dropdowns.length, 'dropdown-menu-scrollable elements');
+    
+    // Also try to find any dropdown menus
+    const allDropdowns = document.querySelectorAll('.dropdown-menu');
+    console.log('Found', allDropdowns.length, 'total dropdown-menu elements');
+    
+    // Apply to all dropdown menus, not just scrollable ones
+    allDropdowns.forEach(function(dropdown, index) {
+        console.log('Attaching events to dropdown', index);
+        
+        dropdown.addEventListener('wheel', function(e) {
+            console.log('Wheel event on dropdown', index);
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            // Don't prevent default - let dropdown scroll naturally
+        }, { passive: true });
+        
+        dropdown.addEventListener('scroll', function(e) {
+            e.stopPropagation();
+        }, { passive: true });
+        
+        // Also handle mousewheel for older browsers
+        dropdown.addEventListener('mousewheel', function(e) {
+            console.log('Mousewheel event on dropdown', index);
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }, { passive: true });
+    });
+    
+    // Global capture to prevent any wheel events on dropdowns from reaching the page
+    document.addEventListener('wheel', function(e) {
+        if (e.target.closest('.filter-bar .dropdown-menu')) {
+            console.log('Global wheel capture - stopping propagation');
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }
+    }, { passive: true, capture: true });
+});
+</script>

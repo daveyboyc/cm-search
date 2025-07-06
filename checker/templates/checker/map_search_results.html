@@ -1,0 +1,2045 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Search Results Map - Capacity Market Search{% endblock %}
+
+{% block body_class %}map-page{% endblock %}
+
+{% block container_class %}d-none{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Make body and html full height for fullscreen map */
+    html, body {
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* Override base container to remove padding/margins */
+    .container-fluid {
+        padding: 0 !important;
+        margin: 0 !important;
+        height: 100vh !important;
+        max-width: none !important;
+    }
+    
+    /* Override any base template styles that might add padding */
+    main, .main-content, .content-wrapper {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    #map-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        border: none;
+        border-radius: 0;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    #map {
+        height: 100%;
+        width: 100%;
+    }
+
+    #loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    #map-status {
+        position: absolute;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 8px 16px;
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        z-index: 1001;
+        display: none;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        color: #856404;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .search-info-panel {
+        position: absolute; 
+        top: 70px;
+        right: 10px; 
+        z-index: 1000; 
+        background-color: rgba(255,255,255,0.9); 
+        padding: 8px 12px; 
+        border-radius: 4px; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    
+    .search-info-panel .form-check {
+        margin: 0;
+    }
+    
+    /* Fix search info panel text color in dark mode */
+    html[data-bs-theme="dark"] .search-info-panel {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+    }
+    
+    html[data-bs-theme="dark"] .search-info-panel * {
+        color: #212529 !important;
+    }
+    
+    html[data-bs-theme="dark"] .search-info-panel h5 {
+        color: #000 !important;
+    }
+    
+    html[data-bs-theme="dark"] .search-info-panel .text-muted {
+        color: #495057 !important;
+    }
+    
+    /* Hide all navigation buttons for cleaner map experience */
+    body > div:first-child {
+        display: none !important;
+    }
+    
+    /* Hide other page elements */
+    header, footer {
+        display: none !important;
+    }
+    
+    /* Hide theme button for clean map experience */
+    #themeCycleButton {
+        display: none !important;
+    }
+    
+    /* Override all possible base template containers and wrappers */
+    .container, .container-sm, .container-md, .container-lg, .container-xl, .container-xxl {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+    }
+    
+    /* Ensure no Bootstrap spacing classes interfere */
+    .p-0, .p-1, .p-2, .p-3, .p-4, .p-5,
+    .m-0, .m-1, .m-2, .m-3, .m-4, .m-5,
+    .py-0, .py-1, .py-2, .py-3, .py-4, .py-5 {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    
+    /* Top navigation buttons positioned under Google Maps controls */
+    .top-nav-buttons {
+        position: absolute;
+        top: 70px;
+        left: 10px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .top-nav-buttons .btn {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color: #333;
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 4px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s ease;
+    }
+    
+    .top-nav-buttons .btn:hover {
+        background: rgba(255, 255, 255, 1);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        text-decoration: none;
+    }
+    
+    .top-nav-buttons .btn-primary {
+        background: rgba(13, 110, 253, 0.9);
+        border-color: rgba(13, 110, 253, 0.5);
+        color: white;
+    }
+    
+    .top-nav-buttons .btn-primary:hover {
+        background: rgba(13, 110, 253, 1);
+        color: white;
+    }
+    
+    .top-nav-buttons .btn-success {
+        background: rgba(25, 135, 84, 0.9);
+        border-color: rgba(25, 135, 84, 0.5);
+        color: white;
+    }
+    
+    .top-nav-buttons .btn-success:hover {
+        background: rgba(25, 135, 84, 1);
+        color: white;
+    }
+    
+    /* Specific styling for top navigation buttons */
+    .top-nav-buttons .btn-outline-light {
+        cursor: pointer;
+        pointer-events: auto;
+    }
+    
+    .top-nav-buttons .btn-outline-light:hover {
+        background: rgba(255, 255, 255, 1) !important;
+        color: #333 !important;
+    }
+    
+    /* Map search bar positioned at top center */
+    .map-search-bar {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        width: 400px;
+        max-width: calc(100vw - 40px);
+    }
+    
+    .map-search-bar form {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        padding: 4px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        gap: 4px;
+    }
+    
+    .map-search-bar .form-control {
+        border: none;
+        background: transparent;
+        border-radius: 20px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        flex: 1;
+    }
+    
+    .map-search-bar .form-control:focus {
+        box-shadow: none;
+        border: none;
+        background: transparent;
+    }
+    
+    /* Fix search bar text color in dark mode */
+    html[data-bs-theme="dark"] .map-search-bar .form-control {
+        color: #212529 !important;
+    }
+    
+    html[data-bs-theme="dark"] .map-search-bar .form-control::placeholder {
+        color: #6c757d !important;
+    }
+    
+    .map-search-bar .btn {
+        border-radius: 20px;
+        border: none;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 0.9rem;
+    }
+    
+    .map-search-bar .btn-primary {
+        background: #0d6efd;
+    }
+    
+    .map-search-bar .btn:hover {
+        transform: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Hide the general help button and replace with map-specific help */
+    #helpButton {
+        display: none !important;
+    }
+    
+    /* Style for map-specific help button */
+    .map-help-button {
+        position: fixed;
+        bottom: 60px;
+        left: 20px;
+        z-index: 1050;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .map-help-button:hover {
+        background: rgba(0, 0, 0, 0.9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Map help popup */
+    .map-help-popup {
+        position: fixed;
+        bottom: 110px;
+        left: 20px;
+        z-index: 1060;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        padding: 15px;
+        max-width: 280px;
+        max-height: 70vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        display: none;
+        font-size: 0.85rem;
+    }
+    
+    .map-help-popup.show {
+        display: block;
+    }
+    
+    .map-help-popup h5 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #333;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .map-help-popup h6 {
+        margin-bottom: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .map-help-popup .tech-legend {
+        display: grid;
+        grid-template-columns: 16px 1fr;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .map-help-popup .tech-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1px solid white;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .map-help-popup .mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .map-help-popup .list-unstyled li {
+        margin-bottom: 3px;
+    }
+    
+    /* Technology Legend (positioned below navigation buttons) */
+    .map-legend {
+        position: absolute;
+        top: 155px;
+        left: 10px;
+        width: 160px;
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 8px;
+        padding-right: 30px;
+        border-radius: 6px;
+        z-index: 1000;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out;
+    }
+    
+    /* Fix legend text color in dark mode */
+    html[data-bs-theme="dark"] .map-legend {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+    }
+    
+    html[data-bs-theme="dark"] .map-legend * {
+        color: #212529 !important;
+    }
+    
+    html[data-bs-theme="dark"] .legend-title {
+        color: #000 !important;
+    }
+    
+    .map-legend.collapsed {
+        transform: translateX(calc(-100% + 30px));
+        overflow: hidden;
+    }
+    
+    .map-legend .legend-title,
+    .map-legend .legend-item {
+        transition: opacity 0.1s linear;
+        opacity: 1;
+    }
+    
+    .map-legend.collapsed .legend-title,
+    .map-legend.collapsed .legend-item {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    .legend-toggle {
+        position: absolute;
+        right: 4px;
+        top: 8px;
+        width: 20px;
+        height: 20px;
+        background-color: white;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+        z-index: 1001;
+        transition: transform 0.3s ease-in-out;
+        font-size: 0.7rem;
+    }
+    
+    .map-legend.collapsed .legend-toggle i {
+        transform: rotate(180deg);
+    }
+    
+    .legend-title {
+        font-weight: bold;
+        margin-bottom: 6px;
+        padding-right: 12px;
+        font-size: 0.8rem;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 3px;
+        padding: 2px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 0.75rem;
+    }
+    
+    .legend-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .legend-item.active {
+        background-color: rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+    }
+    
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 6px;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    
+    .map-help-popup .close-btn {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #666;
+        cursor: pointer;
+        line-height: 1;
+    }
+    
+    .tech-marker {
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        cursor: pointer;
+    }
+
+    /* Google Maps InfoWindow override to prevent wide info windows */
+    .gm-style .gm-style-iw-c {
+        max-width: 300px !important;
+        padding: 8px !important;
+    }
+    
+    /* Mobile-specific info window styling */
+    @media (max-width: 768px) {
+        .gm-style .gm-style-iw-c {
+            max-width: 240px !important;
+            padding: 4px !important;
+        }
+        
+        /* Reduce internal padding for info window content */
+        .gm-style-iw-d {
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+    }
+    
+    /* Fix dark mode text in info windows - force dark text on white background */
+    html[data-bs-theme="dark"] .gm-style-iw-c,
+    html[data-bs-theme="dark"] .gm-style-iw-d,
+    html[data-bs-theme="dark"] .gm-style-iw-tc,
+    html[data-bs-theme="dark"] .gm-style-iw {
+        background-color: white !important;
+    }
+    
+    html[data-bs-theme="dark"] .gm-style-iw-c *,
+    html[data-bs-theme="dark"] .gm-style-iw-d *,
+    html[data-bs-theme="dark"] .gm-style-iw *:not(.btn):not(.badge) {
+        color: #212529 !important; /* Bootstrap's default dark text color */
+    }
+    
+    /* Ensure headers and strong text are black */
+    html[data-bs-theme="dark"] .gm-style-iw h1,
+    html[data-bs-theme="dark"] .gm-style-iw h2,
+    html[data-bs-theme="dark"] .gm-style-iw h3,
+    html[data-bs-theme="dark"] .gm-style-iw h4,
+    html[data-bs-theme="dark"] .gm-style-iw h5,
+    html[data-bs-theme="dark"] .gm-style-iw h6,
+    html[data-bs-theme="dark"] .gm-style-iw strong,
+    html[data-bs-theme="dark"] .gm-style-iw b {
+        color: #000 !important;
+    }
+    
+    /* Ensure paragraphs and normal text are readable */
+    html[data-bs-theme="dark"] .gm-style-iw p,
+    html[data-bs-theme="dark"] .gm-style-iw div,
+    html[data-bs-theme="dark"] .gm-style-iw span:not(.badge) {
+        color: #212529 !important;
+    }
+    
+    /* Links should remain blue */
+    html[data-bs-theme="dark"] .gm-style-iw a:not(.btn) {
+        color: #0d6efd !important;
+    }
+    
+    /* Preserve button and badge colors */
+    html[data-bs-theme="dark"] .gm-style-iw .btn-primary {
+        color: white !important;
+        background-color: #0d6efd !important;
+    }
+    
+    html[data-bs-theme="dark"] .gm-style-iw .badge {
+        /* Let badges keep their original colors */
+    }
+    
+    /* Mobile Optimizations */
+    @media (max-width: 768px) {
+        /* Hide navigation for fullscreen mobile experience */
+        body > div:first-child {
+            display: none !important;
+        }
+        
+        /* Hide help button on mobile for cleaner interface */
+        .map-help-button {
+            display: none !important;
+        }
+        
+        .map-help-popup {
+            display: none !important;
+        }
+        
+        /* Mobile map search bar - Stays at the very top */
+        .map-search-bar {
+            top: 5px; 
+            left: 5px;
+            right: 5px;
+            width: calc(100% - 10px);
+            max-width: none;
+            transform: none;
+            z-index: 1002; 
+        }
+        
+        .map-search-bar form {
+            padding: 6px;
+        }
+        
+        .map-search-bar .form-control {
+            padding: 10px 16px;
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+        
+        .map-search-bar .btn {
+            width: 44px;
+            height: 44px;
+        }
+        
+        /* Mobile top navigation buttons (Back to Search, Technology) - Icon only */
+        .top-nav-buttons {
+            top: 75px; /* Increased again for more space below search bar */
+            left: 5px;
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; /* Increased gap */ 
+            z-index: 1001; 
+            width: 44px; /* Width for icon buttons */
+        }
+        
+        .top-nav-buttons .btn {
+            padding: 0; /* Remove padding if only icon */
+            font-size: 1.2rem; /* Icon size */
+            width: 44px; 
+            height: 44px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1; /* Ensure icon is centered */
+        }
+        
+        /* Mobile search info panel (Active/Inactive Toggle) */
+        .search-info-panel {
+            top: 75px; /* Align with top of Back to Search button */
+            right: 5px;
+            left: auto; 
+            width: auto; /* Fit content */
+            max-width: calc(100vw - 60px); /* Max width leaving space for left buttons */
+            padding: 6px 8px; 
+            font-size: 0.8rem; 
+            border-radius: 6px;
+            z-index: 1000;
+            display: flex; 
+            align-items: center;
+        }
+
+        /* Styling for the form-check within the panel to be horizontal */
+        .search-info-panel .form-check.form-switch {
+            display: flex; /* Lay out switch and label horizontally */
+            align-items: center; /* Vertically align items */
+            padding-left: 0; /* Remove default padding */
+            margin-bottom: 0; /* Remove default margin */
+            width: 100%; /* Take full width of the panel */
+            justify-content: space-between; /* Space out switch and label if panel is wider */
+        }
+
+        .search-info-panel .form-check-input {
+            margin-left: 0; /* Remove default left margin */
+            margin-right: 8px; /* Space between switch and label */
+            /* Ensure proper scaling if needed, but Bootstrap usually handles this */
+        }
+
+        .search-info-panel .form-check-label {
+            font-size: 0.8rem; 
+            margin-bottom: 0; /* Remove Bootstrap default margin */
+            white-space: nowrap; /* Prevent label from wrapping */
+        }
+
+        /* All specific elements have been removed from search-info-panel */
+
+        /* Ensure the toggle container itself is visible and styled */
+        .search-info-panel .mt-3.pt-2.border-top {
+            margin-top: 0 !important; 
+            padding-top: 0 !important; 
+            border-top: none !important; 
+            width: 100%; 
+        }
+        
+        /* Mobile legend positioning - Below Technology button, fits content */
+        .map-legend {
+            top: auto; /* JS will set this */
+            left: 5px; 
+            right: auto; 
+            bottom: auto;
+            width: auto; 
+            max-width: calc(100vw - 70px); /* Max width, leaving space on right for other elements */
+            padding: 8px;
+            max-height: 50vh;  
+            overflow-y: auto;
+            margin-top: 5px; 
+            position: fixed; 
+            z-index: 999;
+            background-color: rgba(255, 255, 255, 0.92); /* Slightly more opaque for better readability */
+            backdrop-filter: blur(6px); 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2); 
+            transition: width 0.3s ease-in-out, height 0.3s ease-in-out, padding 0.3s ease-in-out; /* Add transitions */
+        }
+        
+        .map-legend.collapsed {
+            width: 48px; 
+            max-height: 55px; 
+            padding: 4px;
+            overflow: visible; /* Allow toggle to be visible if slightly outside */
+            border: 1px solid #ddd; 
+        }
+        
+        .map-legend.collapsed #legend-items {
+            display: flex;
+            flex-wrap: wrap; 
+            justify-content: center; 
+            max-height: 24px; 
+            overflow: hidden;
+        }
+
+        .map-legend.collapsed .legend-item {
+            padding: 2px; 
+            margin: 1px;
+        }
+
+        .map-legend.collapsed .legend-item span { 
+            display: none !important; 
+        }
+
+        .map-legend.collapsed .legend-color {
+            width: 14px; 
+            height: 14px;
+            margin: 1px; 
+        }
+        
+        .legend-toggle {
+             display: flex; 
+             align-items: center;
+             justify-content: center;
+             position: absolute; 
+             width: calc(100% - 4px); /* Adjusted width for padding */
+             height: 22px; /* Slightly taller */
+             font-size: 1rem; /* Slightly larger icon */
+             border-radius: 3px;
+             background-color: #f0f0f0; 
+             border: 1px solid #ccc;
+             padding: 0;
+             cursor: pointer; 
+             box-sizing: border-box;
+        }
+        .legend-toggle i {
+            line-height: 1; 
+            color: #333; /* Ensure icon color is visible */
+        }
+        
+        /* Style for toggle in collapsed state */
+        .map-legend.collapsed .legend-toggle {
+            display: flex; /* Ensure it is visible when collapsed */
+            bottom: 2px; 
+            left: 50%;
+            transform: translateX(-50%); 
+            /* ... other existing styles for collapsed toggle ... */
+        }
+        
+        /* Hide toggle ONLY when legend is expanded and on mobile */
+        .map-legend:not(.collapsed) .legend-toggle {
+            display: none !important; 
+        }
+
+        /* Icons for toggle states will be handled by JavaScript adding/removing classes */
+
+        /* ... rest of mobile styles ... */
+        
+        .map-legend .legend-title {
+             display: none !important; /* Force hide "Technology Types" title on mobile */
+        }
+    }
+    
+    /* Small mobile phones */
+    @media (max-width: 480px) {
+        .top-nav-buttons {
+            top: 70px; /* Consistent with above, slightly less for smaller screens */
+        }
+        .search-info-panel {
+            top: 70px; 
+            max-width: calc(100vw - 55px);
+        }
+        .map-legend {
+            left: 3px;
+            max-width: calc(100vw - 50px);
+             /* top: JS will adjust */
+        }
+         .legend-item span { 
+            white-space: normal; /* Ensure wrap on very small screens */
+        }
+        .map-legend.collapsed {
+            width: 44px;
+            max-height: 50px;
+        }
+        .map-legend.collapsed .legend-color {
+            width: 12px;
+            height: 12px;
+        }
+    }
+    
+    /* Landscape mobile orientation */
+    @media (max-width: 768px) and (orientation: landscape) {
+        .top-nav-buttons {
+            top: 70px; /* Consistent spacing */
+        }
+        .search-info-panel {
+            top: 70px; 
+        }
+        .map-legend {
+            max-height: 40vh;
+        }
+    }
+    
+    /* Touch interaction improvements */
+    @media (hover: none) and (pointer: coarse) {
+        .legend-item {
+            min-height: 36px; 
+            display: flex;
+            align-items: center;
+        }
+        
+        .top-nav-buttons .btn {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        .legend-toggle {
+            min-width: 36px; 
+            min-height: 36px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block page_header %}
+    <!-- Fullscreen Map Container placed in page_header to bypass main container -->
+    <div id="map-container" class="position-relative">
+        <div id="map"></div>
+        <div id="loading-overlay">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <div id="map-status"></div>
+        
+        <!-- Top Navigation Buttons -->
+        <div class="top-nav-buttons">
+            <a href="{% url 'search_map_view' %}?{% if search_query %}q={{ search_query|urlencode }}&{% endif %}{% if status_filter and status_filter != 'all' %}status={{ status_filter }}&{% endif %}{% if auction_filter %}auction={{ auction_filter|urlencode }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}{% if sort_order %}sort_order={{ sort_order }}{% endif %}" 
+               class="btn btn-primary list-view-btn" 
+               title="Return to search results">
+                <i class="bi bi-arrow-left me-2"></i><span class="btn-text">Back to Search</span>
+            </a>
+            <a href="{% url 'map_view' %}" class="btn btn-outline-light" 
+               title="Technology selection map">
+                <i class="bi bi-gear-wide-connected"></i><span class="d-none d-md-inline"> Technology</span>
+            </a>
+        </div>
+        
+        <!-- Map Search Bar -->
+        <div class="map-search-bar">
+            <form id="mapSearchForm" class="d-flex">
+                <!-- Text Search Input -->
+                <input type="text" id="mapSearchInput" class="form-control" 
+                       placeholder="Search components, locations, technologies..." 
+                       value="{{ search_query }}"
+                       title="Search for components by name, location, technology, or company">
+                
+                <button type="submit" class="btn btn-primary" title="Search components">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Technology Legend -->
+        <div class="map-legend" id="map-legend">
+            <div class="legend-toggle" id="legend-toggle" title="Toggle Legend">
+                <i class="bi bi-chevron-right"></i>
+            </div>
+            <div class="legend-title">Technology Types</div>
+            <div id="legend-items">
+                <!-- Legend items will be added here dynamically -->
+            </div>
+        </div>
+        
+        <!-- Search results info panel -->
+        <div class="search-info-panel">
+            <!-- Active/Inactive toggle -->
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="active-toggle" checked>
+                <label class="form-check-label" for="active-toggle">
+                    Active
+                </label>
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- Map-specific Help Button -->
+    <button class="map-help-button" id="mapHelpBtn" title="Map Guide">
+        ?
+                </button>
+    
+    <!-- Map Help Popup -->
+    <div class="map-help-popup" id="mapHelpPopup">
+        <button class="close-btn" id="closeMapHelp">&times;</button>
+        <h5><i class="bi bi-map"></i> Map Guide</h5>
+        
+        <div class="mb-3">
+            <h6 class="mb-2">Technology Colors</h6>
+            <div class="tech-legend">
+                <div class="tech-color" style="background-color: #ff5252;"></div>
+                <small>Gas, OCGT, Reciprocating</small>
+                <div class="tech-color" style="background-color: #4caf50;"></div>
+                <small>Battery Storage</small>
+                <div class="tech-color" style="background-color: #f57c00;"></div>
+                <small>DSR (Demand Side Response)</small>
+                <div class="tech-color" style="background-color: #29b6f6;"></div>
+                <small>Wind</small>
+                <div class="tech-color" style="background-color: #fdd835;"></div>
+                <small>Solar</small>
+                <div class="tech-color" style="background-color: #8bc34a;"></div>
+                <small>Biomass</small>
+                <div class="tech-color" style="background-color: #0097a7;"></div>
+                <small>Hydro, Pumped Storage</small>
+                <div class="tech-color" style="background-color: #8d6e63;"></div>
+                <small>Nuclear</small>
+                <div class="tech-color" style="background-color: #5c6bc0;"></div>
+                <small>CHP</small>
+                <div class="tech-color" style="background-color: #9c27b0;"></div>
+                <small>Interconnector</small>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <h6 class="mb-2">Map Features</h6>
+            <ul class="list-unstyled small">
+                <li><i class="bi bi-circle-fill me-2"></i>Click markers for component details</li>
+                <li><i class="bi bi-layers me-2"></i>Larger markers = multiple components</li>
+                <li><i class="bi bi-calendar me-2"></i>Toggle active/inactive years</li>
+                <li><i class="bi bi-zoom-in me-2"></i>Zoom and pan to explore</li>
+            </ul>
+        </div>
+        
+        <div class="mb-3">
+            <h6 class="mb-2">Navigation</h6>
+            <ul class="list-unstyled small">
+                <li><i class="bi bi-arrow-left me-2"></i><strong>Back to Search:</strong> Return to results</li>
+                <li><i class="bi bi-globe me-2"></i><strong>Full Map:</strong> Explore all components</li>
+            </ul>
+        </div>
+        
+        <div class="small text-muted" id="help-status">
+            {% if search_query %}
+                <span id="help-result-count">0</span> components shown from your search for "<span id="help-search-query">{{ search_query }}</span>"
+            {% else %}
+                Select a technology from the legend to view components, or use the search bar to find specific components
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Hidden fields for page load data -->
+    <input type="hidden" id="search-query-input" value="{{ search_query }}">
+{% endblock %}
+
+{% block content %}
+    <!-- Override content block to be empty for fullscreen map -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Constants for the map - Carefully adjusted center coordinates
+    const UK_CENTER = { lat: 54.00366, lng: -2.547855 }; // Centered on UK
+    const ENGLAND_CENTER = { lat: 52.5, lng: -1.8 }; // More centered on England
+    // Ensure the coordinates are exact for proper centering
+    const EXACT_UK_CENTER = { lat: 55.378051, lng: -3.435973 }; // Precise UK center
+    const UK_BOUNDS = {
+        north: 58.7, // Northern Scotland
+        south: 50.0, // Southern England
+        west: -8.2,  // Western Ireland
+        east: 1.8    // Eastern England
+    };
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+    
+    // Global variables
+    let map, infoWindow, markers = [];
+    let markerClusterer = null;
+    let allFeatures = []; // Store all features for filtering
+    
+    // Function to log debug messages
+    function log(message) {
+        console.log(message);
+        const debugOutput = document.getElementById('debug-output');
+        if (debugOutput) {
+            debugOutput.innerHTML = message + '<br>' + debugOutput.innerHTML;
+            
+            // Trim log if too long
+            if (debugOutput.innerHTML.length > 1000) {
+                debugOutput.innerHTML = debugOutput.innerHTML.substring(0, 1000) + '...';
+            }
+        }
+    }
+    
+    // Function to show status message
+    function showStatus(message, duration = 0) {
+        const statusEl = document.getElementById('map-status');
+        if (!statusEl) return;
+        
+        statusEl.textContent = message;
+        statusEl.style.display = 'block';
+        
+        if (duration > 0) {
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, duration);
+        }
+    }
+    
+    // Function to initialize the technology legend based on available technologies
+    function initLegend(availableTechnologies = []) {
+        const legendItems = document.getElementById('legend-items');
+        const legendToggle = document.getElementById('legend-toggle');
+        const mapLegend = document.getElementById('map-legend');
+        
+        if (!legendItems || !legendToggle || !mapLegend) return;
+        
+        legendItems.innerHTML = ''; // Clear existing
+        
+        // Get unique technology categories from available technologies
+        const availableCategories = new Set();
+        availableTechnologies.forEach(tech => {
+            const category = determineCategory(tech);
+            if (category !== 'Unknown') {
+                availableCategories.add(category);
+            }
+        });
+        
+        // Convert to sorted array
+        const sortedCategories = Array.from(availableCategories).sort();
+        
+        // Only show legend if we have multiple technologies or want to show filtering options
+        if (sortedCategories.length === 0) {
+            mapLegend.style.display = 'none';
+            return;
+        } else {
+            mapLegend.style.display = 'block';
+        }
+        
+        // No "All Technologies" option in dynamic legend - it's now a standalone button
+        
+        // Add individual technology items for available categories only
+        sortedCategories.forEach(tech => {
+            const color = techColors[tech];
+            if (!color) return; // Skip if no color defined
+            
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            item.dataset.technology = tech;
+            item.innerHTML = `
+                <div class="legend-color" style="background-color: ${color};"></div>
+                <span>${tech}</span>
+            `;
+            item.addEventListener('click', () => {
+                // Filter by technology - add tech parameter to URL
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('tech', tech);
+                window.location.href = newUrl.toString();
+            });
+            legendItems.appendChild(item);
+        });
+        
+        // Update active state based on current URL
+        updateLegendActiveState();
+        
+        // Setup toggle functionality (only once)
+        if (!legendToggle.hasAttribute('data-initialized')) {
+            legendToggle.addEventListener('click', () => {
+                mapLegend.classList.toggle('collapsed');
+                const icon = legendToggle.querySelector('i'); 
+                if (icon) { 
+                    if (mapLegend.classList.contains('collapsed')) {
+                        legendToggle.title = 'Expand Legend';
+                        icon.className = 'bi bi-chevron-right'; // Point right when collapsed
+                    } else {
+                        legendToggle.title = 'Collapse Legend';
+                        icon.className = 'bi bi-chevron-left'; // Point left when expanded
+                    }
+                }
+            });
+            legendToggle.setAttribute('data-initialized', 'true');
+            // Set initial state of toggle icon
+            const initialIcon = legendToggle.querySelector('i');
+            if (initialIcon) {
+                initialIcon.className = mapLegend.classList.contains('collapsed') ? 'bi bi-chevron-right' : 'bi bi-chevron-left';
+            }
+            legendToggle.title = mapLegend.classList.contains('collapsed') ? 'Expand Legend' : 'Collapse Legend';
+        }
+    }
+    
+    // Function to update legend active state based on URL parameters
+    function updateLegendActiveState() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentTech = urlParams.get('tech');
+        
+        // Remove active class from all items
+        document.querySelectorAll('.legend-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Set active state
+        if (currentTech) {
+            // Specific tech filter - activate that technology
+            const techItem = document.querySelector(`.legend-item[data-technology="${currentTech}"]`);
+            if (techItem) techItem.classList.add('active');
+        }
+        // No active state needed when no tech filter - All Technologies button handles reset
+    }
+    
+    // Function to initialize full technology legend (like main map)
+    function initFullTechnologyLegend() {
+        const legendItems = document.getElementById('legend-items');
+        const legendToggle = document.getElementById('legend-toggle');
+        const mapLegend = document.getElementById('map-legend');
+        
+        if (!legendItems || !legendToggle || !mapLegend) return;
+        
+        legendItems.innerHTML = ''; // Clear existing
+        mapLegend.style.display = 'block';
+        
+        // All available technologies
+        const allTechnologies = Object.keys(techColors).filter(tech => tech !== 'Unknown');
+        
+        // No "All Technologies" option in legend - it's now a standalone button
+        
+        // Add individual technology items
+        allTechnologies.forEach(tech => {
+            const color = techColors[tech];
+            if (!color) return;
+            
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            item.dataset.technology = tech;
+            item.innerHTML = `
+                <div class="legend-color" style="background-color: ${color};"></div>
+                <span>${tech}</span>
+            `;
+            item.addEventListener('click', () => {
+                // Set technology filter
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('tech', tech);
+                newUrl.searchParams.delete('q'); // Clear search query
+                window.location.href = newUrl.toString();
+            });
+            legendItems.appendChild(item);
+        });
+        
+        // Update active state
+        updateLegendActiveState();
+        
+        // Setup toggle functionality (only once)
+        if (!legendToggle.hasAttribute('data-initialized')) {
+            legendToggle.addEventListener('click', () => {
+                mapLegend.classList.toggle('collapsed');
+                const icon = legendToggle.querySelector('i'); 
+                if (icon) { 
+                    if (mapLegend.classList.contains('collapsed')) {
+                        legendToggle.title = 'Expand Legend';
+                        icon.className = 'bi bi-chevron-right'; // Point right when collapsed
+                    } else {
+                        legendToggle.title = 'Collapse Legend';
+                        icon.className = 'bi bi-chevron-left'; // Point left when expanded
+                    }
+                }
+            });
+            legendToggle.setAttribute('data-initialized', 'true');
+            // Set initial state of toggle icon
+            const initialIcon = legendToggle.querySelector('i');
+            if (initialIcon) {
+                initialIcon.className = mapLegend.classList.contains('collapsed') ? 'bi bi-chevron-right' : 'bi bi-chevron-left';
+            }
+            legendToggle.title = mapLegend.classList.contains('collapsed') ? 'Expand Legend' : 'Collapse Legend';
+        }
+    }
+    
+    // Function to load all components of a specific technology
+    function loadTechnologyResults(technology) {
+        // Show loading state
+        showStatus("Loading components...");
+        document.getElementById('loading-overlay').style.display = 'flex';
+        
+        // Get active toggle state
+        const activeToggle = document.getElementById('active-toggle');
+        const showActive = activeToggle ? activeToggle.checked : true;
+        
+        // Construct API URL for technology search with active filter
+        const apiUrl = `/api/search-geojson/?tech=${encodeURIComponent(technology)}&show_active=${showActive}`;
+        console.log(`[DEBUG] loadTechnologyResults called with tech: ${technology}, show_active: ${showActive}`);
+        console.log(`[DEBUG] API URL: ${apiUrl}`);
+        log(`Fetching technology results from: ${apiUrl}`);
+        
+        const startTime = Date.now();
+        
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const endTime = Date.now();
+                const duration = ((endTime - startTime) / 1000).toFixed(3);
+                
+                // Hide loading overlay
+                document.getElementById('loading-overlay').style.display = 'none';
+                
+                log(`Received ${data.features.length} features out of ${data.metadata.total} results (${duration}s)`);
+                
+                if (!data.features || data.features.length === 0) {
+                    showStatus(`No ${technology} components found`, 3000);
+                    return;
+                }
+                
+                // Store all features
+                allFeatures = data.features;
+                
+                // No UI elements to update - they've been removed
+                
+                // Initialize legend with just this technology
+                initLegend([technology]);
+                
+                // Create markers directly - no client-side filtering needed
+                createMarkersFromFeatures(data.features);
+                
+                showStatus(`Loaded ${data.features.length} ${technology} locations`, 2000);
+                
+            })
+            .catch(error => {
+                console.error('Error loading technology results:', error);
+                document.getElementById('loading-overlay').style.display = 'none';
+                showStatus("Error loading components. Please try again.", 5000);
+                
+                // Hide legend when there's an error
+                const mapLegend = document.getElementById('map-legend');
+                if (mapLegend) {
+                    mapLegend.style.display = 'none';
+                }
+            });
+    }
+    
+    // Function to update help status based on current state
+    function updateHelpStatus() {
+        const helpStatus = document.getElementById('help-status');
+        if (!helpStatus) return;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQuery = urlParams.get('q');
+        const techFilter = urlParams.get('tech');
+        
+        if (searchQuery) {
+            // Text search mode
+            const helpResultCount = document.getElementById('help-result-count');
+            const helpSearchQuery = document.getElementById('help-search-query');
+            
+            if (helpResultCount) helpResultCount.textContent = markers.length;
+            if (helpSearchQuery) helpSearchQuery.textContent = searchQuery;
+            
+            helpStatus.innerHTML = `<span id="help-result-count">${markers.length}</span> components shown from your search for "<span id="help-search-query">${searchQuery}</span>"`;
+        } else if (techFilter) {
+            // Technology filter mode
+            helpStatus.innerHTML = `<span>${markers.length}</span> ${techFilter} components shown. Select another technology from the legend or search for specific components.`;
+        } else {
+            // Initial state - no filters
+            helpStatus.innerHTML = 'Select a technology from the legend to view components, or use the search bar to find specific components';
+        }
+    }
+    
+    // Clear all markers
+    function clearMarkers() {
+        // Clear existing markers
+        markers.forEach(marker => {
+            if (marker) marker.map = null;
+        });
+        markers = [];
+        
+        // Clear clusterer if present
+        if (markerClusterer) {
+            if (typeof markerClusterer.clearMarkers === 'function') {
+                markerClusterer.clearMarkers();
+            } else if (typeof markerClusterer.clear === 'function') {
+                markerClusterer.clear();
+            }
+        }
+    }
+    
+    // Technology color mapping - aligned with main map
+    const techColors = {
+        'Gas': '#ff5252',                // Red
+        'DSR': '#f57c00',                // Orange
+        'Nuclear': '#8d6e63',            // Brown
+        'CHP': '#5c6bc0',                // Indigo
+        'Solar': '#fdd835',              // Yellow
+        'Wind': '#29b6f6',               // Light Blue
+        'Battery': '#4caf50',            // Green
+        'Biomass': '#8bc34a',            // Light Green
+        'Hydro': '#0097a7',              // Teal
+        'Interconnector': '#9c27b0',     // Purple (merged Interconnector/Interconnection)
+        'Coal': '#424242',               // Dark Grey
+        'Unknown': '#757575'             // Grey
+    };
+    
+    // Helper function to determine simplified category for a technology name
+    function determineCategory(techName) {
+        const lowerTech = techName.toLowerCase();
+        
+        // Interconnector types
+        const interconnectorTypes = [
+            'britned', 'eleclink', 'ewic', 'greenlink', 
+            'ifa', 'ifa2', 'moyle', 'nemo', 'neuconnect', 
+            'nsl', 'vikinglink', 'ireland', 'france', 
+            'belgium', 'norway', 'denmark', 'netherlands', 'germany'
+        ];
+        
+        if (lowerTech.includes('interconnector') || lowerTech.includes('interconnection') ||
+            interconnectorTypes.some(type => lowerTech.includes(type))) {
+            return 'Interconnector';
+        } else if (lowerTech.includes('battery') || (lowerTech.includes('storage') && !lowerTech.includes('pumped'))) {
+            return 'Battery';
+        } else if (lowerTech.includes('wind')) {
+            return 'Wind';
+        } else if (lowerTech.includes('solar') || lowerTech.includes('photovoltaic')) {
+            return 'Solar';
+        } else if (lowerTech.includes('gas') || lowerTech.includes('ocgt') || lowerTech.includes('ccgt') || 
+                  lowerTech.includes('reciprocating') || lowerTech.includes('engines') || 
+                  lowerTech.includes('oil-fired')) {
+            return 'Gas';
+        } else if (lowerTech.includes('nuclear')) {
+            return 'Nuclear';
+        } else if (lowerTech.includes('hydro')) {
+            return 'Hydro';
+        } else if (lowerTech.includes('chp') || lowerTech.includes('combined heat')) {
+            return 'CHP';
+        } else if (lowerTech.includes('biomass') || lowerTech.includes('waste')) {
+            return 'Biomass';
+        } else if (lowerTech.includes('coal')) {
+            return 'Coal';
+        } else if (lowerTech.includes('dsr')) {
+            return 'DSR';
+        } else {
+            return 'Unknown';
+        }
+    }
+    
+    // Function to get marker color based on technology
+    function getTechnologyColor(technology) {
+        if (!technology) return techColors['Unknown'];
+        
+        // Use the determineCategory function to get the simplified technology type
+        const category = determineCategory(technology);
+        return techColors[category] || techColors['Unknown'];
+    }
+    
+    // Function to filter markers by active status
+    function filterMarkersByYear(showActiveOnly) {
+        // Simply reload data with the new filter
+        loadSearchResults();
+    }
+    
+    // Simple function to create markers from features
+    function createMarkersFromFeatures(features) {
+        // Clear existing markers
+        clearMarkers();
+        
+        // Create markers for all features
+        const processedMarkers = [];
+        features.forEach(feature => {
+            try {
+                const marker = createMarker(feature);
+                if (marker) {
+                    processedMarkers.push(marker);
+                }
+            } catch (error) {
+                console.error("Error processing marker:", error);
+            }
+        });
+        
+        // Update markers array
+        markers = processedMarkers;
+        
+        // Update marker count in help if available
+        const markerCountEl = document.getElementById('help-result-count');
+        if (markerCountEl) {
+            markerCountEl.textContent = markers.length;
+        }
+        
+        // Update help status for technology filtering
+        updateHelpStatus();
+        
+        // Add markers to clusterer
+        if (markerClusterer && markers.length > 0) {
+            if (typeof markerClusterer.add === 'function') {
+                markerClusterer.add(markers);
+            }
+        }
+        
+        // Fit map to bounds of filtered markers if there are any
+        if (markers.length > 0) {
+            const bounds = new google.maps.LatLngBounds();
+            markers.forEach(marker => {
+                bounds.extend(marker.position);
+            });
+            map.fitBounds(bounds);
+            
+            // Adjust zoom level for better viewing experience
+            const currentZoom = map.getZoom();
+            if (markers.length === 1) {
+                // For single marker, use a moderate zoom level
+                map.setZoom(10);
+            } else if (currentZoom > 15) {
+                // For small areas with multiple markers, don't zoom in too much
+                map.setZoom(15);
+            } else if (currentZoom < 5) {
+                // For very large areas, don't zoom out too much
+                map.setZoom(5);
+            }
+        }
+    }
+    
+    // Helper function to create mobile-optimized info window content
+    function createInfoWindowContent(props) {
+        const isMobile = window.innerWidth <= 768;
+        const fontSize = isMobile ? '9px' : '10px';
+        const titleSize = isMobile ? '11px' : '12px';
+        const marginBottom = isMobile ? '2px' : '4px';
+        const linkMarginTop = isMobile ? '4px' : '8px';
+        
+        let content = `<div style="max-width: ${isMobile ? '240px' : '300px'};">`;
+        
+        // Title
+        content += `<h5 style="font-size: ${titleSize}; margin-bottom: ${isMobile ? '4px' : '8px'};">${props.title || 'Location'}</h5>`;
+        
+        // Description in italic if available
+        if (props.description && props.description !== 'Unknown') {
+            content += `<p style="font-size: ${fontSize}; margin-bottom: ${marginBottom}; font-style: italic;">${props.description}</p>`;
+        }
+        
+        // Capacity display if available
+        if (props.capacity_display) {
+            content += `<p style="font-size: ${fontSize}; margin-bottom: ${marginBottom}; font-weight: bold;">${props.capacity_display}</p>`;
+        }
+        
+        // Technology display - show all if multiple
+        if (props.all_technologies && Object.keys(props.all_technologies).length > 1) {
+            const techList = Object.entries(props.all_technologies)
+                .sort((a, b) => b[1] - a[1]) // Sort by count descending
+                .slice(0, 3)
+                .map(([tech, count]) => `${tech} (${count})`)
+                .join(', ');
+            const hasMore = Object.keys(props.all_technologies).length > 3;
+            content += `<p style="font-size: ${fontSize}; margin-bottom: ${marginBottom};">Technologies: ${techList}${hasMore ? '...' : ''}</p>`;
+        } else if (props.technology) {
+            content += `<p style="font-size: ${fontSize}; margin-bottom: ${marginBottom};">${props.technology}</p>`;
+        }
+        
+        // Company display - show dominant
+        if (props.company) {
+            content += `<p style="font-size: ${fontSize}; margin-bottom: ${marginBottom};">${props.company}</p>`;
+        }
+        
+        // Component count if multiple
+        if (props.component_count > 1) {
+            content += `<p style="font-size: ${fontSize}; margin-bottom: ${marginBottom}; color: #666;">${props.component_count} components</p>`;
+        }
+        
+        // Year display - show latest
+        let displayYear = '';
+        if (props.all_years && props.all_years.length > 0) {
+            displayYear = props.all_years[0];
+        } else if (props.auction_name) {
+            displayYear = props.auction_name;
+        }
+        
+        if (displayYear) {
+            const yearMatch = displayYear.match(/^\d{4}-\d{2}/);
+            const shortYear = yearMatch ? yearMatch[0] : displayYear;
+            content += `<p style="font-size: ${fontSize}; margin-bottom: ${marginBottom};">${shortYear}</p>`;
+        }
+        
+        // Active status indicator
+        if (props.is_active !== undefined) {
+            const statusText = props.is_active ? 'Active' : 'Inactive';
+            const statusColor = props.is_active ? '#28a745' : '#6c757d';
+            content += `<p style="font-size: ${fontSize}; margin-bottom: ${marginBottom}; color: ${statusColor}; font-weight: bold;">${statusText}</p>`;
+        }
+        
+        // More Details link
+        if (props.detailUrl) {
+            content += `<p style="font-size: ${fontSize}; margin-top: ${linkMarginTop}; margin-bottom: 0;"><a href="${props.detailUrl}" target="_blank" style="color: #0066cc; text-decoration: underline;">More Details</a></p>`;
+        }
+        
+        content += '</div>';
+        return content;
+    }
+    
+    // Function to create a marker for a feature using Advanced Markers
+    function createMarker(feature) {
+        const position = { 
+            lat: feature.geometry.coordinates[1], 
+            lng: feature.geometry.coordinates[0]
+        };
+        
+        // Get technology for styling
+        const technology = feature.properties.technology || 'Unknown';
+        const color = getTechnologyColor(technology);
+        
+        try {
+            // Create a custom element for the advanced marker
+            const markerElement = document.createElement('div');
+            markerElement.className = 'tech-marker';
+            
+            // Consistent marker size for all markers
+            const markerSize = 30;
+            
+            markerElement.style.width = `${markerSize}px`;
+            markerElement.style.height = `${markerSize}px`;
+            markerElement.style.backgroundColor = color;
+            markerElement.style.borderRadius = '50%';
+            markerElement.style.border = '2.5px solid white';
+            markerElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+            markerElement.style.cursor = 'pointer';
+            
+            
+            // Create the Advanced Marker
+            const marker = new google.maps.marker.AdvancedMarkerElement({
+                position: position,
+                content: markerElement,
+                title: feature.properties.title || '',
+                map: null // Will add to map via clusterer
+            });
+            
+            // Add click handler for info window
+            marker.addListener('gmp-click', () => {
+                const content = createInfoWindowContent(feature.properties);
+                infoWindow.setContent(content);
+                infoWindow.open(map, marker);
+            });
+            
+            // Add double-click zoom functionality
+            marker.addListener('gmp-dblclick', () => {
+                console.log('>>> Advanced marker double-click detected - zooming');
+                map.setCenter(marker.position);
+                map.setZoom(20); // Maximum zoom for very close inspection
+            });
+            
+            // Also add DOM double-click to the marker element as backup
+            markerElement.ondblclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('>>> DOM double-click on advanced marker element');
+                map.setCenter(marker.position);
+                map.setZoom(20); // Maximum zoom for very close inspection
+            };
+            
+            return marker;
+        } catch (error) {
+            console.error("Error creating advanced marker:", error);
+            
+            // Fallback to regular marker if advanced marker fails
+            const marker = new google.maps.Marker({
+                position: position,
+                map: null,
+                title: feature.properties.title || '',
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: color,
+                    fillOpacity: 0.9,
+                    strokeColor: '#FFFFFF',
+                    strokeWeight: 2,
+                    scale: 10
+                }
+            });
+            
+            // Add click handler for info window
+            marker.addListener('click', () => {
+                const content = createInfoWindowContent(feature.properties);
+                infoWindow.setContent(content);
+                infoWindow.open(map, marker);
+            });
+            
+            // Add double-click zoom functionality
+            marker.addListener('dblclick', () => {
+                console.log('>>> Regular marker double-click detected - zooming');
+                map.setCenter(marker.getPosition());
+                map.setZoom(20); // Maximum zoom for very close inspection
+            });
+            
+            return marker;
+        }
+    }
+    
+    // Function to load and display search results
+    function loadSearchResults() {
+        console.log('[DEBUG] loadSearchResults called');
+        const searchQuery = document.getElementById('mapSearchInput').value;
+        const urlParams = new URLSearchParams(window.location.search);
+        const techFilter = urlParams.get('tech');
+        console.log(`[DEBUG] searchQuery: "${searchQuery}", techFilter: "${techFilter}"`);
+        
+        // If no search query and no tech filter, show full technology legend like main map
+        if (!searchQuery && !techFilter) {
+            log("No search query or tech filter - showing full technology selection");
+            initFullTechnologyLegend(); // Show all technologies (using the full legend function)
+            showStatus("Select a technology from the legend to view components", 0);
+            document.getElementById('loading-overlay').style.display = 'none'; // Hide loading overlay
+            return;
+        }
+        
+        // If tech filter but no search query, load all components of that technology
+        if (!searchQuery && techFilter) {
+            console.log(`[DEBUG] Calling loadTechnologyResults with tech: ${techFilter}`);
+            log(`Loading all ${techFilter} components`);
+            loadTechnologyResults(techFilter);
+            return;
+        }
+        
+        // Show loading state
+        showStatus("Loading search results...");
+        document.getElementById('loading-overlay').style.display = 'flex';
+        
+        // Clear existing markers
+        clearMarkers();
+        
+        // Get active toggle state
+        const activeToggle = document.getElementById('active-toggle');
+        const showActive = activeToggle ? activeToggle.checked : true;
+        
+        // Fetch results from GeoJSON API
+        const url = `/api/search-geojson/?q=${encodeURIComponent(searchQuery)}&show_active=${showActive}`;
+        log(`Fetching results from: ${url}`);
+        
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                log(`Received ${data.features.length} features out of ${data.metadata.total} results (${data.metadata.processing_time})`);
+                
+                // Check for error in response
+                if (data.metadata.error) {
+                    // Display error message
+                    showStatus(data.metadata.error_message, 0); // 0 = permanent display
+                    
+                    // Note: search-stats element was removed, so just show status message
+                    // The error message is already shown via showStatus() above
+                    
+                    // No other UI elements to hide
+                    
+                    // Hide legend when there's an error
+                    const mapLegend = document.getElementById('map-legend');
+                    if (mapLegend) {
+                        mapLegend.style.display = 'none';
+                    }
+                    
+                    return; // Stop processing
+                }
+                
+                // No longer updating search stats UI elements as they've been removed
+                
+                
+                if (data.features.length === 0) {
+                    showStatus("No components with coordinates found", 3000);
+                    return;
+                }
+                
+                // Store all features
+                allFeatures = data.features;
+                
+                // Log metadata to verify we're using LocationGroup
+                console.log('GeoJSON API Response Metadata:', data.metadata);
+                if (data.features.length > 0) {
+                    console.log('Sample feature:', data.features[0]);
+                    console.log('Is using LocationGroup:', data.metadata.using_location_groups === true);
+                    console.log('First location is_active:', data.features[0].properties.is_active);
+                }
+                
+                // Extract available technologies for legend
+                const availableTechnologies = data.features.map(feature => 
+                    feature.properties.technology || 'Unknown'
+                ).filter(tech => tech !== 'Unknown');
+                
+                // Initialize legend with available technologies
+                initLegend([...new Set(availableTechnologies)]);
+                
+                // Create markers directly - filtering is done server-side
+                createMarkersFromFeatures(data.features);
+                
+                showStatus(`Found ${data.features.length} locations`, 2000);
+                
+                // Update marker count in help if available
+                const markerCountEl = document.getElementById('help-result-count');
+                if (markerCountEl) {
+                    markerCountEl.textContent = markers.length;
+                }
+                
+                // Add markers to clusterer if available
+                if (markerClusterer) {
+                    if (typeof markerClusterer.addMarkers === 'function') {
+                        markerClusterer.addMarkers(markers);
+                    } else if (typeof markerClusterer.add === 'function') {
+                        markerClusterer.add(markers);
+                    }
+                }
+                
+                // Fit map to bounds of all markers
+                if (markers.length > 0) {
+                    const bounds = new google.maps.LatLngBounds();
+                    markers.forEach(marker => {
+                        bounds.extend(marker.position);
+                    });
+                    map.fitBounds(bounds);
+                    
+                    // If only one marker or small area, adjust zoom level for better viewing
+                    const currentZoom = map.getZoom();
+                    if (markers.length === 1) {
+                        // For single marker, use a moderate zoom level
+                        map.setZoom(10);
+                    } else if (currentZoom > 15) {
+                        // For small areas with multiple markers, don't zoom in too much
+                        map.setZoom(15);
+                    } else if (currentZoom < 5) {
+                        // For very large areas, don't zoom out too much
+                        map.setZoom(5);
+                    }
+                }
+                
+                showStatus("Map updated.", 1500);
+            })
+            .catch(error => {
+                console.error('Error loading data:', error);
+                showStatus(`Error: ${error.message}`, 5000);
+            })
+            .finally(() => {
+                document.getElementById('loading-overlay').style.display = 'none';
+            });
+    }
+    
+    // Initialize the map
+    async function initMapInternal() {
+        console.log("Initializing map");
+        
+        try {
+            // Import necessary Google Maps libraries
+            const { Map } = await google.maps.importLibrary("maps");
+            let AdvancedMarkerElement;
+            
+            try {
+                // Try to load the marker library
+                const markerLibrary = await google.maps.importLibrary("marker");
+                AdvancedMarkerElement = markerLibrary.AdvancedMarkerElement;
+                console.log("Successfully loaded marker library");
+            } catch (markerError) {
+                console.error("Error loading marker library:", markerError);
+                // Will fall back to regular markers
+            }
+            // Create map with explicit UK-centered settings
+            map = new Map(document.getElementById('map'), {
+                center: EXACT_UK_CENTER, 
+                zoom: 5.5, 
+                mapId: 'b922aa76eabe8b6c',
+                streetViewControl: true,  // Enable street view control
+                zoomControl: true,
+                fullscreenControl: true, 
+                gestureHandling: 'greedy', 
+                // Conditionally disable some controls on smaller screens
+                mapTypeControl: true, // Enable map type control for night mode
+                ...(window.innerWidth <= 768 && {
+                    zoomControl: false,
+                    mapTypeControl: true, // Keep map type control enabled for night mode
+                    streetViewControl: true,  // Keep street view enabled on mobile too
+                    fullscreenControl: false, 
+                })
+            });
+            
+            // Force set viewport to UK only (not expanded) for accurate initial view
+            const ukBounds = new google.maps.LatLngBounds(
+                {lat: UK_BOUNDS.south, lng: UK_BOUNDS.west},
+                {lat: UK_BOUNDS.north, lng: UK_BOUNDS.east}
+            );
+            
+            // Set timeout to ensure the map is fully loaded before fitting bounds
+            setTimeout(() => {
+                map.fitBounds(ukBounds);
+                // After bounds are set, ensure a reasonable zoom level
+                google.maps.event.addListenerOnce(map, 'bounds_changed', () => {
+                    if (map.getZoom() > 6) {
+                        map.setZoom(6); // Cap initial zoom level
+                    }
+                });
+            }, 100);
+            
+            // Create info window for marker clicks
+            infoWindow = new google.maps.InfoWindow();
+            
+            // Setup marker management
+            markerClusterer = {
+                markers: [],
+                
+                add: function(newMarkers) {
+                    this.markers = newMarkers;
+                    
+                    // Add all markers to the map
+                    console.log(`Adding ${newMarkers.length} markers to map`);
+                    
+                    // For Advanced Markers we need to set the map property
+                    this.markers.forEach(marker => {
+                        try {
+                            if (marker instanceof google.maps.marker.AdvancedMarkerElement) {
+                                marker.map = map;
+                            } else if (marker instanceof google.maps.Marker) {
+                                marker.setMap(map);
+                            }
+                        } catch (e) {
+                            console.error("Error adding marker to map:", e);
+                            // Fallback for any marker type
+                            try {
+                                marker.map = map;
+                            } catch (e2) {
+                                try {
+                                    marker.setMap(map);
+                                } catch (e3) {
+                                    console.error("All methods failed to add marker to map:", e3);
+                                }
+                            }
+                        }
+                    });
+                    console.log(`Added ${newMarkers.length} markers to map`);
+                },
+                
+                clear: function() {
+                    // Remove all markers from the map
+                    console.log(`Clearing ${this.markers.length} markers`);
+                    
+                    this.markers.forEach(marker => {
+                        try {
+                            if (marker instanceof google.maps.marker.AdvancedMarkerElement) {
+                                marker.map = null;
+                            } else if (marker instanceof google.maps.Marker) {
+                                marker.setMap(null);
+                            }
+                        } catch (e) {
+                            console.error("Error removing marker from map:", e);
+                            // Fallback
+                            try {
+                                marker.map = null;
+                            } catch (e2) {
+                                try {
+                                    marker.setMap(null);
+                                } catch (e3) {
+                                    console.error("Failed to remove marker from map:", e3);
+                                }
+                            }
+                        }
+                    });
+                    this.markers = [];
+                }
+            };
+            
+            console.log("Using enhanced marker management");
+            
+            
+            // Set up active/inactive toggle handler
+            const activeToggle = document.getElementById('active-toggle');
+            if (activeToggle) {
+                activeToggle.addEventListener('change', () => {
+                    filterMarkersByYear(activeToggle.checked);
+                });
+            }
+            
+            // Load search results once map is ready
+            google.maps.event.addListenerOnce(map, 'idle', function() {
+                console.log("Map ready, loading search results");
+                loadSearchResults();
+            });
+            
+            return true;
+        } catch (error) {
+            console.error("Error initializing map:", error);
+            const mapContainer = document.getElementById('map-container');
+            if (mapContainer) {
+                mapContainer.innerHTML = `
+                    <div class="alert alert-danger p-3 m-3">
+                        Error initializing map: ${error.message}
+                        <br><br>
+                        <a href="javascript:history.back()" class="btn btn-outline-danger">
+                            <i class="bi bi-arrow-left"></i> Back to Results
+                        </a>
+                    </div>
+                `;
+            }
+            return false;
+        }
+    }
+    
+    // Wrapper for initMap to handle errors
+    async function initMap() {
+        try {
+            await initMapInternal();
+        } catch (error) {
+            console.error("Error in map initialization:", error);
+            const mapContainer = document.getElementById('map-container');
+            if (mapContainer) {
+                mapContainer.innerHTML = `
+                    <div class="alert alert-danger p-3 m-3">
+                        <h4>Error loading map</h4>
+                        <p>${error.message}</p>
+                        <a href="javascript:history.back()" class="btn btn-outline-danger mt-3">
+                            <i class="bi bi-arrow-left"></i> Back to Results
+                        </a>
+                    </div>
+                `;
+            }
+            // Hide loading spinner
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+    }
+    
+    // Set up global initialization function for Google Maps
+    window.initMap = initMap;
+    
+    // Map Search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchForm = document.getElementById('mapSearchForm');
+        const searchInput = document.getElementById('mapSearchInput');
+        const activeToggle = document.getElementById('active-toggle');
+        const activeToggleLabel = document.querySelector('label[for="active-toggle"]');
+
+        // Function to update the active toggle label
+        function updateActiveToggleLabel() {
+            if (activeToggle && activeToggleLabel) {
+                if (activeToggle.checked) {
+                    activeToggleLabel.textContent = 'Active';
+                } else {
+                    activeToggleLabel.textContent = 'Inactive';
+                }
+            }
+        }
+
+        // Initial label update
+        updateActiveToggleLabel();
+
+        // Update label on change
+        if (activeToggle) {
+            activeToggle.addEventListener('change', updateActiveToggleLabel);
+        }
+        
+        // Function to adjust legend position on mobile
+        function adjustMobileLegendPosition() {
+            if (window.innerWidth <= 768) {
+                const topNavButtons = document.querySelector('.top-nav-buttons');
+                const mapLegend = document.querySelector('.map-legend');
+                
+                if (topNavButtons && mapLegend) {
+                    const techButton = topNavButtons.querySelector('.btn:nth-child(2)');
+                    
+                    if (techButton) {
+                        const techButtonRect = techButton.getBoundingClientRect();
+                        const techButtonBottom = techButtonRect.bottom; 
+                        
+                        mapLegend.style.top = (techButtonBottom + 5) + 'px';
+                        mapLegend.style.left = techButtonRect.left + 'px'; 
+                    } else {
+                        const navRect = topNavButtons.getBoundingClientRect();
+                        mapLegend.style.top = (navRect.bottom + 5) + 'px';
+                        mapLegend.style.left = navRect.left + 'px';
+                    }
+                } else {
+                    if (mapLegend) {
+                         mapLegend.style.top = '110px'; 
+                         mapLegend.style.left = '5px';
+                    }
+                }
+            }
+        }
+        
+        setTimeout(adjustMobileLegendPosition, 200); 
+        window.addEventListener('resize', adjustMobileLegendPosition);
+        if (activeToggle) {
+            activeToggle.addEventListener('change', () => setTimeout(adjustMobileLegendPosition, 50));
+        }
+        
+        if (searchForm && searchInput) {
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const query = searchInput.value.trim();
+                if (query) {
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('q', query);
+                    newUrl.searchParams.delete('tech'); 
+                    window.location.href = newUrl.toString();
+                } else {
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('q');
+                    newUrl.searchParams.delete('tech');
+                    window.location.href = newUrl.toString();
+                }
+            });
+        }
+    });
+    
+    // Technologies and Companies buttons are now links, no JavaScript needed
+    
+    // Map Help functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const helpBtn = document.getElementById('mapHelpBtn');
+        const helpPopup = document.getElementById('mapHelpPopup');
+        const closeBtn = document.getElementById('closeMapHelp');
+        
+        if (helpBtn && helpPopup && closeBtn) {
+            // Show help popup
+            helpBtn.addEventListener('click', function() {
+                helpPopup.classList.add('show');
+                
+                // Update dynamic content - result count will be updated when map loads
+            });
+            
+            // Hide help popup
+            closeBtn.addEventListener('click', function() {
+                helpPopup.classList.remove('show');
+            });
+            
+            // Hide popup when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!helpPopup.contains(event.target) && !helpBtn.contains(event.target)) {
+                    helpPopup.classList.remove('show');
+                }
+            });
+        }
+    });
+</script>
+
+<!-- Load Google Maps API with proper libraries -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap&libraries=places,marker&v=weekly"></script>
+{% endblock %}

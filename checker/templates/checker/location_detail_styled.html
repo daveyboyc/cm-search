@@ -1,0 +1,676 @@
+{% extends "checker/base.html" %}
+{% load humanize %}
+{% load checker_tags %}
+{% load static %}
+
+{% block title %}{{ location_group.location }}{% endblock %}
+
+{% block meta_description %}{{ location_group.location }} capacity market site: {{ location_group.component_count }} components, {{ location_group.get_display_capacity }}. Technologies: {{ location_group.get_primary_technology }}. Company: {{ location_group.get_primary_company }}.{% endblock %}
+
+{% block og_title %}{{ location_group.location }} | UK Capacity Market{% endblock %}
+{% block og_description %}Capacity market location with {{ location_group.component_count }} components generating {{ location_group.get_display_capacity }} of electricity capacity.{% endblock %}
+
+{% block body_class %}has-universal-navbar{% endblock %}
+
+{% block page_header %}
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+{% endblock %}
+
+{% block extra_head %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="View all capacity market components at {{ location_group.location }}, including {{ location_group.component_count }} components across multiple technologies and companies.">
+    
+    {% if structured_data %}
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {{ structured_data|safe }}
+    </script>
+    {% endif %}
+    <style>
+        /* Match component detail page styling */
+        .page-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .back-link {
+            text-decoration: none;
+            color: var(--bs-secondary-color);
+        }
+        .back-link:hover {
+            text-decoration: underline;
+            color: var(--bs-emphasis-color);
+        }
+        .component-card {
+            background-color: var(--bs-card-bg);
+            border-radius: var(--bs-card-border-radius);
+            border: var(--bs-card-border-width) solid var(--bs-card-border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            padding: 16px;
+        }
+        .detail-section {
+            margin-bottom: 24px;
+        }
+        .detail-title {
+            color: var(--bs-primary);
+            border-bottom: 1px solid var(--bs-border-color-translucent);
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
+        .detail-item {
+            margin-bottom: 12px;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: var(--bs-secondary-color);
+        }
+        .detail-value {
+            margin-left: 8px;
+            color: var(--bs-body-color);
+        }
+        .location-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            justify-content: space-between;
+        }
+        .location-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--bs-primary);
+            line-height: 1.2;
+            max-width: 85%;
+        }
+        .badges-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .component-count-badge {
+            font-size: 1rem;
+            padding: 6px 12px;
+            font-weight: bold;
+            background-color: #6f42c1;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .map-button {
+            background-color: #34a853;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .map-button:hover {
+            background-color: #288941;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .list-group-item {
+            background-color: var(--bs-list-group-bg);
+            color: var(--bs-list-group-color);
+            border-color: var(--bs-list-group-border-color);
+        }
+        .card-header {
+            background-color: var(--bs-card-cap-bg);
+            color: var(--bs-card-cap-color);
+            border-bottom: var(--bs-card-border-width) solid var(--bs-card-border-color);
+        }
+        .cmu-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .cmu-link-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .cmu-link-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            background-color: #0b5ed7;
+            color: white;
+            text-decoration: none;
+        }
+        .auction-link-btn {
+            margin: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .auction-link-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .component-subsection {
+            margin-bottom: 30px;
+            padding-left: 0;
+        }
+        .subsection-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #000;
+        }
+        .technology-badge {
+            background-color: var(--bs-info);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .company-badge {
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .company-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            text-decoration: none;
+        }
+        
+        /* Dark mode support */
+        html[data-bs-theme="dark"] .component-card,
+        html[data-bs-theme="dark"] .card,
+        html[data-bs-theme="dark"] .card-header,
+        html[data-bs-theme="dark"] .list-group-item {
+            background-color: transparent !important;
+        }
+        
+        .map-info-panel {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            height: 100%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        html[data-bs-theme="dark"] .map-info-panel {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .map-info-panel h4 {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        
+        html[data-bs-theme="dark"] .map-info-panel h4 {
+            color: #f8f9fa;
+        }
+        
+        .info-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 0.95rem;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        html[data-bs-theme="dark"] .info-item {
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .info-item i {
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .map-info-panel {
+                margin-bottom: 20px;
+            }
+        }
+        
+        .fullscreen-toggle {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .fullscreen-toggle:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+        
+        html[data-bs-theme="dark"] .fullscreen-toggle {
+            background: #495057;
+            border-color: #6c757d;
+            color: #f8f9fa;
+        }
+        
+        html[data-bs-theme="dark"] .fullscreen-toggle:hover {
+            background: #5a6268;
+        }
+        
+        .map-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: white;
+        }
+        
+        .map-container.fullscreen #map {
+            height: 100% !important;
+            border-radius: 0 !important;
+        }
+        
+        html[data-bs-theme="dark"] .map-container.fullscreen {
+            background: #212529;
+        }
+        
+        html[data-bs-theme="dark"] .subsection-title {
+            color: #f8f9fa;
+        }
+        
+        /* Google Maps InfoWindow dark mode styling */
+        html[data-bs-theme="dark"] .gm-style .gm-style-iw-c {
+            background-color: #2d3748 !important;
+            color: #ffffff !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style .gm-style-iw-t::after {
+            background: #2d3748 !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style .gm-style-iw-tc::after {
+            background: #2d3748 !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style .gm-style-iw-d {
+            color: #ffffff !important;
+        }
+        
+        /* Google Maps controls dark mode styling */
+        html[data-bs-theme="dark"] .gm-style .gm-style-cc {
+            background-color: #2d3748 !important;
+            color: #ffffff !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style .gm-style-cc a {
+            color: #60a5fa !important;
+        }
+        
+        /* Map type control buttons */
+        html[data-bs-theme="dark"] .gm-style .gm-style-mtc {
+            background-color: #2d3748 !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style button {
+            background-color: #4a5568 !important;
+            color: #ffffff !important;
+            border-color: #718096 !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style button:hover {
+            background-color: #718096 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <a href="{% url 'search_map_view' %}" class="back-link">
+            <i class="bi bi-arrow-left"></i> Back to Search
+        </a>
+    </div>
+
+    <div class="component-card">
+        <div class="location-header">
+            <span class="location-text">{{ location_group.location }}</span>
+            <div class="content-freshness">
+                <small class="text-muted">
+                    <i class="bi bi-clock me-1"></i>Last updated: {% now "d M Y H:i" %} UTC
+                </small>
+            </div>
+        </div>
+        
+        <div class="badges-row">
+            <span class="badge component-count-badge">
+                <i class="bi bi-collection-fill me-1"></i> {{ location_group.component_count }} Component{{ location_group.component_count|pluralize }}
+            </span>
+            
+            {% if location_group.technologies %}
+                {% for tech, count in location_group.technologies.items %}
+                    <span class="badge technology-badge">
+                        <i class="bi bi-gear-fill me-1"></i> {{ tech }}
+                    </span>
+                {% endfor %}
+            {% endif %}
+            
+            {% if primary_company %}
+                <a href="{% url 'company_detail_map' company_name=primary_company %}" class="badge bg-success company-badge">
+                    <i class="bi bi-building me-1"></i> {{ primary_company }}
+                </a>
+            {% endif %}
+        </div>
+
+        {# Map Section with Location Info #}
+        {% if location_group.latitude and location_group.longitude %}
+        <div class="detail-section">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="map-info-panel">
+                        <div class="info-item mb-3">
+                            <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
+                            <strong>Total Capacity:</strong> 
+                            {% if location_group.displayed_capacity_mw > 0 %}
+                                {{ location_group.displayed_capacity_mw|floatformat:2 }} MW
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                        <div class="info-item mb-3">
+                            <i class="bi bi-collection-fill text-success me-2"></i>
+                            <strong>Components:</strong> {{ location_group.component_count }}
+                        </div>
+                        <div class="info-item mb-3">
+                            <i class="bi bi-gear-fill text-info me-2"></i>
+                            <strong>Technologies:</strong><br>
+                            <span class="ms-4 text-muted">
+                                {% if location_group.technologies %}
+                                    {% for tech, count in location_group.technologies.items %}
+                                        {{ tech }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-tag-fill text-secondary me-2"></i>
+                            <strong>Unique CMUs:</strong> {{ location_group.cmu_ids|cmu_count }}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="map-container" style="position: relative;">
+                        <div id="map" style="height: 400px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+                        <button id="fullscreen-btn" class="btn btn-sm btn-light fullscreen-toggle" title="Toggle fullscreen">
+                            <i class="bi bi-fullscreen"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        {# Secondary Trading Contact Information #}
+        {% if trading_emails or trading_phones %}
+        <div class="detail-section">
+            <h3 class="detail-title">Secondary Trading Contacts</h3>
+            <div class="card mb-3">
+                <div class="card-header">Contact Information</div>
+                <ul class="list-group list-group-flush">
+                    {% if trading_emails %}
+                    <li class="list-group-item">
+                        <span class="fw-bold">Email{{ trading_emails|length|pluralize }}:</span>
+                        <div class="mt-2">
+                            {% for email in trading_emails %}
+                                <a href="mailto:{{ email }}" class="d-block mb-1">{{ email }}</a>
+                            {% endfor %}
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% if trading_phones %}
+                    <li class="list-group-item">
+                        <span class="fw-bold">Phone{{ trading_phones|length|pluralize }}:</span>
+                        <div class="mt-2">
+                            {% for phone in trading_phones %}
+                                {% with cleaned_phone=phone|strip_prefix:"'" %}
+                                    <a href="tel:{{ cleaned_phone }}" class="d-block mb-1">{{ cleaned_phone }}</a>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Descriptions Section #}
+        {% if organized_data %}
+        <div class="detail-section">
+            <h3 class="detail-title">Component Descriptions</h3>
+            <div class="card">
+                <div class="card-body">
+                    {% for description, cmu_dict in organized_data.items %}
+                        <div class="mb-3 {% if not forloop.last %}pb-3 border-bottom{% endif %}">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-chevron-right text-primary me-2 mt-1"></i>
+                                <div class="flex-grow-1">
+                                    <p class="mb-1 fw-medium">{{ description|default:"No description available" }}</p>
+                                    <small class="text-muted">
+                                        Used by {{ cmu_dict|length }} CMU{{ cmu_dict|length|pluralize }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# CMU IDs Section #}
+        {% if location_group.cmu_ids %}
+        <div class="detail-section">
+            <h3 class="detail-title">CMU Identifiers</h3>
+            <div class="cmu-list">
+                {% if location_group.cmu_ids.count %}
+                    {# New dict format with count and sample #}
+                    <p class="text-muted mb-2">{{ location_group.cmu_ids.count }} CMU{{ location_group.cmu_ids.count|pluralize }} at this location (showing first {{ location_group.cmu_ids.sample|length }}):</p>
+                    {% for cmu_id in location_group.cmu_ids.sample %}
+                        <a href="{% url 'cmu_detail_map' cmu_id=cmu_id %}" class="cmu-link-badge" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to view all {{ cmu_id }} locations on map">
+                            <i class="bi bi-tag-fill me-1"></i> {{ cmu_id }}
+                        </a>
+                    {% endfor %}
+                    {% if location_group.cmu_ids.count > location_group.cmu_ids.sample|length %}
+                        <span class="badge bg-light text-dark ms-2">+ {{ location_group.cmu_ids.count|add:"-5" }} more</span>
+                    {% endif %}
+                {% else %}
+                    {# Old list format #}
+                    {% for cmu_id in location_group.cmu_ids %}
+                        <a href="{% url 'cmu_detail_map' cmu_id=cmu_id %}" class="cmu-link-badge" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to view all {{ cmu_id }} locations on map">
+                            <i class="bi bi-tag-fill me-1"></i> {{ cmu_id }}
+                        </a>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# Components by Description #}
+        <div class="detail-section">
+            <h3 class="detail-title">Components at this Location</h3>
+            <p class="text-muted small mb-3">Click on yellow auction year badges to see individual component pages</p>
+            
+            {% for description, cmu_dict in organized_data.items %}
+            <div class="component-subsection">
+                <div class="subsection-title">{{ description|default:"No description" }}</div>
+                
+                {% for cmu_id, cmu_data in cmu_dict.items %}
+                <div class="mb-4 p-3 border rounded">
+                    <div class="d-flex align-items-center mb-2">
+                        <strong>CMU: </strong>
+                        <a href="{% url 'cmu_detail_map' cmu_id=cmu_id %}" class="ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to view all {{ cmu_id }} locations on map">{{ cmu_id }}</a>
+                    </div>
+                    
+                    <div class="ms-3">
+                        <span class="badge technology-badge me-2">{{ cmu_data.technology }}</span>
+                        {% if cmu_data.company %}
+                            <a href="{% url 'company_detail_map' company_name=cmu_data.company %}" class="badge bg-success company-badge">
+                                {{ cmu_data.company }}
+                            </a>
+                        {% endif %}
+                        {% if cmu_data.parent_company %}
+                            <span class="badge bg-info ms-2">Parent: {{ cmu_data.parent_company }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if cmu_data.registry_data %}
+                    <div class="mt-3 ms-3">
+                        <h6 class="text-muted">Capacity Information:</h6>
+                        <table class="table table-sm table-bordered w-auto">
+                            <tbody>
+                                {% if cmu_data.registry_capacity %}
+                                <tr>
+                                    <td class="text-muted">De-Rated Capacity (Registry)</td>
+                                    <td class="fw-bold">{{ cmu_data.registry_capacity }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if cmu_data.connection_capacity %}
+                                <tr>
+                                    <td class="text-muted">Connection/DSR Capacity</td>
+                                    <td class="fw-bold">{{ cmu_data.connection_capacity }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if cmu_data.registry_data|get_item:"Anticipated De-Rated Capacity" %}
+                                <tr>
+                                    <td class="text-muted">Anticipated Capacity</td>
+                                    <td class="fw-bold">{{ cmu_data.registry_data|get_item:"Anticipated De-Rated Capacity" }}</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-2">
+                        {% for link in cmu_data.auction_links %}
+                            <a href="{{ link.url }}" class="badge bg-warning text-dark auction-link-btn me-2 mb-2" style="text-decoration: none; padding: 6px 12px;">
+                                {{ link.name }}
+                                {% if link.component_count > 1 %}
+                                    <span class="badge bg-dark ms-1">{{ link.component_count }}</span>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% empty %}
+            <p class="text-muted">No component details available.</p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+{# Map initialization script #}
+{% if location_group.latitude and location_group.longitude %}
+<script>
+function initLocationMap() {
+    const locationPosition = { lat: {{ location_group.latitude }}, lng: {{ location_group.longitude }} };
+    
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 17,
+        center: locationPosition,
+        mapTypeId: google.maps.MapTypeId.HYBRID, // Satellite view with labels
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+            style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+            position: google.maps.ControlPosition.TOP_LEFT,
+        },
+        streetViewControl: true,
+        streetViewControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM,
+        },
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_TOP,
+        },
+        zoomControl: true,
+        zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM,
+        },
+    });
+    
+    const marker = new google.maps.Marker({
+        position: locationPosition,
+        map: map,
+        title: "{{ location_group.location|escapejs }}"
+    });
+    
+    const infoWindow = new google.maps.InfoWindow({
+        content: `
+            <div style="padding: 8px; min-width: 200px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px; color: inherit;">
+                    {{ location_group.location|escapejs }}
+                </div>
+                <div style="font-size: 13px; color: inherit; opacity: 0.9;">
+                    {{ location_group.component_count }} component{{ location_group.component_count|pluralize }}
+                </div>
+                <div style="font-size: 13px; color: inherit; opacity: 0.9;">
+                    {{ capacity_display }}
+                </div>
+            </div>
+        `
+    });
+    
+    marker.addListener("click", () => {
+        infoWindow.open(map, marker);
+    });
+    
+    // Open info window by default
+    infoWindow.open(map, marker);
+    
+    // When user switches to satellite view, automatically enable labels
+    google.maps.event.addListener(map, 'maptypeid_changed', function() {
+        if (map.getMapTypeId() === google.maps.MapTypeId.SATELLITE) {
+            // Immediately switch to hybrid (satellite with labels)
+            map.setMapTypeId(google.maps.MapTypeId.HYBRID);
+        }
+    });
+}
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initLocationMap"></script>
+{% endif %}
+
+<script>
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,333 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-GB" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}The easiest way to explore Capacity Market auctions — no fuss, just results.{% endblock %}">
+    <title>{% block title %}CMR Statistics{% endblock %} | Capacity Market Search - Ad Preview</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base styles from original template */
+        html[data-bs-theme="light"] {
+            --bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-opacity='0.03'%3E%3Cpolygon fill='%23000' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        html[data-bs-theme="dark"] {
+            --bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-opacity='0.1'%3E%3Cpolygon fill='%23fff' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-image: var(--bg-image);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            background-color: rgba(var(--bs-body-bg-rgb), 0.92);
+            padding: 30px;
+            border-radius: 8px;
+            flex-grow: 1;
+            width: 95%;
+            color: var(--bs-body-color);
+        }
+
+        /* AD STYLES */
+        .ad-container {
+            margin: 15px 0;
+            padding: 10px;
+            border: 2px dashed #007bff;
+            border-radius: 5px;
+            background-color: rgba(0, 123, 255, 0.05);
+            text-align: center;
+        }
+
+        .ad-container.ad-banner {
+            max-width: 728px;
+            height: 90px;
+            margin: 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+
+        .ad-container.ad-square {
+            width: 300px;
+            height: 250px;
+            float: right;
+            margin: 0 0 15px 15px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .ad-container.ad-mobile {
+            width: 320px;
+            height: 50px;
+            margin: 10px auto;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .ad-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .ad-title {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .ad-content {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* NON-SUBSCRIBER INDICATOR */
+        .user-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        .user-status.subscriber {
+            background: #28a745;
+        }
+
+        /* Mobile responsive ads */
+        @media (max-width: 768px) {
+            .ad-container.ad-banner {
+                max-width: 320px;
+                height: 50px;
+            }
+            
+            .ad-container.ad-square {
+                float: none;
+                width: 300px;
+                height: 250px;
+                margin: 15px auto;
+            }
+            
+            .container {
+                margin: 10px auto;
+                padding: 15px;
+                width: 98%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .ad-container.ad-banner {
+                max-width: 300px;
+                height: 50px;
+            }
+            
+            .ad-container.ad-square {
+                width: 280px;
+                height: 200px;
+            }
+        }
+
+        /* Header styles */
+        .page-header {
+            background: rgba(var(--bs-primary-rgb), 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        /* Hamburger menu styles (simplified) */
+        .mobile-hamburger-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            z-index: 1050;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- User Status Indicator -->
+    <div class="user-status">
+        NON-SUBSCRIBER - Ads Visible
+    </div>
+
+    <!-- Hamburger Menu (simplified) -->
+    <button class="mobile-hamburger-btn">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <!-- TOP BANNER AD (shown to non-subscribers only) -->
+    <div class="ad-container ad-banner">
+        <div>
+            <div class="ad-label">Advertisement</div>
+            <div class="ad-title">Renewable Energy Solutions</div>
+            <div class="ad-content">Power your business with clean energy - Click to learn more</div>
+        </div>
+    </div>
+
+    <!-- Page Header Block -->
+    {% block page_header %}
+    <div class="page-header">
+        <h1>Search Results - Ad Preview</h1>
+        <p>This shows how ads would appear to non-subscribers</p>
+    </div>
+    {% endblock %}
+
+    <div class="container">
+        <!-- SIDEBAR AD (Desktop) / In-Content Ad (Mobile) -->
+        <div class="ad-container ad-square">
+            <div class="ad-label">Advertisement</div>
+            <div class="ad-title">Energy Storage</div>
+            <div class="ad-content">Advanced battery solutions for grid stability</div>
+            <div style="margin-top: 10px; padding: 5px 10px; background: rgba(255,255,255,0.2); border-radius: 3px; font-size: 11px;">
+                Learn More →
+            </div>
+        </div>
+
+        {% block content %}
+        <h2>Sample Content Area</h2>
+        <p>This is where your main content would appear. Notice how the square ad floats to the right on desktop and will stack on mobile.</p>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Sample Search Result 1</h5>
+                        <p class="card-text">Drax Power Station - 660 MW Coal Plant in Yorkshire</p>
+                        <small class="text-muted">Active in T-1 2024-25</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Sample Search Result 2</h5>
+                        <p class="card-text">Little Barford Power Station - 680 MW CCGT in Bedfordshire</p>
+                        <small class="text-muted">Active in T-4 2027-28</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IN-CONTENT AD (between results) -->
+        <div class="ad-container" style="margin: 20px 0; padding: 15px; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+            <div class="ad-label" style="color: #666;">Sponsored</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <div style="font-size: 24px;">⚡</div>
+                <div>
+                    <div style="font-weight: bold; color: #333;">Smart Grid Technology</div>
+                    <div style="font-size: 14px; color: #666;">Optimize your energy infrastructure</div>
+                </div>
+                <div style="padding: 8px 15px; background: #ff6b6b; color: white; border-radius: 5px; font-size: 12px;">
+                    Get Quote
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <h3>More Search Results</h3>
+                <p>Content continues here. On mobile, the sidebar ad would appear between content sections like this.</p>
+            </div>
+        </div>
+
+        <!-- MOBILE BANNER AD (only visible on mobile) -->
+        <div class="d-block d-md-none">
+            <div class="ad-container ad-mobile">
+                <div>
+                    <span style="font-size: 10px;">Ad • </span>
+                    <span>Solar Panel Installation - Free Quote</span>
+                </div>
+            </div>
+        </div>
+
+        {% endblock %}
+
+        <!-- FOOTER AD AREA -->
+        <div class="ad-container" style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border: none;">
+            <div class="ad-label" style="color: #666;">Advertisement</div>
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 style="color: #333; margin-bottom: 5px;">Capacity Market Analysis Software</h5>
+                    <p style="color: #666; margin-bottom: 0; font-size: 14px;">Professional tools for energy market analysis and forecasting</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-primary">Free Trial</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Theme switcher simulation
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+        }
+        
+        // Add click handler to hamburger
+        document.querySelector('.mobile-hamburger-btn').addEventListener('click', function() {
+            alert('Mobile menu would open here');
+        });
+        
+        // Add theme toggle shortcut
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 't' || e.key === 'T') {
+                toggleTheme();
+            }
+        });
+        
+        console.log('Ad Preview Template Loaded');
+        console.log('Press "T" to toggle dark/light theme');
+        console.log('Ads shown: Top Banner, Sidebar, In-Content, Mobile Banner, Footer');
+    </script>
+    
+    <div style="position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 11px; z-index: 1000;">
+        Press "T" to toggle theme • This is an AD PREVIEW template
+    </div>
+</body>
+</html>

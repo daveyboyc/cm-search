@@ -1,0 +1,30 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and API paths
+Disallow: /admin/
+Disallow: /api/
+Disallow: /accounts/
+
+# Disallow search result pagination beyond page 3
+Disallow: /search-map/*?*page=4
+Disallow: /search-map/*?*page=5
+Disallow: /search-map/*?*page=6
+Disallow: /search-map/*?*page=7
+Disallow: /search-map/*?*page=8
+Disallow: /search-map/*?*page=9
+Disallow: /search-map/*?*page=1*
+Disallow: /search-map/*?*page=2*
+Disallow: /search-map/*?*page=3*
+Disallow: /search-map/*?*page=4*
+Disallow: /search-map/*?*page=5*
+Disallow: /search-map/*?*page=6*
+Disallow: /search-map/*?*page=7*
+Disallow: /search-map/*?*page=8*
+Disallow: /search-map/*?*page=9*
+
+# Disallow search pages with no results
+Disallow: /search/*?q=&*
+
+# Allow sitemap
+Sitemap: /sitemap.xml

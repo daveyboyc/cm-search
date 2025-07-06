@@ -1,0 +1,319 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Static Cache Monitor{% endblock %}
+
+{% block extra_head %}
+<style>
+    .cache-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: rgba(var(--bs-body-bg-rgb), 0.95);
+        border: 1px solid rgba(var(--bs-border-color-rgb), 0.5);
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--bs-primary);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: var(--bs-text-muted);
+        font-size: 0.9rem;
+    }
+    
+    .cache-table {
+        background: rgba(var(--bs-body-bg-rgb), 0.95);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .recommendations {
+        background: rgba(var(--bs-warning-bg-rgb), 0.1);
+        border: 1px solid rgba(var(--bs-warning-border-rgb), 0.3);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 2rem;
+        color: var(--bs-text-muted);
+    }
+    
+    .page-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .status-cached {
+        background-color: rgba(var(--bs-success-rgb), 0.2);
+        color: var(--bs-success);
+    }
+    
+    .status-not-cached {
+        background-color: rgba(var(--bs-danger-rgb), 0.2);
+        color: var(--bs-danger);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-speedometer2"></i>
+                Static Cache Monitor
+            </h1>
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <p class="text-muted mb-0">
+                    Monitoring performance for pages: {{ pages_monitored|join:", " }}
+                </p>
+                <button class="btn btn-primary btn-sm" onclick="refreshData()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Refresh
+                </button>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loading" class="loading">
+                <i class="bi bi-hourglass-split"></i>
+                Loading cache statistics...
+            </div>
+            
+            <!-- Cache Statistics -->
+            <div id="cache-stats" class="cache-stats" style="display: none;">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+            
+            <!-- Performance Metrics -->
+            <div id="performance-metrics" style="display: none;">
+                <h3>Performance Impact</h3>
+                <div class="cache-stats">
+                    <!-- Performance metrics will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Cache Details Table -->
+            <div id="cache-details" style="display: none;">
+                <h3>Page Cache Status</h3>
+                <div class="cache-table">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Last Accessed</th>
+                                <th>Checksum</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cache-table-body">
+                            <!-- Table rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Recommendations -->
+            <div id="recommendations" class="recommendations" style="display: none;">
+                <h4><i class="bi bi-lightbulb"></i> Recommendations</h4>
+                <ul id="recommendations-list">
+                    <!-- Recommendations will be populated by JavaScript -->
+                </ul>
+            </div>
+            
+            <!-- Cache Management -->
+            <div class="mt-4">
+                <h3>Cache Management</h3>
+                <p class="text-muted">
+                    Use Django management commands to control the cache:
+                </p>
+                <div class="bg-dark text-light p-3 rounded">
+                    <code>
+                        # Warm cache for common pages<br>
+                        python manage.py warm_static_cache<br><br>
+                        
+                        # Clear cache and warm again<br>
+                        python manage.py warm_static_cache --clear<br><br>
+                        
+                        # Show cache statistics<br>
+                        python manage.py warm_static_cache --stats<br><br>
+                        
+                        # Warm specific pages<br>
+                        python manage.py warm_static_cache --pages 1 2 3
+                    </code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let cacheData = null;
+
+function formatTimestamp(timestamp) {
+    if (!timestamp) return 'Never';
+    return new Date(timestamp).toLocaleString();
+}
+
+function formatDuration(timestamp) {
+    if (!timestamp) return 'Never';
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diffMs = now - then;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${Math.floor(diffHours / 24)}d ago`;
+}
+
+function populateStats(stats) {
+    const statsContainer = document.getElementById('cache-stats');
+    
+    statsContainer.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-value">${stats.hit_rate}</div>
+            <div class="stat-label">Hit Rate</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.hits}</div>
+            <div class="stat-label">Cache Hits</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.misses}</div>
+            <div class="stat-label">Cache Misses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.total_requests}</div>
+            <div class="stat-label">Total Requests</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.is_valid ? 'Valid' : 'Invalid'}</div>
+            <div class="stat-label">Cache Status</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.cache_version}</div>
+            <div class="stat-label">Cache Version</div>
+        </div>
+    `;
+    
+    statsContainer.style.display = 'grid';
+}
+
+function populatePerformanceMetrics(metrics) {
+    const metricsContainer = document.getElementById('performance-metrics');
+    const statsDiv = metricsContainer.querySelector('.cache-stats');
+    
+    statsDiv.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-value">${metrics.estimated_db_queries_saved}</div>
+            <div class="stat-label">DB Queries Saved</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${metrics.estimated_egress_saved_kb}KB</div>
+            <div class="stat-label">Egress Saved</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${(metrics.estimated_time_saved_ms / 1000).toFixed(1)}s</div>
+            <div class="stat-label">Response Time Saved</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${metrics.cached_pages_count}/${metrics.total_monitored_pages}</div>
+            <div class="stat-label">Pages Cached</div>
+        </div>
+    `;
+    
+    metricsContainer.style.display = 'block';
+}
+
+function populateCacheDetails(details) {
+    const tableBody = document.getElementById('cache-table-body');
+    
+    tableBody.innerHTML = details.map(detail => {
+        const statusClass = detail.status === 'cached' ? 'status-cached' : 'status-not-cached';
+        const statusText = detail.status === 'cached' ? 'Cached' : 'Not Cached';
+        
+        return `
+            <tr>
+                <td><strong>Page ${detail.page}</strong></td>
+                <td><span class="page-status ${statusClass}">${statusText}</span></td>
+                <td>${formatDuration(detail.created_at)}</td>
+                <td>${formatDuration(detail.last_accessed)}</td>
+                <td><code>${detail.checksum ? detail.checksum.substring(0, 8) + '...' : 'N/A'}</code></td>
+            </tr>
+        `;
+    }).join('');
+    
+    document.getElementById('cache-details').style.display = 'block';
+}
+
+function populateRecommendations(recommendations) {
+    const recommendationsContainer = document.getElementById('recommendations');
+    const list = document.getElementById('recommendations-list');
+    
+    list.innerHTML = recommendations.map(rec => `<li>${rec}</li>`).join('');
+    recommendationsContainer.style.display = 'block';
+}
+
+function refreshData() {
+    // Show loading
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('cache-stats').style.display = 'none';
+    document.getElementById('performance-metrics').style.display = 'none';
+    document.getElementById('cache-details').style.display = 'none';
+    document.getElementById('recommendations').style.display = 'none';
+    
+    fetch('/cache-monitor/api/')
+        .then(response => response.json())
+        .then(data => {
+            cacheData = data;
+            
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+            
+            if (data.error) {
+                alert('Error loading cache data: ' + data.error);
+                return;
+            }
+            
+            // Populate all sections
+            populateStats(data.cache_stats);
+            populatePerformanceMetrics(data.performance_metrics);
+            populateCacheDetails(data.cache_details);
+            populateRecommendations(data.recommendations);
+        })
+        .catch(error => {
+            document.getElementById('loading').innerHTML = `
+                <i class="bi bi-exclamation-triangle text-danger"></i>
+                Error loading cache data: ${error.message}
+            `;
+        });
+}
+
+// Auto-refresh every 30 seconds
+setInterval(refreshData, 30000);
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', refreshData);
+</script>
+{% endblock %}

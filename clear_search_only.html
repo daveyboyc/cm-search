@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Search Count</title>
+</head>
+<body>
+    <h1>Clear Search Count</h1>
+    <button onclick="clearSearches()">Clear Search Count</button>
+    <div id="result"></div>
+    
+    <script>
+    function clearSearches() {
+        // Clear search counts
+        const keys = Object.keys(localStorage);
+        const searchKeys = keys.filter(k => k.includes('trialSearches_'));
+        searchKeys.forEach(key => localStorage.removeItem(key));
+        
+        // Clear search popup flags
+        const sessionKeys = Object.keys(sessionStorage);
+        const popupKeys = sessionKeys.filter(k => k.includes('searchLimitPopupShown'));
+        popupKeys.forEach(key => sessionStorage.removeItem(key));
+        
+        document.getElementById('result').innerHTML = '<p style="color: green;">✅ Search count reset! Refresh your account page.</p>';
+    }
+    </script>
+</body>
+</html>

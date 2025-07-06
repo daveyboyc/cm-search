@@ -1,0 +1,751 @@
+{% extends "checker/base.html" %}
+{% load humanize %}
+{% load checker_tags %}
+{% load static %}
+
+{% block title %}{{ component_detail.Location }}{% if component_detail.Description and component_detail.Description != "N/A" %} - {{ component_detail.Description }}{% endif %} | {{ component_detail.Company }} | Capacity Market{% endblock %}
+
+{% block body_class %}has-universal-navbar{% endblock %}
+
+{% block page_header %}
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+{% endblock %}
+
+{% block extra_head %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ component_detail.Description|default:'' }}{% if component_detail.Description and component_detail.Description != 'N/A' %} at {% endif %}{{ component_detail.Location }}. {% if component_detail.Technology and component_detail.Technology != 'N/A' %}{{ component_detail.Technology }} facility {% endif %}{% if component_detail.Company and component_detail.Company != 'N/A' %}operated by {{ component_detail.Company }}{% endif %}. View capacity market auction results and technical details.">
+    
+    {% block structured_data %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EnergyFacility",
+      "@id": "https://capacitymarket.co.uk/component/{{ component.id }}/#facility",
+      "name": "{{ component_detail.Location|default:'Capacity Market Facility' }}",
+      "description": "{{ component_detail.Description|default:'UK Capacity Market facility' }} - {{ component_detail.Technology|default:'Power generation facility' }} operated by {{ component_detail.Company|default:'Unknown' }}",
+      "url": "{{ request.build_absolute_uri }}",
+      "identifier": {
+        "@type": "PropertyValue",
+        "name": "CMU ID",
+        "value": "{{ cmu_id }}"
+      },
+      "location": {
+        "@type": "Place",
+        "name": "{{ component_detail.Location|default:'UK' }}",
+        {% if latitude and longitude %}
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": {{ latitude }},
+          "longitude": {{ longitude }}
+        },
+        {% endif %}
+        "addressCountry": "GB"
+      },
+      "operatedBy": {
+        "@type": "Organization",
+        "name": "{{ component_detail.Company|default:'Unknown' }}",
+        "license": [
+          "https://creativecommons.org/licenses/by/4.0/",
+          "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+        ]
+      },
+      "category": "{{ component_detail.Technology|default:'Power Generation' }}",
+      "areaServed": {
+        "@type": "Place",
+        "name": "United Kingdom",
+        "addressCountry": "GB"
+      },
+      "provider": {
+        "@id": "https://capacitymarket.co.uk/#organization"
+      },
+      "license": [
+        "https://creativecommons.org/licenses/by/4.0/",
+        "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+      ],
+      "dateModified": "{% now 'c' %}",
+      "inDataset": {
+        "@type": "Dataset",
+        "@id": "https://capacitymarket.co.uk/#dataset",
+        "name": "UK Capacity Market Database",
+        "description": "Comprehensive database of UK Capacity Market auction participants and results",
+        "license": [
+          "https://creativecommons.org/licenses/by/4.0/",
+          "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+        ]
+      }
+    }
+    </script>
+    {% endblock structured_data %}
+    <style>
+        /* REMOVE CONFLICTING BODY RULE */
+        /* body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            background-image: url('/static/images/backgrounds/industrial_background.jpeg');
+            background-size: cover;
+            background-position: center center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            color: #333;
+        } */
+        
+        /* REMOVE CONFLICTING CONTAINER RULE - Use base.html style */
+        /* .container {
+            max-width: 960px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        } */
+        
+        /* Keep styles specific to this page's elements */
+        .page-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 20px;
+            margin-top: 80px; /* Increased spacing for navbar */
+        }
+        
+        /* Mobile-specific spacing */
+        @media (max-width: 768px) {
+            .page-header {
+                margin-top: 100px; /* Extra spacing for mobile navbar */
+            }
+        }
+        .back-link {
+            text-decoration: none;
+            color: var(--bs-secondary-color);
+        }
+        .back-link:hover {
+            text-decoration: underline;
+            color: var(--bs-emphasis-color);
+        }
+        .component-card {
+            background-color: var(--bs-card-bg);
+            border-radius: var(--bs-card-border-radius);
+            border: var(--bs-card-border-width) solid var(--bs-card-border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            padding: 16px;
+        }
+        .detail-section {
+            margin-bottom: 24px;
+        }
+        .detail-title {
+            color: var(--bs-primary);
+            border-bottom: 1px solid var(--bs-border-color-translucent);
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
+        .detail-item {
+            margin-bottom: 12px;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: var(--bs-secondary-color);
+        }
+        .detail-value {
+            margin-left: 8px;
+            color: var(--bs-body-color);
+        }
+        .nav-links {
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            color: var(--bs-link-color);
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .location-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .location-header .location-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-right: 15px;
+            color: var(--bs-body-color);
+        }
+        .badges-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .cmu-badge {
+            margin-left: 0;
+            padding: 6px 15px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            min-height: 38px;
+        }
+        .cmu-badge .cmu-label {
+            font-size: 0.8rem;
+            line-height: 1;
+            margin-right: 0.3em;
+        }
+        .cmu-badge .cmu-value {
+            font-size: 1rem;
+            display: inline;
+            margin-top: 0;
+            line-height: 1.1;
+        }
+        .cmu-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .company-badge {
+            font-size: 1rem;
+            padding: 6px 12px;
+            font-weight: bold;
+            margin-left: 0;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            vertical-align: middle;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.1;
+            min-height: 38px;
+        }
+        .company-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            text-decoration: none;
+        }
+        .map-button {
+            background-color: #34a853;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            margin-left: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .map-button:hover {
+            background-color: #288941;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .map-button i {
+            font-size: 16px;
+        }
+        .list-group-item {
+            background-color: var(--bs-list-group-bg);
+            color: var(--bs-list-group-color);
+            border-color: var(--bs-list-group-border-color);
+        }
+        .card-header {
+             background-color: var(--bs-card-cap-bg);
+             color: var(--bs-card-cap-color);
+             border-bottom: var(--bs-card-border-width) solid var(--bs-card-border-color);
+        }
+
+        /* Override card/list backgrounds in dark mode for transparency */
+        html[data-bs-theme="dark"] .component-card,
+        html[data-bs-theme="dark"] .card,
+        html[data-bs-theme="dark"] .card-header,
+        html[data-bs-theme="dark"] .list-group-item {
+            background-color: transparent !important;
+        }
+
+        /* Force text color for common elements within cards/lists in dark mode */
+        html[data-bs-theme="dark"] .component-card *,
+        html[data-bs-theme="dark"] .card-body *,
+        html[data-bs-theme="dark"] .list-group-item *,
+        html[data-bs-theme="dark"] .card-header {
+             color: var(--bs-body-color) !important; 
+        }
+
+        /* Ensure card headers also get correct color (Redundant but safe) */
+         html[data-bs-theme="dark"] .card-header {
+              color: var(--bs-body-color) !important;
+         }
+
+        /* Remove the previous block */
+        /* html[data-bs-theme="dark"] .component-card, ... { color: var(--bs-body-color) !important; } */
+
+        /* Keep link overrides - ensure high specificity */
+         html[data-bs-theme="dark"] .list-group-item a {
+              color: var(--bs-link-color) !important;
+         }
+         html[data-bs-theme="dark"] .list-group-item a:hover {
+              color: var(--bs-link-hover-color) !important;
+         }
+         
+        /* Google Maps InfoWindow dark mode styling */
+        html[data-bs-theme="dark"] .gm-style .gm-style-iw-c {
+            background-color: #2d3748 !important;
+            color: #ffffff !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style .gm-style-iw-t::after {
+            background: #2d3748 !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style .gm-style-iw-tc::after {
+            background: #2d3748 !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style .gm-style-iw-d {
+            color: #ffffff !important;
+        }
+        
+        /* Google Maps controls dark mode styling */
+        html[data-bs-theme="dark"] .gm-style .gm-style-cc {
+            background-color: #2d3748 !important;
+            color: #ffffff !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style .gm-style-cc a {
+            color: #60a5fa !important;
+        }
+        
+        /* Map type control buttons */
+        html[data-bs-theme="dark"] .gm-style .gm-style-mtc {
+            background-color: #2d3748 !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style button {
+            background-color: #4a5568 !important;
+            color: #ffffff !important;
+            border-color: #718096 !important;
+        }
+        
+        html[data-bs-theme="dark"] .gm-style button:hover {
+            background-color: #718096 !important;
+        }
+
+        /* Mobile responsive badges */
+        @media (max-width: 768px) {
+            .badges-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 10px !important;
+            }
+            
+            .company-badge,
+            .cmu-badge {
+                width: 100% !important;
+                max-width: 100% !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- Header - Single Back Button -->
+    <div class="page-header">
+        <a href="javascript:history.back()" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-return-left"></i> Back to Results
+        </a>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+            {% if suggestion %}<br>{{ suggestion }}{% endif %}
+        </div>
+    {% elif component %}
+        <div class="component-card">
+            <h1 class="h4 mb-3">{{ component_detail.Location }}{% if component_detail.Description and component_detail.Description != 'N/A' %} - {{ component_detail.Description }}{% endif %}</h1>
+            <div class="location-header">
+                <span class="location-text">Component ID: {{ cmu_id }}</span>
+                <div class="content-freshness ms-auto">
+                    <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i>Last updated: {% now "d M Y H:i" %} UTC
+                    </small>
+                </div>
+            </div>
+
+            {# --- Map and Badges Side by Side --- #}
+            {% if is_geocoded and latitude and longitude %}
+            <div class="detail-section">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex flex-column gap-3 h-100">
+                            <!-- General Information Card -->
+                            <div class="card">
+                                <div class="card-body p-3">
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="mb-2">
+                                            <strong class="text-muted small">Location:</strong>
+                                            <div class="small">
+                                                {% if location_id %}
+                                                    <a href="{% url 'location_detail' location_id=location_id %}" class="text-decoration-none">
+                                                        <i class="bi bi-geo-alt me-1"></i>{{ component_detail.Location|default:"N/A" }}
+                                                    </a>
+                                                {% elif component_detail.Location and component_detail.Location != "N/A" %}
+                                                    <a href="{% url 'search_map_view' %}?q={{ component_detail.Location|urlencode }}" class="text-decoration-none">
+                                                        <i class="bi bi-search me-1"></i>{{ component_detail.Location|default:"N/A" }}
+                                                    </a>
+                                                {% else %}
+                                                    <i class="bi bi-geo-alt me-1"></i>{{ component_detail.Location|default:"N/A" }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong class="text-muted small">Company:</strong>
+                                            <div class="small">
+                                                {% with company_name=component_detail.Company|default:"N/A" %}
+                                                    {% if company_name != "N/A" %}
+                                                        <a href="{% url 'company_detail_map' company_name=company_name|urlencode %}" class="text-decoration-none">
+                                                            <i class="bi bi-building me-1"></i>{{ company_name }}
+                                                        </a>
+                                                    {% else %}
+                                                        N/A
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong class="text-muted small">CMU ID:</strong>
+                                            <div class="small">
+                                                <a href="{% url 'cmu_detail_map' cmu_id=cmu_id %}" class="text-decoration-none">
+                                                    <i class="bi bi-tag-fill me-1"></i>{{ cmu_id }}
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong class="text-muted small">Technology:</strong>
+                                            <div class="small">
+                                                {% if component_detail.Technology and component_detail.Technology != "N/A" %}
+                                                    <a href="{% url 'technology_detail_map' technology_name=component_detail.Technology %}" class="text-decoration-none">
+                                                        <i class="bi bi-lightning-charge me-1"></i>{{ component_detail.Technology }}
+                                                    </a>
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if primary_fuel and primary_fuel != "None" and primary_fuel != "null" %}
+                                        <div class="mb-2">
+                                            <strong class="text-muted small">Primary Fuel:</strong>
+                                            <div class="small">
+                                                <i class="bi bi-fire me-1"></i>{{ primary_fuel }}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        <div class="mb-2">
+                                            <strong class="text-muted small">Description:</strong>
+                                            <div class="small">{{ component_detail.Description|default:"N/A" }}</div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong class="text-muted small">Auction:</strong>
+                                            <div class="small">{{ component_detail.Auction|default:"N/A" }}</div>
+                                        </div>
+                                        {% with capacity=component_detail.Capacity_MW|default:"" %}
+                                        {% if capacity %}
+                                        <div class="mb-2">
+                                            <strong class="text-muted small">Capacity:</strong>
+                                            <div class="small"><i class="bi bi-lightning me-1"></i>{{ capacity }}MW</div>
+                                        </div>
+                                        {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="component-map" style="height: 400px; width: 100%; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" class="mb-3"></div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="badges-row mb-3">
+                {% with company_name=component_detail.Company|default:"N/A" %}
+                    {% if company_name != "N/A" %}
+                        <a href="{% url 'company_detail_map' company_name=company_name|urlencode %}"
+                           class="badge bg-success company-badge">
+                            <i class="bi bi-building"></i> {{ company_name }}
+                        </a>
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Technology Badge -->
+                {% if component_detail.Technology and component_detail.Technology != "N/A" %}
+                    <a href="{% url 'technology_detail_map' technology_name=component_detail.Technology %}" class="text-decoration-none">
+                        <span class="badge me-1" style="background-color: {{ component_detail.Technology|technology_color }}; color: white; font-size: 1rem; padding: 6px 12px; font-weight: bold; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
+                            <i class="bi bi-lightning-charge me-1"></i>{{ component_detail.Technology }}
+                        </span>
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'cmu_detail_map' cmu_id=cmu_id %}" class="badge bg-primary cmu-badge text-decoration-none">
+                    <span class="cmu-label"><i class="bi bi-tag-fill me-1"></i> CMU ID:</span><span class="cmu-value">{{ cmu_id }}</span>
+                </a>
+            </div>
+            {% endif %}
+
+
+
+            {# --- START Technical Capacity Information --- #}
+            <div class="detail-section">
+                <h3 class="detail-title">Technical Capacity Information</h3>
+                <div class="card mb-3">
+                    <div class="card-header">Capacity Metrics</div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>De-Rated Capacity (Component DB)</span>
+                            <span class="text-end">
+                                {% if component_derated_capacity is not None %}
+                                    {{ component_derated_capacity|format_value }} MW
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>De-Rated Capacity (CMU Registry)</span>
+                            <span class="text-end">
+                                 {% if registry_derated_capacity is not None and registry_derated_capacity != 'N/A' %}
+                                    {{ registry_derated_capacity|format_value }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Connection Capacity (CMU Registry)</span>
+                            <span class="text-end">
+                                 {% if connection_capacity is not None %}
+                                    {{ connection_capacity|format_value }} MW
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Anticipated Capacity (CMU Registry)</span>
+                            <span class="text-end">
+                                 {% if anticipated_capacity is not None %}
+                                    {{ anticipated_capacity|format_value }} MW
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                <p class="small text-muted">
+                    Note: De-rated capacity typically accounts for availability factors. Connection capacity represents the maximum grid connection size. Values sourced from Component database or CMU Registry as indicated.
+                </p>
+            </div>
+            {# --- END Technical Capacity Information --- #}
+            
+            {# --- START Contact & Ownership Information --- #}
+            <div class="detail-section">
+                <h3 class="detail-title">Contact & Ownership</h3>
+                <div class="card mb-3">
+                    <div class="card-header">Company Information</div>
+                    <ul class="list-group list-group-flush">
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Applicant / Company Name</span>
+                            <span class="text-end">{{ component_detail.Company|default:"N/A" }}</span>
+                        </li>
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Parent Company (CMU Registry)</span>
+                            <span class="text-end">{{ parent_company|default:"N/A" }}</span>
+                        </li>
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Secondary Trading Email (CMU Registry)</span>
+                            <span class="text-end">
+                                {% if trading_email %}
+                                    <a href="mailto:{{ trading_email }}">{{ trading_email }}</a>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </li>
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Secondary Trading Phone (CMU Registry)</span>
+                            <span class="text-end">
+                                {% if trading_phone %}
+                                    {% with cleaned_phone=trading_phone|strip_prefix:"'" %}
+                                        <a href="tel:{{ cleaned_phone }}">{{ cleaned_phone }}</a>
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {# --- END Contact & Ownership Information --- #}
+
+            <!-- Raw Component Data Section -->
+            <div class="detail-section">
+                <h3 class="detail-title">
+                    <a class="text-decoration-none" data-bs-toggle="collapse" href="#rawComponentDataSection" role="button" aria-expanded="false">
+                        <span class="bi bi-code-square"></span> Raw Component Data
+                    </a>
+                </h3>
+                <div class="collapse" id="rawComponentDataSection">
+                    <div class="card card-body">
+                        <table class="table table-sm table-bordered table-striped small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key, value in raw_component_data.items %}
+                                    <tr>
+                                        <td style="word-break: break-all;">{{ key }}</td>
+                                        <td style="word-break: break-all;">
+                                            {% if value|is_dict or value|is_list %}
+                                                <pre>{{ value|jsonify }}</pre>
+                                            {% else %}
+                                                {{ value|default:"(empty)" }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Raw CMU Data Section -->
+            <div class="detail-section">
+                <h3 class="detail-title">
+                    <a class="text-decoration-none" data-bs-toggle="collapse" href="#rawCmuDataSection" role="button" aria-expanded="false">
+                        <span class="bi bi-code-square"></span> Raw CMU Data
+                    </a>
+                </h3>
+                <div class="collapse" id="rawCmuDataSection">
+                    <div class="card card-body">
+                        <table class="table table-sm table-bordered table-striped small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key, value in raw_cmu_data.items %}
+                                    <tr>
+                                        <td style="word-break: break-all;">{{ key }}</td>
+                                        <td style="word-break: break-all;">
+                                            {% if value|is_dict or value|is_list %}
+                                                <pre>{{ value|jsonify }}</pre>
+                                            {% else %}
+                                                {{ value|default:"(empty)" }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            Component not found or error loading details.
+        </div>
+    {% endif %}
+
+    <!-- Debug Output -->
+    {% if 'debug' in request.GET %}
+    <div class="alert alert-secondary">
+        <h4>Debug Info</h4>
+        <p>company_name: {{ company_name }}</p>
+        <p>company_id: {{ company_id }}</p>
+        <p>year_auction_data exists: {% if year_auction_data %}Yes{% else %}No{% endif %}</p>
+        <p>year_auction_data length: {{ year_auction_data|length }}</p>
+        <p>sort_order: {{ sort_order }}</p>
+    </div>
+    {% endif %}
+
+{% if is_geocoded and latitude and longitude %}
+<script>
+function initComponentMap() {
+    const componentLocation = { lat: {{ latitude }}, lng: {{ longitude }} };
+    const map = new google.maps.Map(document.getElementById("component-map"), {
+        zoom: 17,
+        center: componentLocation,
+        mapTypeId: 'hybrid'  // Satellite view with labels enabled
+    });
+    
+    const marker = new google.maps.Marker({
+        position: componentLocation,
+        map: map,
+        title: "{{ component_detail.Location|escapejs }}"
+    });
+    
+    // Create info window with component details
+    const infoWindow = new google.maps.InfoWindow({
+        content: `
+            <div style="padding: 12px; max-width: 300px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <div style="margin: 0 0 8px 0; font-size: 14px; color: inherit;">
+                    <div style="font-weight: bold; margin-bottom: 2px;">Location:</div>
+                    <div style="opacity: 0.9;">{{ component_detail.Location|escapejs }}</div>
+                </div>
+                <div style="margin: 0 0 8px 0; font-size: 14px; color: inherit;">
+                    <div style="font-weight: bold; margin-bottom: 2px;">Company:</div>
+                    <div style="opacity: 0.9;">{{ component_detail.Company|default:"N/A"|escapejs }}</div>
+                </div>
+                <div style="margin: 0 0 8px 0; font-size: 14px; color: inherit;">
+                    <div style="font-weight: bold; margin-bottom: 2px;">Technology:</div>
+                    <div style="opacity: 0.9;">{{ component_detail.Technology|default:"N/A"|escapejs }}</div>
+                </div>
+                {% if component_detail.Capacity_MW %}
+                <div style="margin: 0 0 8px 0; font-size: 14px; color: inherit;">
+                    <div style="font-weight: bold; margin-bottom: 2px;">Capacity:</div>
+                    <div style="opacity: 0.9;">{{ component_detail.Capacity_MW }}MW</div>
+                </div>
+                {% endif %}
+                <div style="margin: 12px 0 0 0; padding-top: 8px; border-top: 1px solid rgba(128,128,128,0.3);">
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ component_detail.Location|urlencode }}" 
+                       target="_blank" 
+                       style="color: #60a5fa; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 4px;">
+                        📍 View in Google Maps
+                    </a>
+                </div>
+            </div>
+        `
+    });
+    
+    // Add click listener to marker to show info window
+    marker.addListener("click", () => {
+        infoWindow.open(map, marker);
+    });
+    
+    // Optionally show info window by default
+    // infoWindow.open(map, marker);
+}
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initComponentMap"></script>
+{% endif %}
+{% endblock content %}

@@ -1,0 +1,457 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+{% load humanize %}
+
+{% block title %}Search Results with Map{% endblock %}
+
+{% block extra_head %}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<!-- Leaflet MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<style>
+    /* Keep existing search results styles */
+    .component-record {
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    #loading-spinner {
+        transition: all 0.3s ease;
+    }
+    
+    .results-count-message {
+        font-size: 1.1rem;
+        padding: 10px;
+        background-color: #e9f5ff;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+    
+    .btn-show-all {
+        background-color: #0d6efd;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .sort-controls {
+        margin-bottom: 15px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .sort-controls a {
+        margin-right: 10px;
+        text-decoration: none;
+        color: #0d6efd;
+    }
+    
+    .sort-controls .active-sort {
+        font-weight: bold;
+        color: #000;
+    }
+    
+    /* New layout styles for split view */
+    .search-map-container {
+        display: flex;
+        gap: 20px;
+        height: calc(100vh - 200px);
+        margin-top: 20px;
+    }
+    
+    .results-panel {
+        flex: 0 0 50%;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    
+    .map-panel {
+        flex: 1;
+        position: relative;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* Map controls */
+    .map-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .map-controls .btn-group {
+        margin-bottom: 10px;
+    }
+    
+    /* Clickable results */
+    .component-record {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .component-record:hover {
+        background-color: #f0f8ff;
+    }
+    
+    .component-record.active {
+        background-color: #e3f2fd;
+        border-color: #2196f3;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 992px) {
+        .search-map-container {
+            flex-direction: column;
+            height: auto;
+        }
+        
+        .results-panel {
+            flex: none;
+            max-height: 50vh;
+            margin-bottom: 20px;
+        }
+        
+        .map-panel {
+            height: 400px;
+        }
+    }
+    
+    /* Technology badges */
+    .tech-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-left: 10px;
+    }
+    
+    .tech-battery { background-color: #4caf50; color: white; }
+    .tech-gas { background-color: #ff9800; color: white; }
+    .tech-wind { background-color: #2196f3; color: white; }
+    .tech-solar { background-color: #ffeb3b; color: #333; }
+    .tech-dsr { background-color: #9c27b0; color: white; }
+    .tech-nuclear { background-color: #f44336; color: white; }
+    .tech-biomass { background-color: #795548; color: white; }
+    .tech-hydro { background-color: #00bcd4; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Search Form at Top -->
+    <form method="get" action="#" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search by company name, location, CMU ID..." value="{{ query }}" required>
+            <input type="hidden" name="per_page" value="{{ per_page|default:'50' }}">
+            {% if sort_by %}<input type="hidden" name="sort_by" value="{{ sort_by }}">{% endif %}
+            {% if sort_order %}<input type="hidden" name="sort_order" value="{{ sort_order }}">{% endif %}
+            <button class="btn btn-primary" type="submit" id="search-button">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+    </form>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="text-center my-5" style="display: none;">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading results, please wait...</p>
+    </div>
+
+    <!-- Main Content Container -->
+    <div id="results-container">
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% else %}
+            <!-- Results Header -->
+            <div class="results-meta mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>Search Results for "{{ query|default:'asda' }}"</h3>
+                    <div>
+                        <span class="text-muted me-3">{{ total_results|default:100 }} results</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="toggleMapView()">
+                            <i class="fas fa-map"></i> Toggle Map
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Split View Container -->
+            <div class="search-map-container">
+                <!-- Results Panel (Left) -->
+                <div class="results-panel">
+                    <!-- Sort Controls -->
+                    <div class="sort-controls">
+                        Sort by:
+                        <a href="?q={{ query }}&sort_by=relevance" class="{% if sort_by == 'relevance' %}active-sort{% endif %}">
+                            Relevance
+                        </a>
+                        <a href="?q={{ query }}&sort_by=capacity&sort_order=desc" class="{% if sort_by == 'capacity' %}active-sort{% endif %}">
+                            Capacity <i class="fas fa-sort-down sort-icon"></i>
+                        </a>
+                        <a href="?q={{ query }}&sort_by=name" class="{% if sort_by == 'name' %}active-sort{% endif %}">
+                            Name <i class="fas fa-sort-alpha-down sort-icon"></i>
+                        </a>
+                        <a href="?q={{ query }}&sort_by=year&sort_order=desc" class="{% if sort_by == 'year' %}active-sort{% endif %}">
+                            Year <i class="fas fa-sort-numeric-down sort-icon"></i>
+                        </a>
+                    </div>
+
+                    <!-- Results List -->
+                    <div id="results-list">
+                        <!-- Mock results for demo -->
+                        {% for i in "x"|rjust:25 %}
+                        <div class="card component-record mb-2" data-lat="{{ forloop.counter|add:51 }}" data-lng="{{ forloop.counter|add:-1 }}" data-id="{{ forloop.counter }}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h5 class="card-title mb-1">
+                                            <a href="#" class="text-decoration-none">
+                                                ASDA {% cycle 'Woking' 'Manchester' 'Birmingham' 'Leeds' 'Bristol' %} 
+                                                {% cycle 'Distribution Centre' 'Store' 'Depot' 'Warehouse' %}
+                                            </a>
+                                            <span class="tech-badge tech-{% cycle 'battery' 'gas' 'dsr' 'solar' %}">
+                                                {% cycle 'BATTERY' 'GAS' 'DSR' 'SOLAR' %}
+                                            </span>
+                                        </h5>
+                                        <p class="text-muted mb-1">
+                                            <i class="fas fa-building"></i> {% cycle 'ASDA Stores Ltd' 'ASDA Group' 'ASDA Logistics' %}
+                                            <span class="mx-2">|</span>
+                                            <i class="fas fa-bolt"></i> {{ forloop.counter|add:100 }} MW
+                                            <span class="mx-2">|</span>
+                                            <i class="fas fa-calendar"></i> {% cycle '2023' '2024' '2025' %}
+                                        </p>
+                                        <p class="text-muted mb-0">
+                                            <i class="fas fa-map-marker-alt"></i> {% cycle 'Woking, Surrey' 'Manchester, Greater Manchester' 'Birmingham, West Midlands' 'Leeds, West Yorkshire' 'Bristol' %}
+                                            <span class="mx-2">|</span>
+                                            <i class="fas fa-tag"></i> CMU_{{ forloop.counter|stringformat:"05d" }}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <button class="btn btn-sm btn-outline-primary view-on-map" data-id="{{ forloop.counter }}">
+                                            <i class="fas fa-map-marked-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Search results pagination" class="mt-4">
+                        <ul class="pagination">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Previous</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">4</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Map Panel (Right) -->
+                <div class="map-panel" id="map-panel">
+                    <div id="map"></div>
+                    
+                    <!-- Map Controls -->
+                    <div class="map-controls">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary active" id="map-btn">
+                                <i class="fas fa-map"></i> Map
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="satellite-btn">
+                                <i class="fas fa-satellite"></i> Satellite
+                            </button>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary" id="reset-view">
+                                <i class="fas fa-compress"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+let map;
+let markers = [];
+let markerClusterGroup;
+let streetLayer, satelliteLayer;
+let mapVisible = true;
+
+// Initialize map
+function initMap() {
+    if (!document.getElementById('map')) return;
+    
+    map = L.map('map').setView([54.5, -3.5], 6); // Center on UK
+    
+    // Street layer
+    streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    });
+    
+    // Satellite layer
+    satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+    });
+    
+    streetLayer.addTo(map);
+    
+    markerClusterGroup = L.markerClusterGroup();
+    map.addLayer(markerClusterGroup);
+    
+    addMarkersFromResults();
+}
+
+// Add markers from search results
+function addMarkersFromResults() {
+    markerClusterGroup.clearLayers();
+    markers = [];
+    
+    // UK city coordinates for demo
+    const ukCities = {
+        'Woking': [51.3168, -0.5600],
+        'Manchester': [53.4808, -2.2426],
+        'Birmingham': [52.4862, -1.8904],
+        'Leeds': [53.8008, -1.5491],
+        'Bristol': [51.4545, -2.5879]
+    };
+    
+    document.querySelectorAll('.component-record').forEach((record, index) => {
+        const cityName = record.querySelector('.card-title').textContent.match(/(Woking|Manchester|Birmingham|Leeds|Bristol)/)[1];
+        const coords = ukCities[cityName];
+        const lat = coords[0] + (Math.random() - 0.5) * 0.1;
+        const lng = coords[1] + (Math.random() - 0.5) * 0.1;
+        
+        const marker = L.marker([lat, lng]);
+        marker.recordId = record.dataset.id;
+        
+        const title = record.querySelector('.card-title').textContent.trim();
+        const capacity = record.querySelector('.fa-bolt').parentElement.textContent.trim();
+        
+        marker.bindPopup(`
+            <div style="min-width: 200px;">
+                <h6>${title}</h6>
+                <p class="mb-0">${capacity}</p>
+            </div>
+        `);
+        
+        markers.push(marker);
+        markerClusterGroup.addLayer(marker);
+        
+        // Update record with actual coordinates
+        record.dataset.lat = lat;
+        record.dataset.lng = lng;
+    });
+}
+
+// Toggle map visibility
+function toggleMapView() {
+    mapVisible = !mapVisible;
+    const mapPanel = document.getElementById('map-panel');
+    const resultsPanel = document.querySelector('.results-panel');
+    
+    if (mapVisible) {
+        mapPanel.style.display = 'block';
+        resultsPanel.style.flex = '0 0 50%';
+        setTimeout(() => map.invalidateSize(), 100);
+    } else {
+        mapPanel.style.display = 'none';
+        resultsPanel.style.flex = '1';
+    }
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    
+    // Click on result to zoom map
+    document.querySelectorAll('.component-record').forEach(record => {
+        record.addEventListener('click', function() {
+            const lat = parseFloat(this.dataset.lat);
+            const lng = parseFloat(this.dataset.lng);
+            const id = this.dataset.id;
+            
+            // Highlight selected
+            document.querySelectorAll('.component-record').forEach(r => r.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Zoom to location
+            map.setView([lat, lng], 12);
+            
+            // Open popup
+            const marker = markers.find(m => m.recordId === id);
+            if (marker) marker.openPopup();
+        });
+    });
+    
+    // View on map button
+    document.querySelectorAll('.view-on-map').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const record = this.closest('.component-record');
+            record.click();
+        });
+    });
+    
+    // Map type switching
+    document.getElementById('map-btn').addEventListener('click', function() {
+        if (!this.classList.contains('active')) {
+            map.removeLayer(satelliteLayer);
+            map.addLayer(streetLayer);
+            this.classList.add('active');
+            document.getElementById('satellite-btn').classList.remove('active');
+        }
+    });
+    
+    document.getElementById('satellite-btn').addEventListener('click', function() {
+        if (!this.classList.contains('active')) {
+            map.removeLayer(streetLayer);
+            map.addLayer(satelliteLayer);
+            this.classList.add('active');
+            document.getElementById('map-btn').classList.remove('active');
+        }
+    });
+    
+    // Reset view
+    document.getElementById('reset-view').addEventListener('click', function() {
+        map.setView([54.5, -3.5], 6);
+    });
+});
+</script>
+{% endblock %}

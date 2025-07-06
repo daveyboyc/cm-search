@@ -1,0 +1,1047 @@
+{% extends "checker/map.html" %}
+
+{% block title %}Technology Selection - Capacity Market Search{% endblock %}
+
+{% block body_class %}map-page{% endblock %}
+
+{% block extra_head %}
+{{ block.super }}
+<style>
+    /* Hide page header with title and back button */
+    .d-flex.justify-content-between.align-items-center.mb-3 {
+        display: none !important;
+    }
+    
+    /* Hide geocoding status text */
+    .mb-3.text-muted.small {
+        display: none !important;
+    }
+    
+    /* Hide components displayed text and performance notice */
+    #map-status, .map-status, #loading-status {
+        display: none !important;
+    }
+    
+    /* Hide bottom status text */
+    .position-fixed.bottom-0, .fixed-bottom {
+        display: none !important;
+    }
+    
+    /* Hide any bottom overlay text */
+    .map-overlay-bottom, .status-overlay {
+        display: none !important;
+    }
+    
+    /* Hide reset view and group overlaps buttons */
+    .btn-secondary, .btn-outline-secondary {
+        display: none !important;
+    }
+    
+    /* Hide any status text containers */
+    .alert, .text-muted {
+        display: none !important;
+    }
+    
+    /* Hide the general help button from base template */
+    #helpButton {
+        display: none !important;
+    }
+    
+    /* Hide the desktop filter panel only on mobile - desktop should show it */
+    @media (max-width: 768px) {
+        .map-controls, #filter-panel, .filter-panel {
+            display: none !important;
+        }
+    }
+    
+    /* Force navbar to be fullscreen - make map fit browser */
+    .navbar {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* Make map container fullscreen */
+    #map-container {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 1 !important;
+    }
+    
+    /* Override any container margins/padding */
+    .container-fluid {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+    }
+    
+    /* Make body fullscreen */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* Style navbar contents */
+    .navbar-nav {
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+    
+    /* Hide navbar brand/logo */
+    .navbar-brand {
+        display: none !important;
+    }
+    
+    /* Hide navbar toggler for mobile */
+    .navbar-toggler {
+        display: none !important;
+    }
+    
+    /* Position technology legend higher up */
+    .map-legend {
+        top: 120px !important; /* Moved higher from 155px */
+    }
+    
+    /* Match font sizes from map_search_results */
+    .legend-title {
+        font-size: 0.8rem !important;
+    }
+    
+    .legend-item {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Map search bar styling - copied from map_search_results */
+    .map-search-bar {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        width: 400px;
+        max-width: calc(100vw - 40px);
+    }
+    
+    .map-search-bar form {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        padding: 4px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        gap: 4px;
+    }
+    
+    .map-search-bar .form-control {
+        border: none;
+        background: transparent;
+        border-radius: 20px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        flex: 1;
+    }
+    
+    .map-search-bar .form-control:focus {
+        box-shadow: none;
+        border: none;
+        background: transparent;
+    }
+    
+    .map-search-bar .btn {
+        border-radius: 20px;
+        border: none;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 0.9rem;
+    }
+    
+    .map-search-bar .btn-primary {
+        background: #0d6efd;
+    }
+    
+    .map-search-bar .btn:hover {
+        transform: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Map help button styling - copied from map_search_results */
+    .map-help-button {
+        position: fixed;
+        bottom: 60px;
+        left: 20px;
+        z-index: 1050;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .map-help-button:hover {
+        background: rgba(0, 0, 0, 0.9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Map help popup styling */
+    .map-help-popup {
+        position: fixed;
+        bottom: 110px;
+        left: 20px;
+        z-index: 1060;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        padding: 15px;
+        max-width: 280px;
+        max-height: 70vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        display: none;
+        font-size: 0.85rem;
+    }
+    
+    .map-help-popup.show {
+        display: block;
+    }
+    
+    .map-help-popup h5 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #333;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .map-help-popup h6 {
+        margin-bottom: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .map-help-popup .tech-legend {
+        display: grid;
+        grid-template-columns: 16px 1fr;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .map-help-popup .tech-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1px solid white;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .map-help-popup .mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .map-help-popup .list-unstyled li {
+        margin-bottom: 3px;
+    }
+    
+    .map-help-popup .close-btn {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #666;
+        cursor: pointer;
+        line-height: 1;
+    }
+    
+    /* Position back to search button like top-nav-buttons in map_search_results */
+    #map-container .back-to-search {
+        position: absolute;
+        top: 70px; /* Same as .top-nav-buttons in map_search_results */
+        left: 10px; /* Align with legend */
+        z-index: 1000;
+    }
+    
+    /* Match exact styling from .top-nav-buttons .btn in map_search_results */
+    #map-container .back-to-search .btn {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color: #333;
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 4px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    
+    #map-container .back-to-search .btn:hover {
+        background: rgba(255, 255, 255, 1);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        text-decoration: none;
+    }
+    
+    /* Primary button styling from map_search_results */
+    #map-container .back-to-search .btn-primary {
+        background: rgba(13, 110, 253, 0.9);
+        border-color: rgba(13, 110, 253, 0.5);
+        color: white;
+    }
+    
+    #map-container .back-to-search .btn-primary:hover {
+        background: rgba(13, 110, 253, 1);
+        color: white;
+    }
+    
+    
+    /* Mobile Optimizations */
+    @media (max-width: 768px) {
+        /* Hide navigation completely for fullscreen mobile experience */
+        .navbar {
+            display: none !important;
+        }
+        
+        /* Hide search toggle button - search bar always visible */
+        .search-toggle-btn {
+            display: none !important;
+        }
+        
+        /* Mobile map search bar - always visible */
+        .map-search-bar {
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            width: calc(100% - 10px);
+            max-width: none;
+            transform: none;
+            z-index: 1003;
+        }
+        
+        .map-search-bar form {
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .map-search-bar .form-control {
+            padding: 10px 16px;
+            font-size: 16px; /* Prevents zoom on iOS */
+            border-radius: 20px;
+        }
+        
+        .map-search-bar .btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 20px;
+        }
+        
+
+        /* Back button positioning */
+        #map-container .back-to-search {
+            position: absolute;
+            top: 70px;
+            left: 10px;
+            z-index: 1000;
+        }
+        
+        /* Mobile back button positioning */
+        @media (max-width: 768px) {
+            #map-container .back-to-search {
+                top: 65px;
+                left: 10px;
+                width: 44px;
+            }
+        }
+        
+        #map-container .back-to-search .btn {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            background: #4285f4;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        #map-container .back-to-search .btn i {
+            color: white;
+        }
+        
+        /* Mobile filter toggle button */
+        .filter-toggle-btn {
+            position: absolute;
+            top: 65px;
+            right: 10px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            font-size: 1.2rem;
+            color: #333;
+        }
+        
+        /* Mobile filter panel - hidden by default */
+        .mobile-filter-panel {
+            position: fixed;
+            top: 140px; /* Move down below buttons */
+            left: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            transform: translateY(-20px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-filter-panel.active {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Hide desktop filter panel on mobile */
+        .filter-panel {
+            display: none !important;
+        }
+        
+        /* Style mobile filter controls */
+        .mobile-filter-panel .form-select {
+            font-size: 14px;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .mobile-filter-panel .form-check {
+            margin-bottom: 8px;
+        }
+        
+        .mobile-filter-panel .form-check-label {
+            font-size: 14px;
+        }
+        
+        /* Mobile technology toggle button */
+        .technology-toggle-btn {
+            position: absolute;
+            top: 115px;
+            right: 10px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            font-size: 1.2rem;
+            color: #ffc107;
+        }
+        
+        /* Mobile legend - transform to collapsible panel */
+        .map-legend {
+            top: 175px !important;
+            bottom: auto !important;
+            left: 10px !important;
+            right: 10px !important;
+            width: calc(100% - 20px) !important;
+            max-width: none !important;
+            padding: 12px;
+            padding-right: 12px;
+            max-height: 50vh;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .map-legend.active {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Hide the old toggle button on mobile */
+        .legend-toggle {
+            display: none !important;
+        }
+        
+        /* Hide help button and popup on mobile */
+        .map-help-button, .map-help-popup {
+            display: none !important;
+        }
+        
+        /* Hide Google Maps map type control on mobile */
+        .gm-style-mtc {
+            display: none !important;
+        }
+        
+        /* Hide custom map type toggle */
+        .map-type-toggle {
+            display: none !important;
+        }
+        
+        /* Adjust Google Maps control positioning to avoid overlaps */
+        .gmnoprint {
+            top: 60px !important;
+        }
+        
+        /* Keep zoom controls in default bottom-right position */
+        .gm-bundled-control {
+            bottom: 20px !important;
+            right: 10px !important;
+            top: auto !important;
+            left: auto !important;
+        }
+        
+        .legend-toggle {
+            right: 6px;
+            top: 6px;
+            width: 28px;
+            height: 28px;
+        }
+        
+        .legend-title {
+            font-size: 0.85rem !important;
+            margin-bottom: 6px;
+            padding-right: 35px;
+        }
+        
+        .legend-item {
+            padding: 6px;
+            margin-bottom: 2px;
+            font-size: 0.8rem !important;
+        }
+        
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            margin-right: 8px;
+        }
+        
+        /* Mobile help button */
+        .map-help-button {
+            bottom: 15px;
+            left: 15px;
+            width: 44px;
+            height: 44px;
+            font-size: 1.1rem;
+        }
+        
+        .map-help-popup {
+            bottom: 70px;
+            left: 10px;
+            right: 10px;
+            max-width: none;
+            max-height: 60vh;
+            padding: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .map-help-popup h5 {
+            font-size: 0.95rem;
+        }
+        
+        .map-help-popup .tech-legend {
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .map-help-popup .tech-color {
+            width: 10px;
+            height: 10px;
+        }
+        
+        /* Mobile-specific info window sizing */
+        .gm-style .gm-style-iw-c {
+            max-width: 280px !important;
+            padding: 6px !important;
+        }
+    }
+    
+    /* Small mobile phones */
+    @media (max-width: 480px) {
+        .map-search-bar {
+            top: 3px;
+            left: 3px;
+            right: 3px;
+            width: calc(100% - 6px);
+        }
+        
+        #map-container .back-to-search {
+            top: 65px;
+            left: 3px;
+        }
+        
+        .map-legend {
+            bottom: 60px !important;
+            left: 3px !important;
+            right: 3px !important;
+            width: calc(100% - 6px) !important;
+            max-height: 35vh;
+            padding: 6px;
+            padding-right: 30px;
+        }
+        
+        .map-legend.collapsed {
+            bottom: 3px !important;
+        }
+        
+        .legend-item {
+            font-size: 0.75rem !important;
+            padding: 5px;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            margin-right: 6px;
+        }
+        
+        .map-help-popup {
+            left: 5px;
+            right: 5px;
+            bottom: 65px;
+            padding: 10px;
+            font-size: 0.75rem;
+        }
+        
+        .map-help-popup .tech-color {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .gm-style .gm-style-iw-c {
+            max-width: 260px !important;
+            padding: 4px !important;
+        }
+    }
+    
+    /* Landscape mobile orientation */
+    @media (max-width: 768px) and (orientation: landscape) {
+        .map-legend {
+            bottom: 50px !important;
+            max-height: 30vh;
+        }
+        
+        .map-help-popup {
+            max-height: 50vh;
+        }
+    }
+    
+    /* Touch interaction improvements */
+    @media (hover: none) and (pointer: coarse) {
+        .legend-item {
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        #map-container .back-to-search .btn {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        .legend-toggle {
+            min-width: 44px;
+            min-height: 44px;
+        }
+    }
+    
+    /* Touch interaction improvements from map_search_results */
+    @media (hover: none) and (pointer: coarse) {
+        #map-container .back-to-search .btn {
+            min-height: 44px;
+            min-width: 44px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+
+<!-- Add Search Bar and Back Button to Map Container via JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mapContainer = document.getElementById('map-container');
+    if (mapContainer) {
+        // Check if mobile
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        
+        // Add search bar
+        const searchBar = document.createElement('div');
+        searchBar.className = 'map-search-bar';
+        searchBar.innerHTML = `
+            <form id="technologySearchForm" class="d-flex position-relative">
+                <input type="text" id="technologySearchInput" class="form-control" 
+                       placeholder="Search components, locations, technologies..." 
+                       title="Search for components - will redirect to search results">
+                <button type="submit" class="btn btn-primary" title="Search components">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        `;
+        mapContainer.appendChild(searchBar);
+        
+        
+        // Add back button
+        const backButton = document.createElement('div');
+        backButton.className = 'back-to-search';
+        backButton.innerHTML = `
+            <a href="{% url 'homepage' %}" class="btn btn-primary">
+                <i class="bi bi-arrow-left"></i><span class="d-none d-md-inline"> Back to Search</span>
+            </a>
+        `;
+        mapContainer.appendChild(backButton);
+        
+        // Add filter toggle and panel for mobile
+        if (isMobile) {
+            // Create filter toggle button
+            const filterToggle = document.createElement('button');
+            filterToggle.className = 'filter-toggle-btn';
+            filterToggle.innerHTML = '<i class="bi bi-sliders"></i>';
+            filterToggle.title = 'Toggle filters';
+            mapContainer.appendChild(filterToggle);
+            
+            // Create mobile filter panel
+            const filterPanel = document.createElement('div');
+            filterPanel.className = 'mobile-filter-panel';
+            filterPanel.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0 fw-bold">Filters</h5>
+                    <button type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+                
+                <div class="mb-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="mobile-company-type-switch">
+                        <label class="form-check-label" for="mobile-company-type-switch">Top 20</label>
+                    </div>
+                    <select id="mobile-company-filter" class="form-select form-select-sm">
+                        <option value="" selected>All Companies (Excl. Residential)</option>
+                        {% for company_data in top_companies %}
+                            <option value="{{ company_data.company_name }}">{{ company_data.company_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="mobile-cm-period-switch" checked>
+                        <label class="form-check-label" for="mobile-cm-period-switch">Active</label>
+                    </div>
+                    <div class="small text-muted">(2024-2028)</div>
+                </div>
+                
+                <button id="mobile-apply-filters" class="btn btn-primary w-100 mt-3">Apply Filters</button>
+            `;
+            mapContainer.appendChild(filterPanel);
+            
+            // Create backdrop for filter panel
+            const filterBackdrop = document.createElement('div');
+            filterBackdrop.className = 'filter-backdrop';
+            filterBackdrop.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1999;
+                display: none;
+            `;
+            mapContainer.appendChild(filterBackdrop);
+            
+            // Toggle filter panel visibility
+            filterToggle.addEventListener('click', function() {
+                filterPanel.classList.toggle('active');
+                filterBackdrop.style.display = filterPanel.classList.contains('active') ? 'block' : 'none';
+            });
+            
+            // Handle mobile period switch changes
+            const mobilePeriodSwitch = document.getElementById('mobile-cm-period-switch');
+            if (mobilePeriodSwitch) {
+                mobilePeriodSwitch.addEventListener('change', function() {
+                    const label = this.nextElementSibling;
+                    const yearRangeText = label.parentElement.nextElementSibling;
+                    if (this.checked) {
+                        label.textContent = 'Active';
+                        if (yearRangeText && yearRangeText.classList.contains('small')) {
+                            yearRangeText.textContent = '(2024-2028)';
+                        }
+                    } else {
+                        label.textContent = 'Inactive';
+                        if (yearRangeText && yearRangeText.classList.contains('small')) {
+                            yearRangeText.textContent = '(2016-2023)';
+                        }
+                    }
+                });
+            }
+            
+            // Close filter panel
+            const closeBtn = filterPanel.querySelector('.btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    filterPanel.classList.remove('active');
+                    filterBackdrop.style.display = 'none';
+                });
+            }
+            
+            // Close on backdrop click
+            filterBackdrop.addEventListener('click', function() {
+                filterPanel.classList.remove('active');
+                filterBackdrop.style.display = 'none';
+            });
+            
+            // Sync mobile filters with desktop filters
+            document.getElementById('mobile-apply-filters').addEventListener('click', function() {
+                // Sync values to desktop filters
+                const companySwitch = document.getElementById('company-type-switch');
+                const companyFilter = document.getElementById('top-company-filter');
+                const yearSwitch = document.getElementById('cm-period-switch');
+                
+                if (companySwitch) {
+                    companySwitch.checked = document.getElementById('mobile-company-type-switch').checked;
+                    // Trigger change event on the switch to update filter visibility
+                    const switchEvent = new Event('change', { bubbles: true });
+                    companySwitch.dispatchEvent(switchEvent);
+                }
+                if (companyFilter) companyFilter.value = document.getElementById('mobile-company-filter').value;
+                if (yearSwitch) {
+                    yearSwitch.checked = document.getElementById('mobile-cm-period-switch').checked;
+                    // Trigger change event on the year switch to update year dropdown
+                    const yearSwitchEvent = new Event('change', { bubbles: true });
+                    yearSwitch.dispatchEvent(yearSwitchEvent);
+                }
+                
+                // Trigger the change event on the company filter to update the map
+                if (companyFilter) {
+                    const event = new Event('change', { bubbles: true });
+                    companyFilter.dispatchEvent(event);
+                }
+                
+                // If year was changed, trigger year change event
+                if (yearFilter && yearFilter.value) {
+                    const event = new Event('change', { bubbles: true });
+                    yearFilter.dispatchEvent(event);
+                }
+                
+                // Close panel
+                filterPanel.classList.remove('active');
+                filterBackdrop.style.display = 'none';
+            });
+            
+            // Create technology toggle button
+            const techToggle = document.createElement('button');
+            techToggle.className = 'technology-toggle-btn';
+            techToggle.innerHTML = '<i class="bi bi-lightning-charge-fill"></i>';
+            techToggle.title = 'Toggle technology filter';
+            mapContainer.appendChild(techToggle);
+            
+            // Get the legend element
+            const legend = document.getElementById('map-legend');
+            
+            // Toggle technology legend visibility
+            techToggle.addEventListener('click', function() {
+                if (legend) {
+                    legend.classList.toggle('active');
+                    // Close other panels when opening this one
+                    if (legend.classList.contains('active')) {
+                        filterPanel.classList.remove('active');
+                        searchBar.classList.remove('active');
+                    }
+                }
+            });
+            
+            // Update legend close functionality for mobile
+            if (legend) {
+                // Remove or update existing toggle button behavior
+                const oldToggle = legend.querySelector('.legend-toggle');
+                if (oldToggle && isMobile) {
+                    oldToggle.style.display = 'none';
+                }
+                
+                // Add close button to legend for mobile
+                const legendTitle = legend.querySelector('.legend-title');
+                if (legendTitle && !legend.querySelector('.legend-close-btn')) {
+                    const closeBtn = document.createElement('button');
+                    closeBtn.className = 'btn-close btn-sm legend-close-btn';
+                    closeBtn.style.position = 'absolute';
+                    closeBtn.style.top = '8px';
+                    closeBtn.style.right = '8px';
+                    closeBtn.setAttribute('aria-label', 'Close');
+                    legendTitle.parentElement.insertBefore(closeBtn, legendTitle);
+                    
+                    closeBtn.addEventListener('click', function() {
+                        legend.classList.remove('active');
+                    });
+                }
+            }
+            
+            // Google Maps layers control will be shown by default
+        }
+    }
+    
+    // Add map help button and popup
+    const helpButton = document.createElement('button');
+    helpButton.className = 'map-help-button';
+    helpButton.id = 'mapHelpBtn';
+    helpButton.title = 'Map Guide';
+    helpButton.textContent = '?';
+    document.body.appendChild(helpButton);
+    
+    const helpPopup = document.createElement('div');
+    helpPopup.className = 'map-help-popup';
+    helpPopup.id = 'mapHelpPopup';
+    helpPopup.innerHTML = `
+        <button class="close-btn" id="closeMapHelp">&times;</button>
+        <h5><i class="bi bi-map"></i> Map Guide</h5>
+        
+        <div class="mb-3">
+            <h6 class="mb-2">Technology Colors</h6>
+            <div class="tech-legend">
+                <div class="tech-color" style="background-color: #ff5252;"></div>
+                <small>Gas, OCGT, Reciprocating</small>
+                <div class="tech-color" style="background-color: #4caf50;"></div>
+                <small>Battery Storage</small>
+                <div class="tech-color" style="background-color: #f57c00;"></div>
+                <small>DSR (Demand Side Response)</small>
+                <div class="tech-color" style="background-color: #29b6f6;"></div>
+                <small>Wind</small>
+                <div class="tech-color" style="background-color: #fdd835;"></div>
+                <small>Solar</small>
+                <div class="tech-color" style="background-color: #8bc34a;"></div>
+                <small>Biomass</small>
+                <div class="tech-color" style="background-color: #0097a7;"></div>
+                <small>Hydro, Pumped Storage</small>
+                <div class="tech-color" style="background-color: #8d6e63;"></div>
+                <small>Nuclear</small>
+                <div class="tech-color" style="background-color: #5c6bc0;"></div>
+                <small>CHP</small>
+                <div class="tech-color" style="background-color: #9c27b0;"></div>
+                <small>Interconnector</small>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <h6 class="mb-2">Map Features</h6>
+            <ul class="list-unstyled small">
+                <li><i class="bi bi-circle-fill me-2"></i>Click markers for component details</li>
+                <li><i class="bi bi-layers me-2"></i>Larger markers = multiple components</li>
+                <li><i class="bi bi-zoom-in me-2"></i>Zoom and pan to explore</li>
+            </ul>
+        </div>
+        
+        <div class="mb-3">
+            <h6 class="mb-2">Navigation</h6>
+            <ul class="list-unstyled small">
+                <li><i class="bi bi-arrow-left me-2"></i><strong>Back to Search:</strong> Return to results</li>
+                <li><i class="bi bi-search me-2"></i><strong>Search Bar:</strong> Find specific components</li>
+                <li><i class="bi bi-gear-wide-connected me-2"></i><strong>Technology Legend:</strong> Filter by technology type</li>
+            </ul>
+        </div>
+        
+        <div class="small text-muted">
+            Click on a technology in the legend to view all components of that type, or use the search bar to find specific components.
+        </div>
+    `;
+    document.body.appendChild(helpPopup);
+    
+    // Setup help functionality
+    const helpBtn = document.getElementById('mapHelpBtn');
+    const helpPopupEl = document.getElementById('mapHelpPopup');
+    const closeBtn = document.getElementById('closeMapHelp');
+    
+    if (helpBtn && helpPopupEl && closeBtn) {
+        // Show help popup
+        helpBtn.addEventListener('click', function() {
+            helpPopupEl.classList.add('show');
+        });
+        
+        // Hide help popup
+        closeBtn.addEventListener('click', function() {
+            helpPopupEl.classList.remove('show');
+        });
+        
+        // Hide popup when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!helpPopupEl.contains(event.target) && !helpBtn.contains(event.target)) {
+                helpPopupEl.classList.remove('show');
+            }
+        });
+    }
+    
+    // Handle search form submission
+    if (mapContainer) {
+        // Handle search form submission
+        const searchForm = document.getElementById('technologySearchForm');
+        const searchInput = document.getElementById('technologySearchInput');
+        
+        if (searchForm && searchInput) {
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const query = searchInput.value.trim();
+                if (query) {
+                    // Redirect to map_results with search query
+                    window.location.href = `/map_results/?q=${encodeURIComponent(query)}`;
+                }
+            });
+        }
+    }
+});
+
+</script>
+{% endblock %}

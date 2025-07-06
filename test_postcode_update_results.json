@@ -1,0 +1,602 @@
+{
+  "100 Cathcart Rd, Glasgow G42 7BH": {
+    "county": "Glasgow City",
+    "outcode": "G42",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "100 Montifichet Road,\nWestfield,\nStratford\nE20 1GR": {
+    "county": "Newham",
+    "outcode": "E20",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "100 Princes Road Hulme, Manchester, M15 5AS": {
+    "county": "Manchester",
+    "outcode": "M15",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "100 The Jewel, Brunstane, Edinburgh, EH15 3AR": {
+    "county": "City of Edinburgh",
+    "outcode": "EH15",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "1020 Slutchers Lane, Centre Park, Warrington, WA1 1QL": {
+    "county": "Warrington",
+    "outcode": "WA1",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "107/111 High Street Wath Upon Dearne, Rotherham, S63 7PX": {
+    "county": "Rotherham",
+    "outcode": "S63",
+    "region": "Yorkshire and The Humber",
+    "status": "county_from_full_postcode"
+  },
+  "108/110 High Street Strood, Kent, ME2 4TR": {
+    "county": "Medway",
+    "outcode": "ME2",
+    "region": "South East",
+    "status": "county_from_full_postcode"
+  },
+  "10 Queens Drive , Kilmarnock, KA1 3XF": {
+    "county": "East Ayrshire",
+    "outcode": "KA1",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "1-10 Queen Elizabeth Square - South Woodham Ferrer  CM3 5SY": {
+    "county": "Essex",
+    "outcode": "CM3",
+    "region": "East of England",
+    "status": "county_from_full_postcode"
+  },
+  "111-127 Front Street  NG5 7ED": {
+    "county": "Nottinghamshire",
+    "outcode": "NG5",
+    "region": "East Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "111 Brancroft Way\nEnfield\nMiddlesex\nEN3 7PL": {
+    "county": "Enfield",
+    "outcode": "EN3",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "114 London Road  SK7 4AG": {
+    "county": "Stockport",
+    "outcode": "SK7",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "126 Smithdown Road , Liverpool, L15 3JR": {
+    "county": "Liverpool",
+    "outcode": "L15",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "12 Chapel Street CV21 3EB": {
+    "county": "Warwickshire",
+    "outcode": "CV21",
+    "region": "West Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "1300 Duke Street Parkhead Forge G31 4EB": {
+    "county": "Glasgow City",
+    "outcode": "G31",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "130 Chase Side , London, N14 5PW": {
+    "county": "Enfield",
+    "outcode": "N14",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "13/15 Crook Log Bexley HeathLondon, London, DA6 8EQ": {
+    "county": "Bexley",
+    "outcode": "DA6",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "140 Graham Road  DA6 7BN": {
+    "county": "Bexley",
+    "outcode": "DA6",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "142 London Road , London, KT2 6QL": {
+    "county": "Kingston upon Thames",
+    "outcode": "KT2",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "147 New Line , Bradford, BD10 0BT": {
+    "county": "Bradford",
+    "outcode": "BD10",
+    "region": "Yorkshire and The Humber",
+    "status": "county_from_full_postcode"
+  },
+  "151 East Ferry Road  E14 3BT": {
+    "county": "Tower Hamlets",
+    "outcode": "E14",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "151 ORIENTAL ROAD, WOKING, GU22 8BD": {
+    "county": "Surrey",
+    "outcode": "GU22",
+    "region": "South East",
+    "status": "county_from_full_postcode"
+  },
+  "158 Clapton Common Stamford Hill, London, E5 9AG": {
+    "county": "Hackney",
+    "outcode": "E5",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "15 Vickerton Street  KA26 9HF": {
+    "county": "South Ayrshire",
+    "outcode": "KA26",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "161 High Street Ramsgate, Kent, CT11 9TT": {
+    "county": "Kent",
+    "outcode": "CT11",
+    "region": "South East",
+    "status": "county_from_full_postcode"
+  },
+  "163 Beverley Road , Hull, HU3 1TY": {
+    "county": "Kingston upon Hull, City of",
+    "outcode": "HU3",
+    "region": "Yorkshire and The Humber",
+    "status": "county_from_full_postcode"
+  },
+  "165 Fordhouse Lane Stirchley Birmingham B30 3AG": {
+    "county": "Birmingham",
+    "outcode": "B30",
+    "region": "West Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "17 Hallam Road  FK5 3DB": {
+    "county": "Falkirk",
+    "outcode": "FK5",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "17 Oak Tree Road, Fen Drayton, Cambridge, CB24 4SS": {
+    "county": "Cambridgeshire",
+    "outcode": "CB24",
+    "region": "East of England",
+    "status": "county_from_full_postcode"
+  },
+  "184 Loughborough Road  NG2 7JA": {
+    "county": "Nottinghamshire",
+    "outcode": "NG2",
+    "region": "East Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "19 Bouverie Place  CT20 1AU": {
+    "county": "Kent",
+    "outcode": "CT20",
+    "region": "South East",
+    "status": "county_from_full_postcode"
+  },
+  "19 Selbourne Walk Shopping Centre  E17 7LS": {
+    "county": "Waltham Forest",
+    "outcode": "E17",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "1 Alexander Grove Kingshill ME19 4SZ": {
+    "county": "Kent",
+    "outcode": "ME19",
+    "region": "South East",
+    "status": "county_from_full_postcode"
+  },
+  "1 Barnett Wood Lane, Surrey, KT21 2BU": {
+    "county": "Surrey",
+    "outcode": "KT21",
+    "region": "South East",
+    "status": "county_from_full_postcode"
+  },
+  "1 Battle Road Silver Hill TN37 7AA": {
+    "county": "East Sussex",
+    "outcode": "TN37",
+    "region": "South East",
+    "status": "county_from_full_postcode"
+  },
+  "1 Dewhurst Road Birchwood WA3 6PG": {
+    "county": "Warrington",
+    "outcode": "WA3",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "1 Market Street Chapeltown, Sheffield, S35 2UW": {
+    "county": "Sheffield",
+    "outcode": "S35",
+    "region": "Yorkshire and The Humber",
+    "status": "county_from_full_postcode"
+  },
+  "1 Monument Drive Robroyston, Glasgow, G33 1AD": {
+    "county": "Glasgow City",
+    "outcode": "G33",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "1 Ratty's Lane, Hoddesdon, Hertfordshire, EN11 0RF": {
+    "county": "Hertfordshire",
+    "outcode": "EN11",
+    "region": "East of England",
+    "status": "county_from_full_postcode"
+  },
+  "1 Rivington Rd, Preston Brook, Runcorn WA7 3DP, United Kingdom": {
+    "county": "Halton",
+    "outcode": "WA7",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "1 Swan Walk Civic Centre, Manchester, M22 5HZ": {
+    "county": "Manchester",
+    "outcode": "M22",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "1 To 17 Inclusive, Titan Drive, Peterborough, PE1 5XN": {
+    "county": "Peterborough",
+    "outcode": "PE1",
+    "region": "East of England",
+    "status": "county_from_full_postcode"
+  },
+  "1 Tryst Road  G67 1JW": {
+    "county": "North Lanarkshire",
+    "outcode": "G67",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "1 Welbeck Avenue , Blackpool, FY4 4ES": {
+    "county": "Blackpool",
+    "outcode": "FY4",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "1 West Mall Edmonton N9 0AL": {
+    "county": "Enfield",
+    "outcode": "N9",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "204 Lavender Hill Clapham Junction SW11 1JG": {
+    "county": "Wandsworth",
+    "outcode": "SW11",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "20 Norwood , Beverley, HU17 9EY": {
+    "county": "East Riding of Yorkshire",
+    "outcode": "HU17",
+    "region": "Yorkshire and The Humber",
+    "status": "county_from_full_postcode"
+  },
+  "20 Rothes Drive , Glasgow, G23 5EZ": {
+    "county": "Glasgow City",
+    "outcode": "G23",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "214 Hollyhedge Road  M22 4QN": {
+    "county": "Manchester",
+    "outcode": "M22",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "21 Market Street  B61 8DA": {
+    "county": "Worcestershire",
+    "outcode": "B61",
+    "region": "West Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "105 Kelynmead Road Sheldon, Birmingham, B338LF": {
+    "county": "Birmingham",
+    "outcode": "B33",
+    "region": null,
+    "status": "county_from_outcode"
+  },
+  "110-114 High Street , Hoddesdon, EN118HD": {
+    "county": "Broxbourne",
+    "outcode": "EN11",
+    "region": null,
+    "status": "county_from_outcode"
+  },
+  "118 Forest Road New Ollerton, Newark, NG229PL": {
+    "county": "Newark and Sherwood",
+    "outcode": "NG22",
+    "region": null,
+    "status": "county_from_outcode"
+  },
+  "144 Houghton Road Thurnscoe, Barnsley, S630JZ": {
+    "county": "Rotherham",
+    "outcode": "S63",
+    "region": null,
+    "status": "county_from_outcode"
+  },
+  "171  Towngate , Leyland, PR252TE": {
+    "county": "South Ribble",
+    "outcode": "PR25",
+    "region": null,
+    "status": "county_from_outcode"
+  },
+  "172-174 Rye Lane PeckhamLondon, London, SE15  4NB": {
+    "county": "Southwark",
+    "outcode": "SE15",
+    "region": null,
+    "status": "county_from_outcode"
+  },
+  "2-20 Western Rd  NW10 7LW": {
+    "county": "Ealing",
+    "outcode": "NW10",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "226 St Helens Road , Bolton, BL3 4EB": {
+    "county": "Bolton",
+    "outcode": "BL3",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "24 Highfields Road Whitham, Chelmsford, CM8 2HJ": {
+    "county": "Essex",
+    "outcode": "CM8",
+    "region": "East of England",
+    "status": "county_from_full_postcode"
+  },
+  "252-310 Huddersfield Road , Oldham, OL4 2RB": {
+    "county": "Oldham",
+    "outcode": "OL4",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "264 Barnsley Road, Moorthorpe, WF9 2AD": {
+    "county": "Wakefield",
+    "outcode": "WF9",
+    "region": "Yorkshire and The Humber",
+    "status": "county_from_full_postcode"
+  },
+  "271 Bordsley Green , Birmingham, B9 5EY": {
+    "county": "Birmingham",
+    "outcode": "B9",
+    "region": "West Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "276 Kirkintilloch Road, Bishopbriggs, G64 2PT": {
+    "county": "East Dunbartonshire",
+    "outcode": "G64",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "288 And 290 Hillgrounds Road Kempston Bedford MK42 8SZ": {
+    "county": "Bedford",
+    "outcode": "MK42",
+    "region": "East of England",
+    "status": "county_from_full_postcode"
+  },
+  "29 Leicester Street, Barons Quay, Northwich, CW9 5LG": {
+    "county": "Cheshire West and Chester",
+    "outcode": "CW9",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "2A Clay Street, Soham, CB7 5HH": {
+    "county": "Cambridgeshire",
+    "outcode": "CB7",
+    "region": "East of England",
+    "status": "county_from_full_postcode"
+  },
+  "2 Bar Lane, York, YO51 9LS": {
+    "county": "North Yorkshire",
+    "outcode": "YO51",
+    "region": "Yorkshire and The Humber",
+    "status": "county_from_full_postcode"
+  },
+  "2 Celtic Point Raymoth Lane, Worksop, S81 7AZ": {
+    "county": "Nottinghamshire",
+    "outcode": "S81",
+    "region": "East Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "2 North Street South Bank TS6 6AB": {
+    "county": "Redcar and Cleveland",
+    "outcode": "TS6",
+    "region": "North East",
+    "status": "county_from_full_postcode"
+  },
+  "2 Samworth Way, Melton Mowbray LE13 1GA": {
+    "county": "Leicestershire",
+    "outcode": "LE13",
+    "region": "East Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "2 Sandpiper Drive Western Harbour EH6 6QU": {
+    "county": "City of Edinburgh",
+    "outcode": "EH6",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "2 South Wardpark Place, Wardpark, Cumbernauld, Glasgow, North Lanarkshire, G67 3HX": {
+    "county": "North Lanarkshire",
+    "outcode": "G67",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "318 Edinburgh Rd, Brakes Newhouse, Motherwell, ML1 5SY, United Kingdom": {
+    "county": "North Lanarkshire",
+    "outcode": "ML1",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "31 Britannia Way , Clydebank, G81 2RZ": {
+    "county": "West Dunbartonshire",
+    "outcode": "G81",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "31 Roehampton Vale , London, SW15 3DT": {
+    "county": "Wandsworth",
+    "outcode": "SW15",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "322 Broomloan Rd, Glasgow G51 2JQ": {
+    "county": "Glasgow City",
+    "outcode": "G51",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "341 Bosworth Drive Chelmsley Wood B37 5EX": {
+    "county": "Solihull",
+    "outcode": "B37",
+    "region": "West Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "34 Green Road , Leeds, LS6 4JP": {
+    "county": "Leeds",
+    "outcode": "LS6",
+    "region": "Yorkshire and The Humber",
+    "status": "county_from_full_postcode"
+  },
+  "35 - 43 High Street, Wealdstone,  HA3 5AG": {
+    "county": "Harrow",
+    "outcode": "HA3",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "377 Ormesby Rd , Middlesborough, TS3 0DY": {
+    "county": "Middlesbrough",
+    "outcode": "TS3",
+    "region": "North East",
+    "status": "county_from_full_postcode"
+  },
+  "387 Maidstone Road , Chatham, ME5 9SE": {
+    "county": "Medway",
+    "outcode": "ME5",
+    "region": "South East",
+    "status": "county_from_full_postcode"
+  },
+  "3 Black Bourton Road  OX18 3HQ": {
+    "county": "Oxfordshire",
+    "outcode": "OX18",
+    "region": "South East",
+    "status": "county_from_full_postcode"
+  },
+  "3 New Market Road  EH14 1RJ": {
+    "county": "City of Edinburgh",
+    "outcode": "EH14",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "3 Newmarket Street  FK1 1JT": {
+    "county": "Falkirk",
+    "outcode": "FK1",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "405 Queens Rd , Sheffield, S2 4DR": {
+    "county": "Sheffield",
+    "outcode": "S2",
+    "region": "Yorkshire and The Humber",
+    "status": "county_from_full_postcode"
+  },
+  "43-53 The Link Way - Middlebrook - Horwich  BL6 6JA": {
+    "county": "Bolton",
+    "outcode": "BL6",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "469-491 Northolt Rd South Harrow, Middlesex, HA2 8JN": {
+    "county": "Harrow",
+    "outcode": "HA2",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "47-53 Charterhouse Street, London, EC1M 6PB": {
+    "county": "Islington",
+    "outcode": "EC1M",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "47-57 High Street West End, Southampton, SO30 3DQ": {
+    "county": "Hampshire",
+    "outcode": "SO30",
+    "region": "South East",
+    "status": "county_from_full_postcode"
+  },
+  "490 High Road, London, N17 9JF": {
+    "county": "Haringey",
+    "outcode": "N17",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "49 High Street Ponders End, Enfield, EN3 4EF": {
+    "county": "Enfield",
+    "outcode": "EN3",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "4 Chemistry Lane, Pentre, Deeside CH5 2DA, UK": {
+    "county": "Flintshire",
+    "outcode": "CH5",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "4 Norman Rd, Belvedere DA17 6LD": {
+    "county": "Bexley",
+    "outcode": "DA17",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "4 Sidings Rd, Kirkby in Ashfield, Nottingham NG17 7JZ": {
+    "county": "Nottinghamshire",
+    "outcode": "NG17",
+    "region": "East Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "500 Helen Street Govan G51 3HR": {
+    "county": "Glasgow City",
+    "outcode": "G51",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "50 Harborough Road Kingsthorpe NN2 7AZ": {
+    "county": "West Northamptonshire",
+    "outcode": "NN2",
+    "region": "East Midlands",
+    "status": "county_from_full_postcode"
+  },
+  "510 Liverpool Rd Eccles, Manchester, M30 7JA": {
+    "county": "Salford",
+    "outcode": "M30",
+    "region": "North West",
+    "status": "county_from_full_postcode"
+  },
+  "555 Prospect Hill Road Toryglen G42 0AE": {
+    "county": "Glasgow City",
+    "outcode": "G42",
+    "region": null,
+    "status": "county_from_full_postcode"
+  },
+  "5-9 Deptford High Street  SE8 4AD": {
+    "county": "Lewisham",
+    "outcode": "SE8",
+    "region": "London",
+    "status": "county_from_full_postcode"
+  },
+  "5 Bath Lane , Stockton On Tees, TS18 2DS": {
+    "county": "Stockton-on-Tees",
+    "outcode": "TS18",
+    "region": "North East",
+    "status": "county_from_full_postcode"
+  }
+}

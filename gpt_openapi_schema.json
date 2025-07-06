@@ -1,0 +1,181 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "UK Capacity Market GPT Search API",
+    "description": "API for searching the UK Capacity Market database using natural language queries",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://neso-cmr-search-da0169863eae.herokuapp.com",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:8000",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/api/gpt-search/": {
+      "post": {
+        "summary": "Search components using natural language",
+        "description": "Accepts natural language queries and returns relevant capacity market components",
+        "operationId": "gptSearch",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful search response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid query or format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SearchRequest": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural language search query (e.g., 'Show me gas plants in London')",
+            "example": "How many nuclear power stations were in the T-4 2020 auction?"
+          }
+        }
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The original query that was processed"
+          },
+          "results_count": {
+            "type": "integer",
+            "description": "Number of components found"
+          },
+          "summary": {
+            "type": "string",
+            "description": "A natural language summary of the search results"
+          },
+          "components": {
+            "type": "array",
+            "description": "List of capacity market components matching the query",
+            "items": {
+              "$ref": "#/components/schemas/Component"
+            }
+          },
+          "error": {
+            "type": ["string", "null"],
+            "description": "Error message if any occurred during processing"
+          }
+        }
+      },
+      "Component": {
+        "type": "object",
+        "properties": {
+          "cmu_id": {
+            "type": "string",
+            "description": "The unique CMU ID for this component"
+          },
+          "company_name": {
+            "type": "string",
+            "description": "Name of the company operating the component"
+          },
+          "location": {
+            "type": "string",
+            "description": "Location of the component, often with postcode"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the component"
+          },
+          "delivery_year": {
+            "type": "string",
+            "description": "Delivery year for the capacity market obligation"
+          },
+          "auction_name": {
+            "type": "string",
+            "description": "Name of the auction (e.g., 'T-4 2022')"
+          },
+          "technology": {
+            "type": "string",
+            "description": "Technology type (e.g., 'CCGT', 'Nuclear', 'DSR')"
+          },
+          "derated_capacity_mw": {
+            "type": ["number", "null"],
+            "description": "De-rated capacity in megawatts"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key for authentication. Must be included in all requests."
+      }
+    }
+  }
+} 

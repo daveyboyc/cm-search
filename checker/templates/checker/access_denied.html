@@ -1,0 +1,111 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}{{ access_message.title }} - Capacity Market Search{% endblock %}
+
+{% block extra_head %}
+<style>
+    .access-denied-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 3rem 1rem;
+        text-align: center;
+    }
+    
+    .access-icon {
+        font-size: 4rem;
+        color: #ffc107;
+        margin-bottom: 1.5rem;
+    }
+    
+    .access-denied-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 1px solid #dee2e6;
+    }
+    
+    html[data-bs-theme="dark"] .access-denied-card {
+        background: rgba(33, 37, 41, 0.95);
+        border-color: #495057;
+    }
+    
+    .feature-name {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+    
+    .pricing-highlight {
+        background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    html[data-bs-theme="dark"] .pricing-highlight {
+        background: linear-gradient(45deg, #1a3a52, #2d1b40);
+    }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="access-denied-container">
+    <div class="access-denied-card">
+        <div class="access-icon">
+            <i class="bi bi-lock-fill"></i>
+        </div>
+        
+        <h2 class="mb-3">{{ access_message.title }}</h2>
+        
+        <p class="lead mb-3">
+            Access to <span class="feature-name">{{ requested_feature }}</span> requires 
+            {% if user.is_authenticated %}premium access{% else %}registration{% endif %}.
+        </p>
+        
+        <p class="text-muted mb-4">
+            {{ access_message.message }}
+        </p>
+        
+        <div class="pricing-highlight">
+            <h5 class="mb-2">
+                <i class="bi bi-star-fill text-warning me-2"></i>
+                Choose your contribution amount
+            </h5>
+            <p class="mb-0 small">
+                <i class="bi bi-check-circle-fill text-success me-1"></i> Unlimited access to all features<br>
+                <i class="bi bi-check-circle-fill text-success me-1"></i> Interactive map views<br>
+                <i class="bi bi-check-circle-fill text-success me-1"></i> Advanced search and filtering<br>
+                <i class="bi bi-check-circle-fill text-success me-1"></i> No monthly subscription
+            </p>
+        </div>
+        
+        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+            <a href="{{ access_message.url }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-{% if user.is_authenticated %}credit-card-2-front-fill{% else %}person-plus-fill{% endif %} me-2"></i>
+                {{ access_message.action }}
+            </a>
+            
+            <a href="{% url 'homepage' %}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-arrow-left me-2"></i>
+                Back to Search
+            </a>
+        </div>
+        
+        {% if not user.is_authenticated %}
+        <div class="mt-4">
+            <p class="small text-muted">
+                Already have an account? 
+                <a href="{% url 'accounts:login' %}" class="text-decoration-none">Sign in here</a>
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

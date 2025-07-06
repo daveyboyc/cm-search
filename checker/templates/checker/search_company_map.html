@@ -1,0 +1,1946 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+
+{% block title %}{{ company_name }} - Company Locations{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<style>
+    /* Define background image variables to match base template */
+    html[data-bs-theme="light"] {
+        --bg-image: url("{% static 'images/backgrounds/industrial_background.jpeg' %}");
+    }
+    html[data-bs-theme="dark"] {
+        --bg-image: url("{% static 'images/backgrounds/industrial_background_dark.jpeg' %}");
+    }
+    /* Override all base styles for full control */
+    html, body {
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        /* Remove overflow hidden to allow iOS scrolling */
+    }
+    
+    /* Preserve base template background image */
+    body {
+        /* Keep the background image from base template */
+        background-image: var(--bg-image) !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-size: cover !important;
+        background-attachment: fixed !important;
+    }
+    
+    /* Override ALL container variations from base.html */
+    body > .container,
+    body > .container-fluid,
+    body > div[class*="container"],
+    .container,
+    .container-fluid,
+    .container-sm,
+    .container-md,
+    .container-lg,
+    .container-xl,
+    .container-xxl {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        position: static !important;
+        height: auto !important;
+    }
+    
+    /* Remove any base template wrappers */
+    main, .main-content, .content-wrapper, .page-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+    
+    /* Main flex container - position fixed to ensure it's on top */
+    .main-container {
+        position: fixed !important;
+        top: 56px !important; /* Height of navbar */
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        display: flex !important;
+        width: 100vw !important;
+        height: calc(100vh - 56px) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        z-index: 1000 !important;
+        background: transparent !important;
+    }
+    
+    /* Left side - search results pushed to far left */
+    .search-results-container {
+        flex: 0 0 60% !important;
+        height: 100% !important;
+        overflow-y: auto !important;
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        padding: 20px 20px 20px 0 !important;
+        margin: 0 !important;
+        position: relative !important;
+        z-index: 1001 !important;
+    }
+    
+    /* Dark mode for search results container */
+    html[data-bs-theme="dark"] .search-results-container {
+        background-color: rgba(33, 37, 41, 0.95) !important;
+        color: #e0e0e0;
+    }
+    
+    .search-content-wrapper {
+        max-width: 800px !important;
+        margin-left: 20px !important;
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    
+    /* Result items - clean style like original */
+    .result-item {
+        background-color: transparent;
+        border-radius: 0;
+        margin-bottom: 0;
+        padding: 20px 0 !important;
+        border-bottom: 1px solid #e0e0e0;
+        transition: background-color 0.2s ease;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .result-item:last-child {
+        border-bottom: none;
+    }
+    
+    .result-item:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+    
+    .result-item.active {
+        background-color: rgba(13, 110, 253, 0.05);
+        border-left: 3px solid #0d6efd;
+        padding-left: 17px !important;
+    }
+    
+    /* Dark mode result items */
+    html[data-bs-theme="dark"] .result-item {
+        border-bottom-color: #495057;
+    }
+    
+    html[data-bs-theme="dark"] .result-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    html[data-bs-theme="dark"] .result-item.active {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    
+    /* Related companies section - minimal style */
+    .related-companies-section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        padding-left: 20px;
+    }
+    
+    /* Collapsible header styling */
+    .related-companies-section h5 {
+        margin-bottom: 0 !important;
+        user-select: none;
+        font-size: 1rem;
+        font-weight: normal;
+        color: #333;
+    }
+    
+    /* Smooth transition for companies list */
+    .companies-list {
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+    }
+    
+    .companies-list a {
+        color: #0066cc;
+        text-decoration: none;
+        font-weight: normal;
+    }
+    
+    .companies-list a:hover {
+        text-decoration: underline;
+    }
+    
+    .companies-list .text-muted {
+        color: #6c757d !important;
+        font-size: 0.9rem;
+    }
+    
+    /* Technology badges with matching colors */
+    .badge-gas { background-color: #ff5252 !important; }
+    .badge-dsr { background-color: #f57c00 !important; }
+    .badge-ev-charging, 
+    a.badge-ev-charging,
+    .badge.badge-ev-charging,
+    span.badge-ev-charging { 
+        background-color: #e91e63 !important; 
+        color: white !important; 
+        border: none !important;
+        text-decoration: none !important;
+    }
+    .badge-nuclear { background-color: #8d6e63 !important; }
+    .badge-chp { background-color: #5c6bc0 !important; }
+    .badge-solar { background-color: #fdd835 !important; color: #000 !important; }
+    .badge-wind { background-color: #29b6f6 !important; }
+    .badge-battery { background-color: #4caf50 !important; }
+    .badge-biomass { background-color: #8bc34a !important; }
+    .badge-hydro { background-color: #0097a7 !important; }
+    .badge-interconnector { background-color: #9c27b0 !important; }
+    .badge-coal { background-color: #424242 !important; }
+    .badge-unknown { background-color: #757575 !important; }
+    
+    /* Badge links hover effect */
+    a.badge:hover {
+        opacity: 0.8;
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
+    }
+    
+    /* Location link hover */
+    a.location-name:hover {
+        text-decoration: underline !important;
+    }
+    
+    /* Disabled state for links before clicking */
+    .result-item:not(.active) a.location-name,
+    .result-item:not(.active) a.badge {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+    
+    /* Active state enables links */
+    .result-item.active a.location-name,
+    .result-item.active a.badge {
+        pointer-events: auto;
+        opacity: 1;
+    }
+    
+    /* Right side - map */
+    .map-container {
+        flex: 0 0 40% !important;
+        height: 100% !important;
+        position: relative !important;
+        background: #f0f0f0 !important;
+        border-left: 1px solid #ddd !important;
+        z-index: 1001 !important;
+    }
+    
+    #map {
+        width: 100% !important;
+        height: 100% !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+    }
+    
+    #loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .map-info-panel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        font-size: 14px;
+        transition: opacity 0.5s ease-out;
+        opacity: 1;
+    }
+    
+    .map-info-panel.fade-out {
+        opacity: 0;
+    }
+    
+    /* Search results styling */
+    .results-list {
+        padding-right: 10px;
+    }
+    
+    /* Hide View on Map button */
+    .map-view-btn {
+        display: none !important;
+    }
+    
+    /* Removed custom navbar styling - using universal navbar styles */
+    
+    /* Hide navigation elements that might interfere */
+    #helpButton {
+        display: none !important;
+    }
+    
+    /* Custom dropdown menu styling */
+    .dropdown-menu {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 1px solid #e0e0e0;
+        padding: 8px 0;
+    }
+    
+    .dropdown-item {
+        padding: 8px 20px;
+        font-size: 0.875rem;
+        transition: background-color 0.2s ease;
+    }
+    
+    .dropdown-item:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .dropdown-item.active {
+        background-color: #e3f2fd;
+        color: #0d6efd;
+    }
+    
+    /* Dark mode dropdown styling */
+    html[data-bs-theme="dark"] .dropdown-menu {
+        background-color: #2c2c2c;
+        border-color: #3c3c3c;
+    }
+    
+    html[data-bs-theme="dark"] .dropdown-item {
+        color: #e0e0e0;
+    }
+    
+    html[data-bs-theme="dark"] .dropdown-item:hover {
+        background-color: #3c3c3c;
+        color: #e0e0e0;
+    }
+    
+    html[data-bs-theme="dark"] .dropdown-item.active {
+        background-color: #1a3a52;
+        color: #4dabf7;
+    }
+    
+    /* Sort links styling */
+    .sort-link {
+        font-weight: normal;
+        transition: all 0.2s ease;
+    }
+    
+    .sort-link:hover {
+        text-decoration: underline !important;
+    }
+    
+    .sort-link.active {
+        font-weight: 600;
+    }
+    
+    /* Search bar styling */
+    .input-group .form-control:focus {
+        box-shadow: none;
+        border-color: #0d6efd;
+    }
+    
+    .input-group .btn-primary {
+        border-color: #0d6efd;
+    }
+    
+    .input-group .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0b5ed7;
+    }
+    
+    /* Always show hamburger menu */
+    .navbar-toggler {
+        display: block !important;
+        border: none;
+        padding: 4px 8px;
+    }
+    
+    .navbar-toggler:focus {
+        box-shadow: none;
+    }
+    
+    /* Offcanvas styling */
+    .offcanvas {
+        width: 280px !important;
+    }
+    
+    .offcanvas .nav-link {
+        padding: 0.75rem 1rem;
+        color: #333;
+    }
+    
+    .offcanvas .nav-link:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .offcanvas .nav-link[data-bs-theme-value].active {
+        background-color: #e3f2fd;
+        color: #0d6efd;
+    }
+    
+    /* Dark mode offcanvas */
+    html[data-bs-theme="dark"] .offcanvas {
+        background-color: #212529;
+        color: #fff;
+    }
+    
+    html[data-bs-theme="dark"] .offcanvas .nav-link {
+        color: #dee2e6;
+    }
+    
+    html[data-bs-theme="dark"] .offcanvas .nav-link:hover {
+        background-color: #343a40;
+    }
+    
+    html[data-bs-theme="dark"] .offcanvas .nav-link[data-bs-theme-value].active {
+        background-color: #1a3a52;
+        color: #4dabf7;
+    }
+    
+    /* Dark mode text colors */
+    html[data-bs-theme="dark"] .text-muted {
+        color: #9ca3af !important;
+    }
+    
+    html[data-bs-theme="dark"] h1, 
+    html[data-bs-theme="dark"] h2, 
+    html[data-bs-theme="dark"] h3, 
+    html[data-bs-theme="dark"] h4, 
+    html[data-bs-theme="dark"] h5, 
+    html[data-bs-theme="dark"] h6 {
+        color: #e0e0e0;
+    }
+    
+    html[data-bs-theme="dark"] .badge.bg-warning {
+        background-color: #f59e0b !important;
+        color: #1f2937 !important;
+    }
+    
+    /* Mobile Map Toggle Button */
+    .mobile-map-toggle {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 1100;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: #0d6efd;
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-map-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+    
+    .mobile-map-toggle i {
+        font-size: 24px;
+    }
+    
+    /* Mobile Bottom Sheet Container */
+    .mobile-map-sheet {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        z-index: 1050;
+        transition: transform 0.3s ease-out;
+        transform: translateY(100%);
+        max-height: 90vh;
+        height: 70vh;
+    }
+    
+    .mobile-map-sheet.show {
+        transform: translateY(0);
+    }
+    
+    /* Drag Handle */
+    .map-drag-handle {
+        width: 100%;
+        height: 32px;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        touch-action: none;
+    }
+    
+    .map-drag-handle:active {
+        cursor: grabbing;
+    }
+    
+    .map-drag-indicator {
+        width: 48px;
+        height: 4px;
+        background-color: #dee2e6;
+        border-radius: 2px;
+    }
+    
+    /* Mobile Map Container */
+    .mobile-map-content {
+        height: calc(100% - 32px);
+        position: relative;
+    }
+    
+    /* Dark mode support for mobile sheet */
+    html[data-bs-theme="dark"] .mobile-map-sheet {
+        background-color: #212529;
+    }
+    
+    html[data-bs-theme="dark"] .map-drag-indicator {
+        background-color: #495057;
+    }
+    
+    /* Responsive */
+    @media (max-width: 991px) {
+        .main-container {
+            flex-direction: column !important;
+            height: calc(100vh - 56px) !important;
+        }
+        
+        .search-results-container {
+            flex: 1 1 100% !important;
+            height: calc(100vh - 56px) !important;
+            padding: 20px !important;
+            padding-bottom: 20px !important;
+        }
+        
+        .search-content-wrapper {
+            margin-left: 0 !important;
+            max-width: 100% !important;
+        }
+        
+        /* Hide desktop map container on mobile */
+        .map-container {
+            display: none !important;
+        }
+        
+        /* Show mobile map toggle */
+        .mobile-map-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Show mobile map sheet */
+        .mobile-map-sheet {
+            display: block;
+        }
+        
+        /* Mobile custom map type control - only for mobile fallback */
+        .custom-map-type-control {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            z-index: 1000;
+            background: transparent;
+            border: 0;
+            border-radius: 2px;
+            cursor: pointer;
+            font-family: Roboto,Arial,sans-serif;
+            font-size: 11px;
+            height: 40px;
+            line-height: 40px;
+            margin: 10px;
+            text-align: center;
+            user-select: none;
+            padding: 0;
+            display: flex;
+            box-shadow: none;
+        }
+        
+        .map-type-btn {
+            background-color: #fff;
+            border: 0;
+            border-radius: 2px;
+            color: rgba(0,0,0,.87);
+            cursor: pointer;
+            font-family: Roboto,Arial,sans-serif;
+            font-size: 11px;
+            height: 40px;
+            margin: 0 1px;
+            padding: 0 12px;
+            text-transform: none;
+            user-select: none;
+            box-shadow: 0 1px 4px -1px rgba(0,0,0,.3);
+            display: inline-block;
+            line-height: 40px;
+            text-align: center;
+            vertical-align: middle;
+            min-width: 0;
+        }
+        
+        .map-type-btn:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .map-type-btn.active {
+            background-color: #4285f4;
+            color: white;
+        }
+        
+        .map-type-btn.active:hover {
+            background-color: #3367d6;
+        }
+    }
+    
+</style>
+{% endblock %}
+
+{% block body_class %}search-page has-universal-navbar{% endblock %}
+
+{% block container_class %}container-fluid p-0{% endblock %}
+
+{% block content %}
+<!-- Include Universal Loading Overlay -->
+{% include 'checker/includes/universal_loading_overlay.html' %}
+
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+
+<div class="main-container">
+    <!-- Left: Search Results -->
+    <div class="search-results-container">
+        <div class="search-content-wrapper">
+
+            <!-- Company Header -->
+            <div class="mb-4">
+                <!-- Breadcrumb Navigation -->
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb mb-0" style="background: none; padding: 0;">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'search_map_view' %}" class="text-primary text-decoration-none">
+                                <i class="bi bi-arrow-left me-1"></i>All Locations
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active text-muted" aria-current="page">{{ company_name }}</li>
+                    </ol>
+                </nav>
+                
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2 class="mb-2">
+                            <span class="badge bg-warning text-dark" style="font-size: 1.5rem; font-weight: normal; padding: 0.5rem 1rem;">
+                                {{ company_name }}
+                            </span>
+                        </h2>
+                        <p class="text-muted">
+                            {{ total_locations }} unique locations ({{ total_components }} components)
+                            {% if page_obj.paginator.num_pages > 1 %} - Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% endif %}
+                        </p>
+                    </div>
+                    <!-- List view button removed - map view is canonical -->
+                </div>
+            </div>
+
+            <!-- Unified Filter Bar for Map -->
+            {% include 'checker/includes/filter_bar_map.html' %}
+
+            <!-- Results List -->
+            <div class="results-list">
+                {% for location in page_obj %}
+                <div class="result-item" data-location-id="{{ location.id }}" data-lat="{{ location.latitude }}" data-lng="{{ location.longitude }}" onclick="focusOnLocation({{ location.latitude }}, {{ location.longitude }}, {{ location.id }})">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="mb-2">
+                                <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                                <a href="/location/{{ location.id }}/" class="location-name text-primary text-decoration-none" onclick="handleLinkClick(event, this);">{{ location.location }}</a>
+                                <span class="text-muted small ms-2">({{ location.component_count }} component{{ location.component_count|pluralize }})</span>
+                            </h5>
+                            
+                            {% if location.descriptions %}
+                                {% with location.descriptions|unique_with_counts as unique_descriptions %}
+                                    {% if unique_descriptions|length == 1 %}
+                                        {% with unique_descriptions.0 as first_desc %}
+                                            <p class="mb-2 text-muted">
+                                                {{ first_desc.0|truncatewords:30 }}
+                                                {% if first_desc.1 > 1 %}({{ first_desc.1 }}){% endif %}
+                                            </p>
+                                        {% endwith %}
+                                    {% else %}
+                                        <div class="mb-2 text-muted">
+                                            {% for desc, count in unique_descriptions|slice:":3" %}
+                                                <div>• {{ desc|truncatewords:20 }}{% if count > 1 %} ({{ count }}){% endif %}</div>
+                                            {% endfor %}
+                                            {% if unique_descriptions|length > 3 %}
+                                                <div>• ... and {{ unique_descriptions|length|add:"-3" }} more unique description{{ unique_descriptions|length|add:"-3"|pluralize }}</div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                            
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                {% if location.technologies %}
+                                    {% for tech, count in location.technologies.items %}
+                                    <a href="{% url 'technology_detail_map' technology_name=tech|urlencode %}" class="badge {{ tech|tech_badge_class }} text-decoration-none" onclick="handleLinkClick(event, this);">{{ tech }}</a>
+                                    {% endfor %}
+                                {% endif %}
+                                
+                                {% if location.companies %}
+                                    {% for company, count in location.companies.items %}
+                                    {% if forloop.first %}
+                                    <a href="{% url 'company_detail_map' company_name=company|urlencode %}" class="badge bg-warning text-dark text-decoration-none" onclick="handleLinkClick(event, this);">{{ company }}</a>
+                                    {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mt-2 small">
+                                <span class="{% if location.is_active %}text-success{% else %}text-muted{% endif %}">
+                                    {% if location.is_active %}Active{% else %}Inactive{% endif %} • 
+                                    {% for year in location.auction_years|slice:":2" %}
+                                        {{ year|shorten_auction_name }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                    {% if location.auction_years|length > 2 %}...{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {% if location.normalized_capacity_mw and location.normalized_capacity_mw > 0 %}
+                        <div class="text-end ms-3">
+                            <div class="fw-bold">{{ location.normalized_capacity_mw|floatformat:2 }} MW</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No locations found.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-4 d-flex justify-content-center">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{% if auction_filter %}&auction={{ auction_filter|urlencode }}{% endif %}{% if technology_filter %}&technology={{ technology_filter|urlencode }}{% endif %}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% comment %} Always show first page {% endcomment %}
+                    {% if page_obj.number > 3 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query|urlencode }}&page=1&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{% if auction_filter %}&auction={{ auction_filter|urlencode }}{% endif %}{% if technology_filter %}&technology={{ technology_filter|urlencode }}{% endif %}">1</a>
+                        </li>
+                        {% if page_obj.number > 4 %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endif %}
+                    
+                    {% comment %} Show pages around current page {% endcomment %}
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&page={{ num }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{% if auction_filter %}&auction={{ auction_filter|urlencode }}{% endif %}{% if technology_filter %}&technology={{ technology_filter|urlencode }}{% endif %}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% comment %} Always show last page {% endcomment %}
+                    {% if page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
+                        {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.paginator.num_pages }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{% if auction_filter %}&auction={{ auction_filter|urlencode }}{% endif %}{% if technology_filter %}&technology={{ technology_filter|urlencode }}{% endif %}">{{ page_obj.paginator.num_pages }}</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{% if auction_filter %}&auction={{ auction_filter|urlencode }}{% endif %}{% if technology_filter %}&technology={{ technology_filter|urlencode }}{% endif %}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Right: Map -->
+    <div class="map-container">
+        <div id="map"></div>
+        <div id="loading-overlay">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading map...</span>
+            </div>
+        </div>
+        <div class="map-info-panel">
+            Showing {{ page_obj|length }} locations
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Map Toggle Button -->
+<button class="mobile-map-toggle" onclick="toggleMobileMap()" id="mobileMapToggle">
+    <i class="bi bi-map"></i>
+</button>
+
+<!-- Mobile Map Bottom Sheet -->
+<div class="mobile-map-sheet" id="mobileMapSheet">
+    <div class="map-drag-handle" id="mapDragHandle">
+        <div class="map-drag-indicator"></div>
+    </div>
+    <div class="mobile-map-content">
+        <div id="mobileMap" style="width: 100%; height: 100%;"></div>
+        <!-- Custom Map Type Toggle for Mobile - Only show if native controls don't work -->
+        <div class="custom-map-type-control" id="mobileMapTypeControl" style="position: absolute; top: 60px; right: 10px; z-index: 1000;">
+            <button class="map-type-btn active" data-type="roadmap" onclick="setMobileMapType('roadmap', this)">Map</button>
+            <button class="map-type-btn" data-type="hybrid" onclick="setMobileMapType('hybrid', this)">Satellite</button>
+        </div>
+    </div>
+</div>
+
+<!-- Include Registration Timer -->
+{% include 'checker/includes/registration_timer.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Constants
+const UK_CENTER = { lat: 54.00366, lng: -2.547855 };
+const techColors = {
+    'Gas': '#ff5252',
+    'DSR': '#f57c00',
+    'EV Charging': '#e91e63',
+    'Nuclear': '#8d6e63',
+    'CHP': '#5c6bc0',
+    'Solar': '#fdd835',
+    'Wind': '#29b6f6',
+    'Battery': '#4caf50',
+    'Biomass': '#8bc34a',
+    'Hydro': '#0097a7',
+    'Interconnector': '#9c27b0',
+    'Coal': '#424242',
+    'Unknown': '#757575'
+};
+
+let map, infoWindow, markers = [];
+let markerMap = {}; // Map location IDs to markers for easy lookup
+
+// Toggle companies list
+function toggleCompanies() {
+    const companiesList = document.getElementById('companies-list');
+    const toggleIcon = document.getElementById('companies-toggle-icon');
+    
+    if (companiesList.style.display === 'none') {
+        companiesList.style.display = 'block';
+        toggleIcon.className = 'bi bi-chevron-up';
+    } else {
+        companiesList.style.display = 'none';
+        toggleIcon.className = 'bi bi-chevron-down';
+    }
+}
+
+// Handle link clicks - only allow if parent is active
+function handleLinkClick(event, element) {
+    const resultItem = element.closest('.result-item');
+    if (!resultItem || !resultItem.classList.contains('active')) {
+        event.preventDefault();
+        event.stopPropagation();
+        // Trigger the parent click to activate it
+        resultItem.click();
+    }
+    // If active, allow normal link behavior
+}
+
+// Technology categorization
+function determineCategory(techName) {
+    const lowerTech = techName.toLowerCase();
+    
+    const interconnectorTypes = [
+        'britned', 'eleclink', 'ewic', 'greenlink', 
+        'ifa', 'ifa2', 'moyle', 'nemo', 'neuconnect', 
+        'nsl', 'vikinglink', 'ireland', 'france', 
+        'belgium', 'norway', 'denmark', 'netherlands', 'germany'
+    ];
+    
+    if (lowerTech.includes('interconnector') || lowerTech.includes('interconnection') ||
+        interconnectorTypes.some(type => lowerTech.includes(type))) {
+        return 'Interconnector';
+    } else if (lowerTech.includes('battery') || (lowerTech.includes('storage') && !lowerTech.includes('pumped'))) {
+        return 'Battery';
+    } else if (lowerTech.includes('wind') || lowerTech.includes('onshore wind') || lowerTech.includes('offshore wind')) {
+        return 'Wind';
+    } else if (lowerTech.includes('solar') || lowerTech.includes('photovoltaic')) {
+        return 'Solar';
+    } else if (lowerTech.includes('gas') || lowerTech.includes('ocgt') || lowerTech.includes('ccgt') || 
+              lowerTech.includes('reciprocating') || lowerTech.includes('engines') || 
+              lowerTech.includes('oil-fired') || lowerTech.includes('combined cycle gas turbine') ||
+              lowerTech.includes('open cycle gas turbine')) {
+        return 'Gas';
+    } else if (lowerTech.includes('nuclear')) {
+        return 'Nuclear';
+    } else if (lowerTech.includes('hydro')) {
+        return 'Hydro';
+    } else if (lowerTech.includes('chp') || lowerTech.includes('combined heat') || 
+              lowerTech.includes('autogeneration')) {
+        return 'CHP';
+    } else if (lowerTech.includes('biomass') || lowerTech.includes('waste') || 
+              lowerTech.includes('energy from waste')) {
+        return 'Biomass';
+    } else if (lowerTech.includes('coal')) {
+        return 'Coal';
+    } else if (lowerTech.includes('ev charging') || lowerTech.includes('ev charger')) {
+        return 'EV Charging';
+    } else if (lowerTech.includes('dsr')) {
+        return 'DSR';
+    } else {
+        return 'Unknown';
+    }
+}
+
+function getTechnologyColor(technology) {
+    if (!technology) return techColors['Unknown'];
+    const category = determineCategory(technology);
+    return techColors[category] || techColors['Unknown'];
+}
+
+// Create info window content
+function createInfoWindowContent(props) {
+    // Check if dark mode is active
+    const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const textColor = isDarkMode ? '#e0e0e0' : '#212529';
+    const mutedColor = isDarkMode ? '#9ca3af' : '#6c757d';
+    const bgColor = isDarkMode ? '#2c2c2c' : '#ffffff';
+    
+    // Check if mobile
+    const isMobile = window.innerWidth <= 768;
+    const fontSize = isMobile ? '11px' : '13px';
+    const titleSize = isMobile ? '13px' : '16px';
+    const padding = isMobile ? '8px' : '12px';
+    const maxWidth = isMobile ? '250px' : '300px';
+    
+    let content = `<div style="max-width: ${maxWidth}; background-color: ${bgColor}; color: ${textColor}; padding: ${padding}; border-radius: 4px;">`;
+    
+    // Mobile: Show description in italics (hide location name)
+    if (isMobile) {
+        console.log('Mobile view - description:', props.description, 'type:', typeof props.description);
+        if (props.description && props.description !== 'null' && props.description !== null && props.description.trim() !== '') {
+            // Truncate description to 80 characters
+            const truncatedDesc = props.description.length > 80 ? props.description.substring(0, 77) + '...' : props.description;
+            content += `<p style="color: ${textColor}; margin: 0 0 6px 0; font-size: ${fontSize}; line-height: 1.3; font-style: italic;">${truncatedDesc}</p>`;
+        }
+        // Don't show location name on mobile
+    } else {
+        // Desktop: show title
+        content += `<h6 style="color: ${textColor}; margin: 0 0 10px 0; font-weight: bold; font-size: ${titleSize};">${props.title || 'Location'}</h6>`;
+    }
+    
+    // Mobile: Only show technology and company
+    if (isMobile) {
+        // Technology (colored to match marker)
+        if (props.technology) {
+            const techColor = getTechnologyColor(props.technology);
+            content += `<p style="font-size: ${fontSize}; margin: 2px 0; color: ${techColor}; font-weight: 600;">${props.technology}</p>`;
+        }
+        
+        // Company
+        if (props.company) {
+            content += `<p style="font-size: ${fontSize}; margin: 2px 0;">${props.company}</p>`;
+        }
+    } else {
+        // Desktop: Show all fields
+        // Capacity (plain text - no label) - hide if 0.00 MW
+        if (props.capacity_display && props.capacity_display !== '0.00 MW') {
+            content += `<p style="font-size: ${fontSize}; margin: 4px 0;">${props.capacity_display}</p>`;
+        }
+        
+        // Technology (plain text - no label, colored to match marker)
+        if (props.technology) {
+            const techColor = getTechnologyColor(props.technology);
+            content += `<p style="font-size: ${fontSize}; margin: 4px 0; color: ${techColor}; font-weight: 600;">${props.technology}</p>`;
+        }
+        
+        // Company (plain text - no label)
+        if (props.company) {
+            content += `<p style="font-size: ${fontSize}; margin: 4px 0;">${props.company}</p>`;
+        }
+        
+        // Status (plain text - no label)
+        const statusText = props.is_active ? 'Active' : 'Inactive';
+        const statusColor = props.is_active ? '#28a745' : '#6c757d'; // green for active, dark grey for inactive
+        content += `<p style="font-size: ${fontSize}; margin: 4px 0; color: ${statusColor}; font-weight: 500;">${statusText}</p>`;
+    }
+    
+    // View Details link (show on both mobile and desktop)
+    if (props.detailUrl) {
+        const marginTop = isMobile ? '6px' : '10px';
+        const linkFontSize = isMobile ? '11px' : '13px';
+        content += `<p style="margin: ${marginTop} 0 0 0; padding-top: ${marginTop}; border-top: 1px solid ${isDarkMode ? '#444' : '#e0e0e0'};">
+            <a href="${props.detailUrl}" target="_blank" style="color: #0d6efd; text-decoration: none; font-size: ${linkFontSize};">View Details</a>
+        </p>`;
+    }
+    
+    content += '</div>';
+    return content;
+}
+
+// Create marker
+function createMarker(feature, locationId) {
+    const position = { 
+        lat: feature.geometry.coordinates[1], 
+        lng: feature.geometry.coordinates[0]
+    };
+    
+    const technology = feature.properties.technology || 'Unknown';
+    const color = getTechnologyColor(technology);
+    
+    try {
+        if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+            const markerElement = document.createElement('div');
+            markerElement.style.width = '24px';
+            markerElement.style.height = '24px';
+            markerElement.style.backgroundColor = color;
+            markerElement.style.borderRadius = '50%';
+            markerElement.style.border = '2px solid white';
+            markerElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+            markerElement.style.cursor = 'pointer';
+            
+            const marker = new google.maps.marker.AdvancedMarkerElement({
+                position: position,
+                content: markerElement,
+                title: feature.properties.title || '',
+                map: map
+            });
+            
+            marker.addListener('gmp-click', () => {
+                const content = createInfoWindowContent(feature.properties);
+                infoWindow.setContent(content);
+                infoWindow.open(map, marker);
+                
+                // Select the corresponding location on the left
+                if (locationId) {
+                    focusOnLocation(position.lat, position.lng, locationId);
+                }
+            });
+            
+            return marker;
+        }
+    } catch (error) {
+        console.error("Error creating advanced marker:", error);
+    }
+    
+    // Fallback to regular marker
+    const marker = new google.maps.Marker({
+        position: position,
+        map: map,
+        title: feature.properties.title || '',
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: color,
+            fillOpacity: 0.9,
+            strokeColor: '#FFFFFF',
+            strokeWeight: 2,
+            scale: 8
+        }
+    });
+    
+    marker.addListener('click', () => {
+        const content = createInfoWindowContent(feature.properties);
+        infoWindow.setContent(content);
+        infoWindow.open(map, marker);
+        
+        // Select the corresponding location on the left
+        if (locationId) {
+            focusOnLocation(position.lat, position.lng, locationId);
+        }
+    });
+    
+    return marker;
+}
+
+// Clear markers
+function clearMarkers() {
+    markers.forEach(marker => {
+        if (marker) {
+            if (marker.map) {
+                marker.map = null;
+            } else if (marker.setMap) {
+                marker.setMap(null);
+            }
+        }
+    });
+    markers = [];
+    markerMap = {};
+}
+
+// Focus on specific location when result item is clicked
+function focusOnLocation(lat, lng, locationId, source = 'list') {
+    // Check if we're on mobile
+    const isMobile = window.innerWidth <= 991;
+    
+    if (isMobile) {
+        // Open mobile map and focus
+        const sheet = document.getElementById('mobileMapSheet');
+        if (!sheet.classList.contains('show')) {
+            toggleMobileMap();
+        }
+        
+        // Wait for map to initialize and then focus on location
+        setTimeout(() => {
+            if (mobileMap) {
+                const position = { lat: parseFloat(lat), lng: parseFloat(lng) };
+                mobileMap.setCenter(position);
+                mobileMap.setZoom(14);
+                
+                // Ensure markers are loaded first
+                if (mobileMarkers.length === 0 && locationIds.length > 0) {
+                    loadMobileMarkers();
+                }
+                
+                // Find and show the marker for this location
+                showMobileMarkerForLocation(locationId, position);
+                
+                // Only resize map if click came from list, not from map marker
+                if (source === 'list') {
+                    // Set sheet to half height to show both map and selected item
+                    sheet.style.height = '50vh';
+                }
+            }
+        }, 500);
+        
+        // Update list selection
+        updateLocationSelection(locationId);
+        return;
+    } else if (!map) {
+        return;
+    }
+    
+    // Remove active class from all result items
+    document.querySelectorAll('.result-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item
+    const clickedItem = document.querySelector(`[data-location-id="${locationId}"]`);
+    if (clickedItem) {
+        clickedItem.classList.add('active');
+        
+        // Scroll the item into view
+        const container = document.querySelector('.search-results-container');
+        if (container) {
+            const itemTop = clickedItem.offsetTop;
+            const itemHeight = clickedItem.offsetHeight;
+            const containerHeight = container.offsetHeight;
+            const scrollTop = container.scrollTop;
+            
+            // Check if item is not fully visible
+            if (itemTop < scrollTop || itemTop + itemHeight > scrollTop + containerHeight) {
+                // Scroll to center the item in the container
+                container.scrollTop = itemTop - (containerHeight / 2) + (itemHeight / 2);
+            }
+        }
+    }
+    
+    // Center map on location
+    const position = { lat: parseFloat(lat), lng: parseFloat(lng) };
+    map.setCenter(position);
+    map.setZoom(14);
+    
+    // Open info window for the marker if it exists
+    const marker = markerMap[locationId];
+    if (marker && infoWindow) {
+        // Find the feature data for this location
+        const locationData = locationIds.find(loc => loc.id === locationId);
+        if (locationData) {
+            const feature = {
+                properties: {
+                    title: locationData.location,
+                    technology: locationData.technology,
+                    company: locationData.company,
+                    capacity_display: locationData.capacity_display,
+                    component_count: locationData.component_count,
+                    is_active: locationData.is_active,
+                    detailUrl: locationData.detail_url
+                }
+            };
+            const content = createInfoWindowContent(feature.properties);
+            infoWindow.setContent(content);
+            infoWindow.open(map, marker);
+        }
+    }
+}
+
+// Global variable for location data
+let locationIds = [];
+
+// Load search results (for desktop map)
+function loadSearchResults() {
+    console.log('Loading search results for desktop map...');
+    
+    document.getElementById('loading-overlay').style.display = 'none';
+    
+    if (locationIds.length === 0) {
+        console.log('No location data available for desktop map');
+        return;
+    }
+    
+    clearMarkers();
+    
+    const bounds = new google.maps.LatLngBounds();
+    
+    locationIds.forEach(location => {
+        const feature = {
+            geometry: {
+                coordinates: [location.lng, location.lat]
+            },
+            properties: {
+                title: location.location,
+                technology: location.technology,
+                company: location.company,
+                capacity_display: location.capacity_display,
+                component_count: location.component_count,
+                is_active: location.is_active,
+                detailUrl: location.detail_url,
+                description: location.description
+            }
+        };
+        
+        const marker = createMarker(feature, location.id);
+        if (marker) {
+            markers.push(marker);
+            markerMap[location.id] = marker; // Store marker reference
+            const pos = marker.position || marker.getPosition();
+            bounds.extend(pos);
+        }
+    });
+    
+    if (markers.length > 0) {
+        map.fitBounds(bounds);
+        if (markers.length === 1) {
+            map.setZoom(10);
+        }
+    }
+    
+    // Fade out the info panel after 3 seconds
+    setTimeout(function() {
+        const infoPanel = document.querySelector('.map-info-panel');
+        if (infoPanel) {
+            infoPanel.classList.add('fade-out');
+            // Remove from DOM after fade completes
+            setTimeout(function() {
+                infoPanel.style.display = 'none';
+            }, 500);
+        }
+    }, 3000);
+    
+    // Load mobile markers if mobile map is initialized
+    if (mobileMapInitialized) {
+        loadMobileMarkers();
+    }
+}
+
+// Mobile map variables
+let mobileMap = null;
+let mobileMapInitialized = false;
+let isDragging = false;
+let startY = 0;
+let currentY = 0;
+let sheetHeight = 0;
+
+// Toggle mobile map
+function toggleMobileMap() {
+    const sheet = document.getElementById('mobileMapSheet');
+    const toggle = document.getElementById('mobileMapToggle');
+    
+    if (sheet.classList.contains('show')) {
+        sheet.classList.remove('show');
+        toggle.innerHTML = '<i class="bi bi-map"></i>';
+    } else {
+        sheet.classList.add('show');
+        toggle.innerHTML = '<i class="bi bi-x-lg"></i>';
+        
+        // Load location data if not already loaded
+        if (locationIds.length === 0) {
+            console.log('Loading location data for mobile map...');
+            loadLocationData();
+        }
+        
+        // Initialize mobile map if not already done
+        if (!mobileMapInitialized) {
+            initMobileMap();
+        } else if (mobileMarkers.length === 0 && locationIds.length > 0) {
+            // If map is initialized but no markers, load them
+            console.log('Mobile map initialized but no markers, loading markers...');
+            loadMobileMarkers();
+        }
+    }
+}
+
+// Initialize mobile map
+async function initMobileMap() {
+    if (mobileMapInitialized) return;
+    
+    try {
+        const { Map } = await google.maps.importLibrary("maps");
+        
+        mobileMap = new Map(document.getElementById('mobileMap'), {
+            center: UK_CENTER,
+            zoom: 6,
+            mapId: 'b922aa76eabe8b6c',
+            streetViewControl: true,
+            zoomControl: true,
+            fullscreenControl: false,
+            mapTypeControl: true,
+            mapTypeControlOptions: {
+                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+                position: google.maps.ControlPosition.TOP_RIGHT,
+                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain']
+            },
+            gestureHandling: 'greedy' // Better touch handling on mobile
+        });
+        
+        mobileMapInitialized = true;
+        
+        // Check if native map type controls are visible, if so hide custom ones
+        setTimeout(() => {
+            const nativeControls = document.querySelector('#mobileMap .gm-style-mtc');
+            if (nativeControls && nativeControls.offsetHeight > 0) {
+                const customControls = document.getElementById('mobileMapTypeControl');
+                if (customControls) {
+                    customControls.style.display = 'none';
+                }
+            }
+        }, 1000);
+        
+        // Load markers if locationIds are available
+        if (locationIds.length > 0) {
+            console.log('Loading mobile markers for', locationIds.length, 'locations');
+            loadMobileMarkers();
+        } else {
+            console.log('No locationIds available for mobile markers');
+        }
+    } catch (error) {
+        console.error("Error initializing mobile map:", error);
+    }
+}
+
+// Store mobile markers for easy reference
+let mobileMarkers = [];
+let mobileMarkerMap = {};
+
+// Load markers on mobile map
+function loadMobileMarkers() {
+    if (!mobileMap || !locationIds.length) return;
+    
+    // Clear existing mobile markers
+    mobileMarkers.forEach(marker => {
+        if (marker && marker.map) {
+            marker.map = null;
+        }
+    });
+    mobileMarkers = [];
+    mobileMarkerMap = {};
+    
+    const bounds = new google.maps.LatLngBounds();
+    
+    locationIds.forEach(location => {
+        const feature = {
+            geometry: {
+                coordinates: [location.lng, location.lat]
+            },
+            properties: {
+                title: location.location,
+                technology: location.technology,
+                company: location.company,
+                capacity_display: location.capacity_display,
+                component_count: location.component_count,
+                is_active: location.is_active,
+                detailUrl: location.detail_url,
+                description: location.description
+            }
+        };
+        
+        const position = { 
+            lat: location.lat, 
+            lng: location.lng
+        };
+        
+        const technology = location.technology || 'Unknown';
+        const color = getTechnologyColor(technology);
+        
+        // Create Advanced Marker for mobile
+        const markerElement = document.createElement('div');
+        markerElement.style.width = '16px';
+        markerElement.style.height = '16px';
+        markerElement.style.backgroundColor = color;
+        markerElement.style.borderRadius = '50%';
+        markerElement.style.border = '2px solid white';
+        markerElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+        markerElement.style.cursor = 'pointer';
+        
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+            position: position,
+            content: markerElement,
+            title: location.location || '',
+            map: mobileMap
+        });
+        
+        marker.addListener('gmp-click', () => {
+            const content = createInfoWindowContent(feature.properties);
+            if (!infoWindow) {
+                infoWindow = new google.maps.InfoWindow();
+            }
+            infoWindow.setContent(content);
+            infoWindow.open({
+                anchor: marker,
+                map: mobileMap
+            });
+            
+            // Update list selection but don't resize map (preserve current size)
+            updateLocationSelection(location.id);
+        });
+        
+        // Store marker references
+        mobileMarkers.push(marker);
+        mobileMarkerMap[location.id] = marker;
+        
+        bounds.extend(position);
+    });
+    
+    if (locationIds.length > 0) {
+        mobileMap.fitBounds(bounds);
+        if (locationIds.length === 1) {
+            mobileMap.setZoom(10);
+        }
+    }
+}
+
+// Show specific marker on mobile map for a location
+function showMobileMarkerForLocation(locationId, position) {
+    if (!mobileMap) {
+        console.log('Mobile map not initialized');
+        return;
+    }
+    
+    console.log('Looking for marker for location:', locationId);
+    console.log('Available mobile markers:', Object.keys(mobileMarkerMap));
+    console.log('Available locationIds:', locationIds.map(l => l.id));
+    
+    // Find the marker for this location
+    const marker = mobileMarkerMap[locationId];
+    if (marker) {
+        console.log('Found marker for location:', locationId);
+        // Create and show info window
+        const locationData = locationIds.find(loc => loc.id === locationId);
+        if (locationData) {
+            const feature = {
+                properties: {
+                    title: locationData.location,
+                    technology: locationData.technology,
+                    company: locationData.company,
+                    capacity_display: locationData.capacity_display,
+                    component_count: locationData.component_count,
+                    is_active: locationData.is_active,
+                    detailUrl: locationData.detail_url
+                }
+            };
+            
+            const content = createInfoWindowContent(feature.properties);
+            if (!infoWindow) {
+                infoWindow = new google.maps.InfoWindow();
+            }
+            infoWindow.setContent(content);
+            infoWindow.open(mobileMap, marker);
+        }
+    } else {
+        console.log('Marker not found for location:', locationId);
+        console.log('Attempting to load mobile markers...');
+        if (locationIds.length > 0) {
+            loadMobileMarkers();
+            // Try again after loading
+            setTimeout(() => {
+                const retryMarker = mobileMarkerMap[locationId];
+                if (retryMarker) {
+                    console.log('Found marker on retry for location:', locationId);
+                    const locationData = locationIds.find(loc => loc.id === locationId);
+                    if (locationData) {
+                        const feature = {
+                            properties: {
+                                title: locationData.location,
+                                technology: locationData.technology,
+                                company: locationData.company,
+                                capacity_display: locationData.capacity_display,
+                                component_count: locationData.component_count,
+                                is_active: locationData.is_active,
+                                detailUrl: locationData.detail_url
+                            }
+                        };
+                        
+                        const content = createInfoWindowContent(feature.properties);
+                        if (!infoWindow) {
+                            infoWindow = new google.maps.InfoWindow();
+                        }
+                        infoWindow.setContent(content);
+                        infoWindow.open(mobileMap, retryMarker);
+                    }
+                } else {
+                    console.log('Still no marker found after retry for location:', locationId);
+                }
+            }, 100);
+        }
+    }
+}
+
+// Update location selection in the list
+function updateLocationSelection(locationId) {
+    // Remove active class from all result items
+    document.querySelectorAll('.result-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item
+    const clickedItem = document.querySelector(`[data-location-id="${locationId}"]`);
+    if (clickedItem) {
+        clickedItem.classList.add('active');
+        
+        // Scroll the item into view
+        const container = document.querySelector('.search-results-container');
+        if (container) {
+            const itemTop = clickedItem.offsetTop;
+            const itemHeight = clickedItem.offsetHeight;
+            const containerHeight = container.offsetHeight;
+            const scrollTop = container.scrollTop;
+            
+            // Check if item is not fully visible
+            if (itemTop < scrollTop || itemTop + itemHeight > scrollTop + containerHeight) {
+                // Scroll to center the item in the container
+                container.scrollTop = itemTop - (containerHeight / 2) + (itemHeight / 2);
+            }
+        }
+    }
+}
+
+// Initialize drag functionality
+function initDragHandle() {
+    const handle = document.getElementById('mapDragHandle');
+    const sheet = document.getElementById('mobileMapSheet');
+    
+    if (!handle || !sheet) return;
+    
+    // Touch events
+    handle.addEventListener('touchstart', handleDragStart, { passive: true });
+    handle.addEventListener('touchmove', handleDragMove, { passive: false });
+    handle.addEventListener('touchend', handleDragEnd);
+    
+    // Mouse events for testing
+    handle.addEventListener('mousedown', handleDragStart);
+    handle.addEventListener('mousemove', handleDragMove);
+    handle.addEventListener('mouseup', handleDragEnd);
+    handle.addEventListener('mouseleave', handleDragEnd);
+}
+
+function handleDragStart(e) {
+    isDragging = true;
+    startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+    const sheet = document.getElementById('mobileMapSheet');
+    sheetHeight = sheet.offsetHeight;
+    sheet.style.transition = 'none';
+}
+
+function handleDragMove(e) {
+    if (!isDragging) return;
+    
+    e.preventDefault();
+    currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+    const deltaY = currentY - startY;
+    const sheet = document.getElementById('mobileMapSheet');
+    
+    // Calculate new height
+    const newHeight = Math.max(200, Math.min(window.innerHeight * 0.9, sheetHeight - deltaY));
+    sheet.style.height = newHeight + 'px';
+}
+
+function handleDragEnd(e) {
+    if (!isDragging) return;
+    
+    isDragging = false;
+    const sheet = document.getElementById('mobileMapSheet');
+    sheet.style.transition = 'height 0.3s ease-out';
+    
+    // Snap to preset heights
+    const currentHeight = sheet.offsetHeight;
+    const windowHeight = window.innerHeight;
+    
+    if (currentHeight < windowHeight * 0.3) {
+        // Close if dragged too low
+        sheet.classList.remove('show');
+        document.getElementById('mobileMapToggle').innerHTML = '<i class="bi bi-map"></i>';
+    } else if (currentHeight < windowHeight * 0.6) {
+        // Snap to half height
+        sheet.style.height = '50vh';
+    } else {
+        // Snap to full height
+        sheet.style.height = '85vh';
+    }
+}
+
+// Load location data (shared between desktop and mobile)
+function loadLocationData() {
+    console.log('Loading location data...');
+    
+    locationIds = [];
+    {% for location in page_obj %}
+        {% if location.latitude and location.longitude %}
+            locationIds.push({
+                id: {{ location.id }},
+                lat: {{ location.latitude }},
+                lng: {{ location.longitude }},
+                location: "{{ location.location|escapejs }}",
+                // FIXED FOR COMPANY MAP 1734537200 - Use first actual technology instead of get_primary_technology
+                technology: "{% if location.technologies %}{% for tech, count in location.technologies.items %}{% if forloop.first %}{{ tech|escapejs }}{% endif %}{% endfor %}{% else %}Unknown{% endif %}",
+                company: {% if location.companies %}{% for comp, count in location.companies.items %}{% if forloop.first %}"{{ comp|escapejs }}"{% endif %}{% endfor %}{% else %}"Unknown"{% endif %},
+                capacity: {{ location.normalized_capacity_mw|default:0 }},
+                capacity_display: "{{ location.normalized_capacity_mw|floatformat:2 }} MW",
+                component_count: {{ location.component_count|default:1 }},
+                is_active: {% if location.is_active %}true{% else %}false{% endif %},
+                detail_url: "/location/{{ location.id }}/",
+                description: {% if location.descriptions %}{% with location.descriptions|unique_with_counts as unique_descriptions %}{% if unique_descriptions|length >= 1 %}{% with unique_descriptions.0 as first_desc %}"{{ first_desc.0|escapejs }}"{% endwith %}{% else %}null{% endif %}{% endwith %}{% else %}null{% endif %}
+            });
+        {% endif %}
+    {% endfor %}
+    
+    console.log(`Loaded ${locationIds.length} locations with coordinates`);
+    console.log('First location data sample:', locationIds[0]);
+    console.log('First location description:', locationIds[0]?.description);
+    console.log('Description type:', typeof locationIds[0]?.description);
+}
+
+// Initialize map
+async function initCompanyMap() {
+    console.log('Initializing map');
+    
+    // Load location data first
+    loadLocationData();
+    
+    // Check if mobile
+    const isMobile = window.innerWidth <= 991;
+    
+    if (isMobile) {
+        // Don't initialize desktop map on mobile
+        document.getElementById('loading-overlay').style.display = 'none';
+        // Initialize drag handle
+        initDragHandle();
+        return;
+    }
+    
+    try {
+        const { Map } = await google.maps.importLibrary("maps");
+        
+        try {
+            await google.maps.importLibrary("marker");
+            console.log("Marker library loaded");
+        } catch (e) {
+            console.log("Marker library not available");
+        }
+        
+        map = new Map(document.getElementById('map'), {
+            center: UK_CENTER,
+            zoom: 6,
+            mapId: 'b922aa76eabe8b6c',
+            streetViewControl: true,
+            zoomControl: true,
+            fullscreenControl: true,
+            mapTypeControl: true
+        });
+        
+        infoWindow = new google.maps.InfoWindow();
+        
+        google.maps.event.addListenerOnce(map, 'idle', function() {
+            loadSearchResults();
+        });
+        
+    } catch (error) {
+        console.error("Error initializing map:", error);
+        document.getElementById('map').innerHTML = `
+            <div class="alert alert-danger m-3">
+                <h5>Error loading map</h5>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+window.initMap = initCompanyMap;
+
+// Set mobile map type
+function setMobileMapType(mapType, button) {
+    if (mobileMap) {
+        mobileMap.setMapTypeId(mapType);
+    }
+    
+    // Update button states
+    const mobileMapTypeButtons = document.querySelectorAll('#mobileMapTypeControl .map-type-btn');
+    mobileMapTypeButtons.forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+}
+
+// Theme switcher functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Theme handling
+    const themeDropdownItems = document.querySelectorAll('[data-bs-theme-value]');
+    const storedTheme = localStorage.getItem('theme') || 'auto';
+    
+    // Set initial theme
+    if (storedTheme === 'auto') {
+        document.documentElement.removeAttribute('data-bs-theme');
+    } else {
+        document.documentElement.setAttribute('data-bs-theme', storedTheme);
+    }
+    
+    // Handle theme selection
+    themeDropdownItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const theme = this.getAttribute('data-bs-theme-value');
+            
+            if (theme === 'auto') {
+                document.documentElement.removeAttribute('data-bs-theme');
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', theme);
+            }
+            
+            localStorage.setItem('theme', theme);
+            
+            // Update active state
+            themeDropdownItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+        });
+        
+        // Set initial active state
+        if (item.getAttribute('data-bs-theme-value') === storedTheme) {
+            item.classList.add('active');
+        }
+    });
+});
+
+// Intelligent state management for related companies
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('q') || '';
+    const sortBy = urlParams.get('sort_by') || 'relevance';
+    const sortOrder = urlParams.get('sort_order') || '';
+    const status = urlParams.get('status') || 'all';
+    const auction = urlParams.get('auction') || '';
+    const technology = urlParams.get('technology') || '';
+    const page = urlParams.get('page') || '1';
+    
+    // Create a unique key for this search
+    const searchKey = `search_${query}`;
+    const sessionKey = `${searchKey}_session`;
+    
+    // Check if this is a fresh search or continued interaction
+    const lastSearch = sessionStorage.getItem('lastSearchQuery');
+    const hasInteracted = sessionStorage.getItem(sessionKey) === 'true';
+    
+    // Determine if we should collapse companies
+    let shouldCollapse = false;
+    
+    if (lastSearch !== query) {
+        // This is a new search - clear previous session data
+        sessionStorage.setItem('lastSearchQuery', query);
+        sessionStorage.removeItem(sessionKey);
+        shouldCollapse = false; // Keep expanded for new searches
+    } else if (sortBy !== 'relevance' || status !== 'all' || auction !== '' || technology !== '' || page !== '1') {
+        // User has interacted with filters/sorting
+        sessionStorage.setItem(sessionKey, 'true');
+        shouldCollapse = true;
+    } else if (hasInteracted) {
+        // User has previously interacted in this session
+        shouldCollapse = true;
+    }
+    
+    // Apply the state
+    const companiesList = document.getElementById('companies-list');
+    const toggleIcon = document.getElementById('companies-toggle-icon');
+    
+    if (companiesList && toggleIcon) {
+        if (shouldCollapse) {
+            companiesList.style.display = 'none';
+            toggleIcon.className = 'bi bi-chevron-down';
+        } else {
+            companiesList.style.display = 'block';
+            toggleIcon.className = 'bi bi-chevron-up';
+        }
+    }
+    
+    // Scroll management
+    setTimeout(function() {
+        if (shouldCollapse || page !== '1') {
+            // If companies are collapsed or we're on a different page, scroll to results
+            const searchHeader = document.querySelector('.search-content-wrapper h1');
+            if (searchHeader) {
+                const container = document.querySelector('.search-results-container');
+                if (container) {
+                    container.scrollTop = searchHeader.offsetTop - 20;
+                }
+            }
+        }
+        // Otherwise, stay at the top to show expanded companies
+    }, 100);
+});
+
+// Lazy loading for company page dropdown filters
+(function() {
+    let filtersLoaded = false;
+    let filtersLoading = false;
+    
+    function loadFilters() {
+        if (filtersLoaded || filtersLoading) return;
+        
+        const companyName = "{{ company_name|escapejs }}";
+        if (!companyName) return;
+        
+        filtersLoading = true;
+        console.log('🔄 Loading filters for company:', companyName);
+        
+        // Show loading state
+        updateDropdownsWithLoading();
+        
+        fetch(`/api/search-filters/?company=${encodeURIComponent(companyName)}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Company filters loaded:', data);
+                updateDropdowns(data.technologies, data.companies, data.auction_years);
+                filtersLoaded = true;
+                filtersLoading = false;
+            })
+            .catch(error => {
+                console.error('❌ Error loading company filters:', error);
+                filtersLoading = false;
+            });
+    }
+    
+    function updateDropdownsWithLoading() {
+        // Technologies dropdown
+        const technologyDropdowns = document.querySelectorAll('button[class*="dropdown-toggle"]:not([id])');
+        technologyDropdowns.forEach(dropdown => {
+            if (dropdown.textContent.includes('Technolog')) {
+                const menu = dropdown.nextElementSibling;
+                if (menu && menu.classList.contains('dropdown-menu')) {
+                    menu.innerHTML = '<li><a class="dropdown-item disabled">Loading...</a></li>';
+                }
+            }
+        });
+        
+        // Auction years dropdown
+        const auctionDropdowns = document.querySelectorAll('button[class*="dropdown-toggle"]:not([id])');
+        auctionDropdowns.forEach(dropdown => {
+            if (dropdown.textContent.includes('Year')) {
+                const menu = dropdown.nextElementSibling;
+                if (menu && menu.classList.contains('dropdown-menu')) {
+                    menu.innerHTML = '<li><a class="dropdown-item disabled">Loading...</a></li>';
+                }
+            }
+        });
+    }
+    
+    function updateDropdowns(technologies, companies, auctionYears) {
+        const currentParams = new URLSearchParams(window.location.search);
+        
+        // Build filter URL helper
+        function buildFilterUrl(filterType, filterValue) {
+            const params = new URLSearchParams();
+            // Preserve existing filters
+            ['sort_by', 'sort_order', 'status', 'page'].forEach(param => {
+                if (currentParams.has(param)) {
+                    params.set(param, currentParams.get(param));
+                }
+            });
+            
+            // Set the new filter
+            if (filterType && filterValue && filterValue !== 'all') {
+                params.set(filterType, filterValue);
+            }
+            
+            return `?${params.toString()}`;
+        }
+        
+        // Update technologies dropdown
+        const technologyDropdowns = document.querySelectorAll('button[class*="dropdown-toggle"]:not([id])');
+        technologyDropdowns.forEach(dropdown => {
+            if (dropdown.textContent.includes('Technolog')) {
+                const menu = dropdown.nextElementSibling;
+                if (menu && menu.classList.contains('dropdown-menu')) {
+                    let html = `<li><a class="dropdown-item" href="${buildFilterUrl('', '')}">All Technologies</a></li>`;
+                    if (technologies.length > 0) {
+                        html += '<li><hr class="dropdown-divider"></li>';
+                        technologies.forEach(tech => {
+                            html += `<li><a class="dropdown-item" href="${buildFilterUrl('technology', tech)}">${tech}</a></li>`;
+                        });
+                    }
+                    menu.innerHTML = html;
+                }
+            }
+        });
+        
+        // Update auction years dropdown
+        const auctionDropdownsUpdate = document.querySelectorAll('button[class*="dropdown-toggle"]:not([id])');
+        auctionDropdownsUpdate.forEach(dropdown => {
+            if (dropdown.textContent.includes('Year')) {
+                const menu = dropdown.nextElementSibling;
+                if (menu && menu.classList.contains('dropdown-menu')) {
+                    let html = `<li><a class="dropdown-item" href="${buildFilterUrl('', '')}">All Years</a></li>`;
+                    if (auctionYears.length > 0) {
+                        html += '<li><hr class="dropdown-divider"></li>';
+                        auctionYears.forEach(year => {
+                            html += `<li><a class="dropdown-item" href="${buildFilterUrl('auction', year)}">${year}</a></li>`;
+                        });
+                    }
+                    menu.innerHTML = html;
+                }
+            }
+        });
+        
+        console.log(`✅ Updated company dropdowns: ${technologies.length} techs, ${auctionYears.length} years`);
+    }
+    
+    // Attach event listeners to dropdown buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        // Listen for dropdown open events
+        document.addEventListener('show.bs.dropdown', function(event) {
+            const dropdownElement = event.target;
+            
+            // Check if it's a filter dropdown (technology or auction)
+            if (dropdownElement.textContent.includes('Technolog') ||
+                dropdownElement.textContent.includes('Year')) {
+                loadFilters();
+            }
+        });
+    });
+})();
+</script>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap&libraries=places,marker&v=weekly"></script>
+{% endblock %}

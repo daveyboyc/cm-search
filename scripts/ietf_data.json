@@ -1,0 +1,290 @@
+[
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "head",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "tail",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": "tab-tiledViewer placeholder tab-widget",
+    "id": "none",
+    "tag": "DIV",
+    "testId": "VisualizationContainer",
+    "text": "a.mapboxgl-ctrl-logo {display: none}Mark unselected.\u00a9 2025 Mapbox\u00a9 OpenStreetMap",
+    "title": "none"
+  },
+  {
+    "className": "tvScrollContainer tvmodeRectSelect",
+    "id": "none",
+    "tag": "DIV",
+    "testId": "VisualizationScrollContainer",
+    "text": "a.mapboxgl-ctrl-logo {display: none}",
+    "title": "none"
+  },
+  {
+    "className": "tab-tiledViewer placeholder tab-widget",
+    "id": "none",
+    "tag": "DIV",
+    "testId": "VisualizationContainer",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": "tvScrollContainer",
+    "id": "none",
+    "tag": "DIV",
+    "testId": "VisualizationScrollContainer",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": "fl0fe5p fgna3mm",
+    "id": "viz-viewer-toolbar",
+    "tag": "DIV",
+    "testId": "viz-viewer-toolbar-items-container",
+    "text": "View on Tableau PublicUndoRedoRevertReplay AnimationReplay Speed OptionsDownloadFull ScreenShareMore options...",
+    "title": "none"
+  },
+  {
+    "className": "button fx8zm5x",
+    "id": "tableauPublicButton",
+    "tag": "BUTTON",
+    "testId": "viz-viewer-toolbar-button-public-info-button",
+    "text": "View on Tableau Public",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "svg",
+    "testId": "tb-icons-TableauLogoGrayIcon",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": "toolbar-button-label fnwkbpb",
+    "id": "none",
+    "tag": "SPAN",
+    "testId": "viz-viewer-toolbar-button-label",
+    "text": "View on Tableau Public",
+    "title": "none"
+  },
+  {
+    "className": "button fx8zm5x",
+    "id": "undo",
+    "tag": "BUTTON",
+    "testId": "viz-viewer-toolbar-button-undo",
+    "text": "Undo",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "svg",
+    "testId": "tb-icons-NavigationUndoIcon",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": "toolbar-button-label f1yrzn2s",
+    "id": "none",
+    "tag": "SPAN",
+    "testId": "viz-viewer-toolbar-button-label",
+    "text": "Undo",
+    "title": "none"
+  },
+  {
+    "className": "button fx8zm5x",
+    "id": "redo",
+    "tag": "BUTTON",
+    "testId": "viz-viewer-toolbar-button-redo",
+    "text": "Redo",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "svg",
+    "testId": "tb-icons-NavigationRedoIcon",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": "toolbar-button-label f1yrzn2s",
+    "id": "none",
+    "tag": "SPAN",
+    "testId": "viz-viewer-toolbar-button-label",
+    "text": "Redo",
+    "title": "none"
+  },
+  {
+    "className": "button fx8zm5x",
+    "id": "revert",
+    "tag": "BUTTON",
+    "testId": "viz-viewer-toolbar-button-revert",
+    "text": "Revert",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "svg",
+    "testId": "tb-icons-NavigationRevertIcon",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "path",
+    "testId": "none",
+    "text": "none",
+    "title": "none"
+  },
+  {
+    "className": "toolbar-button-label f1yrzn2s",
+    "id": "none",
+    "tag": "SPAN",
+    "testId": "viz-viewer-toolbar-button-label",
+    "text": "Revert",
+    "title": "none"
+  },
+  {
+    "className": "button f1lm4o82",
+    "id": "replay",
+    "tag": "BUTTON",
+    "testId": "viz-viewer-toolbar-button-replay",
+    "text": "Replay Animation",
+    "title": "none"
+  },
+  {
+    "className": {
+      "animVal": "",
+      "baseVal": ""
+    },
+    "id": "none",
+    "tag": "svg",
+    "testId": "tb-icons-NavigationReplayIcon",
+    "text": "none",
+    "title": "none"
+  }
+]

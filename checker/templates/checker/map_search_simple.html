@@ -1,0 +1,394 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}SW11 Search Map Test - Capacity Market Search{% endblock %}
+
+{% block container_class %}container-fluid{% endblock %}
+
+{% block extra_head %}
+<style>
+    #map-container {
+        width: 100%;
+        height: 600px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+    }
+    
+    #map {
+        height: 100%;
+        width: 100%;
+    }
+    
+    #map-status {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 5px 10px;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 4px;
+        z-index: 500;
+    }
+    
+    .search-info {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background-color: rgba(255,255,255,0.8);
+        padding: 10px;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<header class="py-3 text-center">
+    <h1>SW11 Search Results Map Test</h1>
+    <p class="text-muted">Testing map with SW11 search query (14 results)</p>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                API Test Tools
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="search-input" class="form-label">Search Query:</label>
+                    <div class="input-group">
+                        <input type="text" id="search-input" class="form-control" value="sw11">
+                        <button id="test-api-btn" class="btn btn-primary">Test API</button>
+                    </div>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="use-q-param" checked>
+                    <label class="form-check-label" for="use-q-param">
+                        Use 'q' parameter instead of 'search_query'
+                    </label>
+                </div>
+                <div>
+                    <a href="/" class="btn btn-sm btn-outline-secondary me-2">Home</a>
+                    <a href="/?q=sw11" class="btn btn-sm btn-outline-secondary me-2">SW11 Search</a>
+                    <a href="/map/" class="btn btn-sm btn-outline-secondary">Full Map</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="position-relative">
+    <div id="map-container">
+        <div id="map"></div>
+        <div id="map-status">Loading map...</div>
+        <div class="search-info">
+            <h5>Search Results</h5>
+            <div id="search-stats">
+                SW11 - <span id="result-count">0</span> results
+            </div>
+            <div class="mt-2">
+                <a href="/?q=sw11&suppress_map=true" class="btn btn-sm btn-outline-secondary">View List</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <div class="d-flex justify-content-between">
+            <div>
+                <span id="marker-count">0</span> markers displayed
+            </div>
+            <div>
+                <button id="center-uk" class="btn btn-sm btn-outline-secondary">Reset View</button>
+            </div>
+        </div>
+        
+        <!-- Debug output card -->
+        <div class="card mt-3">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                Debug Output
+                <button id="clear-log" class="btn btn-sm btn-light">Clear</button>
+            </div>
+            <div class="card-body p-2">
+                <pre id="debug-output" class="small bg-light p-2" style="max-height: 200px; overflow-y: auto;"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Simple map implementation focused on SW11 search
+    let map, infoWindow, markers = [];
+    const UK_CENTER = { lat: 51.47, lng: -0.18 }; // Centered near SW11
+    const SW11_CENTER = { lat: 51.47, lng: -0.16 }; // Approximate SW11 center
+    
+    // Debug logging helper
+    function log(message) {
+        console.log(message);
+        const debugOutput = document.getElementById('debug-output');
+        if (debugOutput) {
+            // Prepend timestamp to log message
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            debugOutput.innerHTML = `[${timeStr}] ${message}<br>` + debugOutput.innerHTML;
+            
+            // Limit log length
+            if (debugOutput.innerHTML.length > 5000) {
+                debugOutput.innerHTML = debugOutput.innerHTML.substring(0, 5000) + '...';
+            }
+        }
+    }
+    
+    // Function to test API directly
+    function testApi() {
+        const searchQuery = document.getElementById('search-input').value;
+        const useQParam = document.getElementById('use-q-param').checked;
+        
+        if (!searchQuery) {
+            log("Please enter a search query");
+            return;
+        }
+        
+        // Build URL parameters
+        const params = new URLSearchParams();
+        
+        // Use either 'q' or 'search_query' parameter based on checkbox
+        if (useQParam) {
+            params.append('q', searchQuery);
+        } else {
+            params.append('search_query', searchQuery);
+        }
+        
+        // Clear markers before testing
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+        
+        // Use map API endpoint
+        const url = `/api/map-data/?${params.toString()}`;
+        log(`API Test: Fetching from ${url}`);
+        
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                log(`API Test: Received ${data.features ? data.features.length : 0} features`);
+                log(`API Test: Response metadata: ${JSON.stringify(data.metadata || {})}`);
+                
+                // Show some sample data if available
+                if (data.features && data.features.length > 0) {
+                    const sample = data.features[0];
+                    log(`API Test: Sample feature: ${JSON.stringify(sample).substring(0, 300)}...`);
+                }
+                
+                // Display markers for this search
+                displayMarkers(data);
+                
+                // Update search info
+                document.querySelector('#search-stats').innerHTML = 
+                    `${searchQuery} - <span id="result-count">${data.features ? data.features.length : 0}</span> results`;
+            })
+            .catch(error => {
+                log(`API Test ERROR: ${error.message}`);
+            });
+    }
+    
+    function showStatus(message) {
+        const statusEl = document.getElementById('map-status');
+        if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+        }
+    }
+    
+    function hideStatus() {
+        const statusEl = document.getElementById('map-status');
+        if (statusEl) {
+            statusEl.style.display = 'none';
+        }
+    }
+    
+    // Initialize the map
+    function initMap() {
+        log("Map initialization started");
+        
+        // Create the map
+        const mapElement = document.getElementById('map');
+        if (!mapElement) {
+            log("ERROR: Map element not found!");
+            return;
+        }
+        
+        // Create a map centered on SW11
+        map = new google.maps.Map(mapElement, {
+            center: SW11_CENTER,
+            zoom: 13,
+            mapTypeControl: true,
+            streetViewControl: false
+        });
+        
+        // Create info window for marker clicks
+        infoWindow = new google.maps.InfoWindow();
+        
+        // Set up reset button
+        const centerButton = document.getElementById('center-uk');
+        if (centerButton) {
+            centerButton.addEventListener('click', () => {
+                map.setCenter(SW11_CENTER);
+                map.setZoom(13);
+            });
+        }
+        
+        // Fetch data once map is ready
+        google.maps.event.addListenerOnce(map, 'idle', function() {
+            log("Map loaded, fetching SW11 data");
+            loadSW11Data();
+        });
+    }
+    
+    // Load SW11 data
+    function loadSW11Data() {
+        showStatus("Loading SW11 results...");
+        
+        // Build URL parameters - try both q and search_query parameters
+        const params = new URLSearchParams();
+        params.append('q', 'sw11'); // Try 'q' parameter which is used in original search
+        
+        // Use map API endpoint
+        const url = `/api/map-data/?${params.toString()}`;
+        log(`Fetching data from: ${url}`);
+        
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                log(`Received ${data.features ? data.features.length : 0} features`);
+                
+                // Show full response data for debugging
+                log(`Response metadata: ${JSON.stringify(data.metadata || {})}`);
+                log(`First 200 chars of response: ${JSON.stringify(data).substring(0, 200)}...`);
+                
+                displayMarkers(data);
+            })
+            .catch(error => {
+                log(`ERROR: ${error.message}`);
+                showStatus(`Error: ${error.message}`);
+            });
+    }
+    
+    // Display markers on the map
+    function displayMarkers(data) {
+        // Clear any existing markers
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+        
+        if (!data.features || data.features.length === 0) {
+            log("No features found in data");
+            showStatus("No results found");
+            return;
+        }
+        
+        // Process each feature
+        data.features.forEach(feature => {
+            try {
+                if (!feature.geometry || !feature.geometry.coordinates) {
+                    log(`Invalid feature: ${JSON.stringify(feature).substring(0, 100)}...`);
+                    return;
+                }
+                
+                const position = {
+                    lat: feature.geometry.coordinates[1],
+                    lng: feature.geometry.coordinates[0]
+                };
+                
+                // Create simple marker
+                const marker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: feature.properties.title || 'Component'
+                });
+                
+                // Add click handler
+                marker.addListener('click', () => {
+                    const props = feature.properties;
+                    const content = `
+                        <div>
+                            <h5>${props.title || 'Component'}</h5>
+                            ${props.company ? `<p><strong>Company:</strong> ${props.company}</p>` : ''}
+                            ${props.technology ? `<p><strong>Technology:</strong> ${props.technology}</p>` : ''}
+                            ${props.id ? `<a href="/component/${props.id}/" target="_blank">View Details</a>` : ''}
+                        </div>
+                    `;
+                    
+                    infoWindow.setContent(content);
+                    infoWindow.open(map, marker);
+                });
+                
+                markers.push(marker);
+            } catch (error) {
+                log(`Error creating marker: ${error.message}`);
+            }
+        });
+        
+        // Update counts
+        document.getElementById('marker-count').textContent = markers.length;
+        document.getElementById('result-count').textContent = markers.length;
+        
+        log(`Created ${markers.length} markers successfully`);
+        
+        if (markers.length > 0) {
+            hideStatus();
+        } else {
+            showStatus("No results could be displayed");
+        }
+    }
+    
+    // Set up event listeners 
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up API test button
+        const testApiBtn = document.getElementById('test-api-btn');
+        if (testApiBtn) {
+            testApiBtn.addEventListener('click', testApi);
+        }
+        
+        // Set up clear log button
+        const clearLogBtn = document.getElementById('clear-log');
+        if (clearLogBtn) {
+            clearLogBtn.addEventListener('click', function() {
+                const debugOutput = document.getElementById('debug-output');
+                if (debugOutput) {
+                    debugOutput.innerHTML = '';
+                }
+            });
+        }
+        
+        // Add listener for search input - press Enter to submit
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    testApi();
+                }
+            });
+        }
+        
+        log("DOM loaded, setting up simple popup timer");
+    });
+    
+    // Call initMap when the API loads
+    window.initMap = initMap;
+</script>
+<!-- Simple version of Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap" defer></script>
+{% endblock %}

@@ -1,0 +1,365 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-GB" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Explorer with Ads | Capacity Market Search</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: 'Roboto', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Full screen map */
+        #map {
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* User status indicator */
+        .user-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        /* REALISTIC AD OVERLAYS ON MAP */
+        
+        /* Top banner ad overlay */
+        .map-banner-ad {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 14px;
+            z-index: 2000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .map-banner-ad .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        /* Corner ad overlay (bottom-left) */
+        .map-corner-ad {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 320px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1500;
+            border: 1px solid #ddd;
+        }
+
+        .map-corner-ad .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .map-corner-ad h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .map-corner-ad p {
+            margin: 0 0 15px 0;
+            color: #666;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .map-corner-ad .btn {
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+
+        /* Side panel ad (right side) */
+        .map-side-ad {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            width: 250px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1500;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .map-side-ad .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .ad-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        /* Mobile responsive ads */
+        @media (max-width: 768px) {
+            .map-corner-ad {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                width: auto;
+            }
+            
+            .map-side-ad {
+                display: none; /* Hide side ad on mobile */
+            }
+            
+            .map-banner-ad {
+                font-size: 12px;
+                padding: 8px 15px;
+            }
+        }
+
+        /* Map controls positioning (to avoid ad conflicts) */
+        .leaflet-control-container .leaflet-top.leaflet-left {
+            top: 60px; /* Move below banner ad */
+        }
+
+        .leaflet-control-container .leaflet-bottom.leaflet-right {
+            bottom: 200px; /* Move above corner ad */
+        }
+
+        /* Simulated map legend */
+        .map-legend {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            font-size: 12px;
+        }
+
+        .map-legend h6 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- User Status Indicator -->
+    <div class="user-status">
+        NON-SUBSCRIBER - Ads Visible
+    </div>
+
+    <!-- TOP BANNER AD OVERLAY (covers map until closed) -->
+    <div class="map-banner-ad" id="mapBannerAd">
+        <button class="close-btn" onclick="closeBannerAd()">&times;</button>
+        <strong>🔋 Battery Storage Solutions</strong> - Find the perfect location for your energy storage project. Expert consultation available.
+    </div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- CORNER AD OVERLAY (bottom-left) -->
+    <div class="map-corner-ad" id="mapCornerAd">
+        <button class="close-btn" onclick="closeCornerAd()">&times;</button>
+        <div class="ad-label">Sponsored</div>
+        <h4>🌱 Renewable Energy Sites</h4>
+        <p>Find available land for renewable energy projects. Wind, solar, and battery storage opportunities across the UK.</p>
+        <button class="btn btn-success btn-sm">Browse Locations</button>
+    </div>
+
+    <!-- SIDE AD OVERLAY (right side, desktop only) -->
+    <div class="map-side-ad" id="mapSideAd">
+        <button class="close-btn" onclick="closeSideAd()">&times;</button>
+        <div class="ad-label">Advertisement</div>
+        <div style="font-size: 30px; margin-bottom: 15px;">⚡</div>
+        <h4 style="font-size: 16px; margin-bottom: 10px;">Grid Connection Services</h4>
+        <p style="font-size: 12px; margin-bottom: 15px;">
+            Fast-track your energy project with expert grid connection support. DNO applications and technical assessments.
+        </p>
+        <button class="btn btn-primary btn-sm">Get Quote</button>
+    </div>
+
+    <!-- Simulated Map Legend -->
+    <div class="map-legend">
+        <h6>Technologies</h6>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #4caf50;"></div>
+            <span>Battery (12)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ff5252;"></div>
+            <span>Gas (8)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #29b6f6;"></div>
+            <span>Wind (5)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #fdd835;"></div>
+            <span>Solar (3)</span>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([54.5, -2.5], 6); // Centered on UK
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add some sample markers
+        const sampleLocations = [
+            {lat: 53.7749, lng: -1.0823, name: "Drax Battery Storage", type: "Battery", capacity: "40 MW"},
+            {lat: 52.9548, lng: -1.1581, name: "Cottam Battery", type: "Battery", capacity: "49.5 MW"},
+            {lat: 51.3781, lng: -2.3597, name: "Minety Battery", type: "Battery", capacity: "100 MW"},
+            {lat: 54.6369, lng: -1.2301, name: "Hartlepool Battery", type: "Battery", capacity: "50 MW"},
+            {lat: 53.0907, lng: -2.7324, name: "Capenhurst Battery", type: "Battery", capacity: "30 MW"}
+        ];
+
+        // Add markers to map
+        sampleLocations.forEach(location => {
+            const marker = L.circleMarker([location.lat, location.lng], {
+                color: '#4caf50', // Green for battery
+                fillColor: '#4caf50',
+                fillOpacity: 0.7,
+                radius: 8
+            }).addTo(map);
+
+            marker.bindPopup(`
+                <b>${location.name}</b><br>
+                Type: ${location.type}<br>
+                Capacity: ${location.capacity}
+            `);
+        });
+
+        // Ad management functions
+        function closeBannerAd() {
+            document.getElementById('mapBannerAd').style.display = 'none';
+            // Adjust map controls back to original position
+            document.querySelector('.leaflet-control-container .leaflet-top.leaflet-left').style.top = '10px';
+        }
+
+        function closeCornerAd() {
+            document.getElementById('mapCornerAd').style.display = 'none';
+            // Adjust map controls back to original position
+            document.querySelector('.leaflet-control-container .leaflet-bottom.leaflet-right').style.bottom = '10px';
+        }
+
+        function closeSideAd() {
+            document.getElementById('mapSideAd').style.display = 'none';
+        }
+
+        // Theme switcher
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+        }
+
+        // Ad click handlers
+        document.querySelectorAll('.map-corner-ad .btn, .map-side-ad .btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const adContainer = this.closest('.map-corner-ad, .map-side-ad');
+                const adTitle = adContainer.querySelector('h4').textContent;
+                alert(`Ad clicked: ${adTitle}\n\nThis would open the advertiser's landing page.`);
+            });
+        });
+
+        // Map marker click simulation
+        map.on('click', function(e) {
+            console.log(`Map clicked at: ${e.latlng.lat}, ${e.latlng.lng}`);
+        });
+
+        // Theme toggle shortcut
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 't' || e.key === 'T') {
+                toggleTheme();
+            }
+            if (e.key === 'h' || e.key === 'H') {
+                alert('Ad Overlay Keys:\n- Banner ad at top (close with X)\n- Corner ad at bottom-left\n- Side ad at right (desktop)\n\nThese overlay the map until dismissed by user.');
+            }
+        });
+
+        console.log('REALISTIC Map Ad Overlay Preview Loaded');
+        console.log('Ads overlay the map and can be dismissed by clicking X');
+        console.log('Press "T" to toggle theme, "H" for help');
+    </script>
+    
+    <div style="position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 11px; z-index: 1000;">
+        REALISTIC MAP ADS • Press "H" for help
+    </div>
+</body>
+</html>

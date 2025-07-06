@@ -1,0 +1,113 @@
+{% extends "checker/base.html" %}
+{% load checker_tags %}
+
+{% block title %}Search Results - {{ query }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="h3 mb-4">
+        Search Results for "{{ query }}"
+        <small class="text-muted">({{ total_locations }} locations, {{ total_components }} components)</small>
+    </h1>
+
+    {% if location_groups %}
+    <div class="list-group">
+        {% for lg in location_groups %}
+        <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <h5 class="mb-1">
+                        <a href="{% url 'location_detail' lg.id %}" class="text-decoration-none">
+                            {{ lg.location }}
+                        </a>
+                    </h5>
+                    
+                    <div class="mb-2">
+                        <span class="badge bg-primary">{{ lg.component_count }} components</span>
+                        <span class="badge bg-success">{{ lg.get_display_capacity }}</span>
+                        <span class="badge bg-info">{{ lg.get_primary_technology }}</span>
+                    </div>
+                    
+                    {% if lg.descriptions %}
+                    <p class="mb-1 text-muted">
+                        <strong>Descriptions:</strong> 
+                        {% for desc in lg.descriptions|slice:":3" %}
+                            {{ desc|truncatewords:10 }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                        {% if lg.descriptions|length > 3 %}
+                            <em>(and {{ lg.descriptions|length|add:"-3" }} more)</em>
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                    
+                    <div class="small">
+                        {% if lg.companies %}
+                        <div>
+                            <strong>Companies:</strong>
+                            {% for company, count in lg.companies.items|slice:":2" %}
+                                {{ company }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                            {% if lg.companies|length > 2 %}
+                                <em>(and {{ lg.companies|length|add:"-2" }} more)</em>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if lg.auction_years %}
+                        <div>
+                            <strong>Auction Years:</strong>
+                            {% for year in lg.auction_years|slice:":3" %}
+                                {{ year|slice:":7" }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                            {% if lg.auction_years|length > 3 %}
+                                <em>(and {{ lg.auction_years|length|add:"-3" }} more)</em>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="ms-3">
+                    <a href="{% url 'location_detail' lg.id %}" class="btn btn-outline-primary">
+                        View Details →
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Search results pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?q={{ query }}&page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No locations found matching "{{ query }}". Try a different search term.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

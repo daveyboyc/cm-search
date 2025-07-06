@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Timer Sessions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Timer Session Management</h1>
+    <p>Use this page to clear timer data without resetting user trials.</p>
+    
+    <h2>Current Session Data:</h2>
+    <pre id="current-data"></pre>
+    
+    <h2>Actions:</h2>
+    <button onclick="clearMapTimer()">Clear Map Timer Only</button>
+    <button onclick="clearSearchCount()">Clear Search Count Only</button>
+    <button onclick="clearAllTimers()">Clear All Timer Data</button>
+    <button onclick="refreshData()">Refresh Display</button>
+    
+    <div id="status"></div>
+    
+    <script>
+        function refreshData() {
+            const data = {
+                'Map Timer Start': sessionStorage.getItem('mapTimerStartTime'),
+                'Map Trial Expired': sessionStorage.getItem('mapTrialExpired'),
+                'Map Info Shown': sessionStorage.getItem('mapAccessInfoShown'),
+                'Timer Start Time (old)': sessionStorage.getItem('timerStartTime'),
+                'Timer Lockout (old)': sessionStorage.getItem('timerLockout'),
+                'Search Count': getSearchCount(),
+                'Unregistered Access Start': localStorage.getItem('unregisteredAccessStart'),
+                'Welcome Notice Shown': localStorage.getItem('welcomeNoticeShown')
+            };
+            
+            document.getElementById('current-data').textContent = JSON.stringify(data, null, 2);
+        }
+        
+        function getSearchCount() {
+            // Try to find any search count data
+            const keys = Object.keys(localStorage);
+            const searchKeys = keys.filter(k => k.includes('trialSearches_'));
+            const searchData = {};
+            searchKeys.forEach(key => {
+                try {
+                    searchData[key] = JSON.parse(localStorage.getItem(key));
+                } catch (e) {
+                    searchData[key] = localStorage.getItem(key);
+                }
+            });
+            return searchData;
+        }
+        
+        function clearMapTimer() {
+            sessionStorage.removeItem('mapTimerStartTime');
+            sessionStorage.removeItem('mapTrialExpired');
+            sessionStorage.removeItem('mapAccessInfoShown');
+            sessionStorage.removeItem('timerStartTime');
+            sessionStorage.removeItem('timerLockout');
+            showStatus('✅ Map timer data cleared');
+            refreshData();
+        }
+        
+        function clearSearchCount() {
+            const keys = Object.keys(localStorage);
+            const searchKeys = keys.filter(k => k.includes('trialSearches_'));
+            searchKeys.forEach(key => localStorage.removeItem(key));
+            
+            // Also clear search limit popup flags
+            const popupKeys = Object.keys(sessionStorage);
+            const searchPopupKeys = popupKeys.filter(k => k.includes('searchLimitPopupShown'));
+            searchPopupKeys.forEach(key => sessionStorage.removeItem(key));
+            
+            showStatus('✅ Search count data cleared');
+            refreshData();
+        }
+        
+        function clearAllTimers() {
+            // Clear map timers
+            sessionStorage.removeItem('mapTimerStartTime');
+            sessionStorage.removeItem('mapTrialExpired');
+            sessionStorage.removeItem('mapAccessInfoShown');
+            sessionStorage.removeItem('timerStartTime');
+            sessionStorage.removeItem('timerLockout');
+            
+            // Clear search data
+            const keys = Object.keys(localStorage);
+            const searchKeys = keys.filter(k => k.includes('trialSearches_'));
+            searchKeys.forEach(key => localStorage.removeItem(key));
+            
+            // Clear popup flags
+            const popupKeys = Object.keys(sessionStorage);
+            const searchPopupKeys = popupKeys.filter(k => k.includes('searchLimitPopupShown'));
+            searchPopupKeys.forEach(key => sessionStorage.removeItem(key));
+            
+            // Clear unregistered user timer (optional)
+            // localStorage.removeItem('unregisteredAccessStart');
+            // localStorage.removeItem('unregisteredPopupShown');
+            
+            showStatus('✅ All timer data cleared');
+            refreshData();
+        }
+        
+        function showStatus(message) {
+            const status = document.getElementById('status');
+            status.innerHTML = `<div class="success">${message}</div>`;
+            setTimeout(() => {
+                status.innerHTML = '';
+            }, 3000);
+        }
+        
+        // Load data on page load
+        refreshData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Admin Statistics - Capacity Market Search{% endblock %}
+
+{% block extra_head %}
+<style>
+    .stats-card {
+        border: 1px solid var(--bs-border-color);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: var(--bs-card-bg);
+    }
+    .summary-stat-label {
+        font-size: 1rem;
+        color: var(--bs-secondary-color);
+        margin-bottom: 10px;
+    }
+    .summary-stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--bs-primary);
+    }
+    .monitoring-section {
+        margin-top: 40px;
+    }
+    .monitoring-card {
+        background-color: var(--bs-light);
+        border-left: 4px solid var(--bs-primary);
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    .monitoring-label {
+        font-weight: 600;
+        color: var(--bs-secondary);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .monitoring-value {
+        font-size: 1.25rem;
+        color: var(--bs-body-color);
+        margin-top: 5px;
+    }
+    /* Dark mode adjustments */
+    html[data-bs-theme="dark"] .stats-card {
+        background-color: #1a1a1a;
+        border-color: #3a3a3a;
+    }
+    html[data-bs-theme="dark"] .monitoring-card {
+        background-color: #2a2a2a;
+        border-left-color: #5a8dee;
+    }
+    html[data-bs-theme="dark"] .summary-stat-number {
+        color: #5a8dee;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% load checker_tags %}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Admin Dashboard</h1>
+        <div>
+            {% if user.is_superuser %}
+            <a href="?rebuild=true" class="btn btn-warning btn-sm me-2" title="Force rebuild statistics cache">
+                <i class="bi bi-arrow-clockwise"></i> Rebuild Cache
+            </a>
+            {% endif %}
+            <a href="{% url 'search_companies' %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back to Search
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Numbers -->
+    <div class="row text-center mb-5">
+        <div class="col-md-3">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <h5 class="summary-stat-label"><i class="bi bi-box-seam"></i> Total Components</h5>
+                    <p class="summary-stat-number">{{ total_components|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <h5 class="summary-stat-label"><i class="bi bi-archive"></i> Unique CMUs</h5>
+                    <p class="summary-stat-number">{{ total_cmus|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <h5 class="summary-stat-label"><i class="bi bi-building"></i> Total Companies</h5>
+                    <p class="summary-stat-number">{{ total_companies|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <h5 class="summary-stat-label"><i class="bi bi-geo-alt"></i> Unique Locations</h5>
+                    <p class="summary-stat-number">{{ total_unique_locations|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monitoring Section -->
+    <div class="monitoring-section">
+        <h2 class="mb-4">System Monitoring</h2>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="monitoring-card">
+                    <div class="monitoring-label">Last Data Crawl</div>
+                    <div class="monitoring-value">{{ last_crawl_date|default:"Not Available" }}</div>
+                </div>
+                
+                <div class="monitoring-card">
+                    <div class="monitoring-label">Database Last Updated</div>
+                    <div class="monitoring-value">{{ last_db_update|default:"Not Available" }}</div>
+                </div>
+                
+                <div class="monitoring-card">
+                    <div class="monitoring-label">Cache Status</div>
+                    <div class="monitoring-value">
+                        {% if cache_status %}
+                            <span class="text-success"><i class="bi bi-check-circle-fill"></i> Active</span>
+                        {% else %}
+                            <span class="text-danger"><i class="bi bi-x-circle-fill"></i> Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="monitoring-card">
+                    <div class="monitoring-label">Redis Memory Usage</div>
+                    <div class="monitoring-value">{{ redis_memory_usage|default:"Not Available" }}</div>
+                </div>
+                
+                <div class="monitoring-card">
+                    <div class="monitoring-label">Active Users (Last 24h)</div>
+                    <div class="monitoring-value">{{ active_users_24h|default:"0" }}</div>
+                </div>
+                
+                <div class="monitoring-card">
+                    <div class="monitoring-label">Total Searches (Last 24h)</div>
+                    <div class="monitoring-value">{{ searches_24h|default:"0" }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Additional monitoring data can be added here -->
+        <div class="mt-4">
+            <h3>Quick Actions</h3>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="/admin/" class="btn btn-primary">
+                    <i class="bi bi-gear-fill"></i> Django Admin
+                </a>
+                <a href="{% url 'admin:checker_component_changelist' %}" class="btn btn-secondary">
+                    <i class="bi bi-database"></i> Manage Components
+                </a>
+                <button class="btn btn-info" onclick="checkRedisStatus()">
+                    <i class="bi bi-speedometer2"></i> Check Redis Status
+                </button>
+                <button class="btn btn-warning" onclick="clearCache()">
+                    <i class="bi bi-trash"></i> Clear Cache
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function checkRedisStatus() {
+    // Add AJAX call to check Redis status
+    alert('Redis status check - to be implemented');
+}
+
+function clearCache() {
+    if (confirm('Are you sure you want to clear all caches?')) {
+        // Add AJAX call to clear cache
+        alert('Cache clearing - to be implemented');
+    }
+}
+</script>
+{% endblock %}

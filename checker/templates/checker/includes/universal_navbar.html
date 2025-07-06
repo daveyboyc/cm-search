@@ -1,0 +1,376 @@
+<!-- Universal Navigation Bar for all pages except home -->
+{% load static %}
+{% load checker_tags %}
+
+<nav class="navbar navbar-light shadow-sm universal-navbar" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1100;">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center w-100">
+            <!-- Brand/Logo - Hidden on mobile -->
+            <a class="navbar-brand d-none d-md-flex" href="/">
+                <img src="{% static 'images/favicon.png' %}" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+                Capacity Market Search
+            </a>
+            
+            <!-- Search Form with embedded logo on mobile -->
+            {% comment %}
+            All search forms now default to map search as requested
+            {% endcomment %}
+            <form class="d-flex flex-grow-1 me-3 search-form" method="get" action="{% url 'search_map_view' %}">
+                <div class="input-group">
+                    <!-- Logo inside search bar (mobile only) -->
+                    <span class="input-group-text d-md-none" style="border-right: none; border-radius: 20px 0 0 20px; background: white; padding: 0.375rem 0.5rem;">
+                        <a href="/" class="text-decoration-none">
+                            <img src="{% static 'images/favicon.png' %}" alt="Logo" width="24" height="24">
+                        </a>
+                    </span>
+                    <input class="form-control search-input" 
+                           type="search" 
+                           name="q" 
+                           placeholder="Search locations, companies, technologies..." 
+                           aria-label="Search" 
+                           value="{{ request.GET.q|default:'' }}"
+                           style="border-right: none;">
+                    <button class="btn btn-primary search-button" 
+                            type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Hamburger Menu Button -->
+            <button class="navbar-toggler ms-auto" 
+                    type="button" 
+                    data-bs-toggle="offcanvas" 
+                    data-bs-target="#universalNavOffcanvas" 
+                    aria-controls="universalNavOffcanvas">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        
+        <!-- Offcanvas Menu -->
+        <div class="offcanvas offcanvas-end" 
+             tabindex="-1" 
+             id="universalNavOffcanvas" 
+             aria-labelledby="universalNavOffcanvasLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="universalNavOffcanvasLabel">Menu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="bi bi-house-door me-2"></i>Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'technology_list' %}?sort_by=components&sort_order=desc"><i class="bi bi-lightning-charge me-2"></i>Technologies</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'company_list_optimized' %}?sort_by=components&sort_order=desc"><i class="bi bi-building me-2"></i>Companies</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/search-map/?q=&sort_by=location&sort_order=asc&per_page=25"><i class="bi bi-geo-alt me-2"></i>Locations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/map-explorer/"><i class="bi bi-map me-2"></i>Map Explorer</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'capacity_market_faq' %}"><i class="bi bi-question-circle me-2"></i>FAQ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'trades:list' %}"><i class="bi bi-megaphone me-2"></i>Trading Board</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/donate/"><i class="bi bi-cup-hot me-2"></i>Buy Me A Coffee</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#helpModal" onclick="openHelpModal(event)"><i class="bi bi-question-circle me-2"></i>Help</a>
+                    </li>
+                    
+                    <!-- User Authentication Section -->
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <hr class="my-3">
+                        </li>
+                        {% if user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-gear me-2"></i>Admin</a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:account' %}"><i class="bi bi-person me-2"></i>Account</a>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'accounts:logout' %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-link" style="border: none; padding: 0.5rem 1rem; text-align: left; width: 100%;">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <hr class="my-3">
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:register' %}"><i class="bi bi-person-plus me-2"></i>Register</a>
+                        </li>
+                    {% endif %}
+                    
+                    <!-- Theme Toggle Section -->
+                    <li class="nav-item">
+                        <hr class="my-3">
+                    </li>
+                    <li class="nav-item">
+                        <h6 class="text-muted px-3 mb-2">Theme</h6>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link theme-toggle" href="#" data-bs-theme-value="light"><i class="bi bi-sun-fill me-2"></i>Light</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link theme-toggle" href="#" data-bs-theme-value="dark"><i class="bi bi-moon-fill me-2"></i>Dark</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link theme-toggle" href="#" data-bs-theme-value="auto"><i class="bi bi-circle-half me-2"></i>Auto</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Add top padding to body to account for fixed navbar -->
+<style>
+/* Add spacing for any page with universal navbar */
+body:has(.universal-navbar) .container {
+    margin-top: 70px !important; /* Balanced navbar spacing for desktop */
+}
+
+/* Mobile spacing for universal navbar pages */
+@media (max-width: 768px) {
+    body:has(.universal-navbar) .container {
+        margin-top: 85px !important;
+    }
+}
+
+/* Light mode navbar styling */
+.universal-navbar {
+    background-color: rgba(255, 255, 255, 0.98) !important;
+}
+
+/* Dark mode navbar styling */
+html[data-bs-theme="dark"] .universal-navbar {
+    background-color: rgba(33, 37, 41, 0.95) !important;
+}
+
+/* Dark mode navbar brand text */
+html[data-bs-theme="dark"] .navbar-brand {
+    color: #fff !important;
+}
+
+/* Dark mode search input styling */
+html[data-bs-theme="dark"] .search-input {
+    background-color: #495057 !important;
+    border-color: #6c757d !important;
+    color: #fff !important;
+}
+
+html[data-bs-theme="dark"] .search-input::placeholder {
+    color: #adb5bd !important;
+}
+
+html[data-bs-theme="dark"] .search-input:focus {
+    background-color: #495057 !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* Dark mode input group text (logo area) */
+html[data-bs-theme="dark"] .input-group-text {
+    background-color: #495057 !important;
+    border-color: #6c757d !important;
+    color: #fff !important;
+}
+
+/* Dark mode navbar toggler */
+html[data-bs-theme="dark"] .navbar-toggler {
+    border-color: #6c757d !important;
+}
+
+html[data-bs-theme="dark"] .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* Light mode navbar toggler - add dark border for better visibility on mobile */
+@media (max-width: 768px) {
+    .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2833, 33, 33, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='3' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+    }
+    
+    .navbar-toggler {
+        border: 1px solid #333 !important;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.3) !important;
+    }
+}
+
+/* Offcanvas styling */
+.offcanvas .nav-link {
+    padding: 0.75rem 1rem;
+    color: #333;
+}
+
+.offcanvas .nav-link:hover {
+    background-color: #f8f9fa;
+}
+
+.offcanvas .nav-link.theme-toggle.active {
+    background-color: #e3f2fd;
+    color: #0d6efd;
+}
+
+/* Dark mode offcanvas */
+html[data-bs-theme="dark"] .offcanvas {
+    background-color: #212529;
+    color: #fff;
+}
+
+html[data-bs-theme="dark"] .offcanvas .nav-link {
+    color: #dee2e6;
+}
+
+html[data-bs-theme="dark"] .offcanvas .nav-link:hover {
+    background-color: #343a40;
+}
+
+html[data-bs-theme="dark"] .offcanvas .nav-link.theme-toggle.active {
+    background-color: #1a3a52;
+    color: #4dabf7;
+}
+
+/* Search form styling */
+.universal-navbar .search-form {
+    max-width: 500px; /* Desktop max width */
+}
+
+/* Search input styling - responsive border radius */
+.universal-navbar .search-input {
+    border-radius: 25px 0 0 25px !important; /* Desktop: fully rounded left - force override */
+    border-right: none !important;
+}
+
+/* Search button styling - circular */
+.universal-navbar .search-button {
+    border-radius: 0 25px 25px 0 !important; /* Desktop: fully rounded right - force override */
+    border-left: none !important;
+    padding: 0.375rem 1rem;
+    min-width: 48px; /* Ensure it's wide enough to look circular */
+}
+
+/* Remove any Bootstrap input-group border radius overrides */
+.universal-navbar .input-group > .form-control:not(:last-child) {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.universal-navbar .input-group > .btn:not(:first-child) {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .universal-navbar .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .universal-navbar .search-form {
+        max-width: 100%; /* Full width on mobile */
+        margin-right: 0.5rem !important; /* Reduce right margin on mobile */
+    }
+    
+    /* Mobile spacing for pages with universal navbar */
+    body:has(.universal-navbar) .container {
+        margin-top: 85px !important; /* Balanced spacing for mobile */
+    }
+    
+    /* On mobile, search input has no border radius when logo is present */
+    .universal-navbar .search-input {
+        border-radius: 0 !important; /* Mobile: no rounded corners in the middle */
+        border-left: none !important; /* Remove left border since logo span handles it */
+        border-right: none !important; /* Remove right border for button */
+    }
+    
+    /* Mobile search button - keep rounded right */
+    .universal-navbar .search-button {
+        border-radius: 0 25px 25px 0 !important; /* Keep right rounded on mobile */
+        border-left: none !important;
+    }
+    
+    /* Logo span in search bar styling */
+    .universal-navbar .input-group-text {
+        border-color: #ced4da; /* Match input border color */
+        border-radius: 25px 0 0 25px !important; /* Round left side for logo */
+        border-right: none !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .universal-navbar .navbar-brand img {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .universal-navbar .search-form {
+        margin-right: 0.25rem !important; /* Even less margin on very small screens */
+    }
+    
+    /* Adjust placeholder text on very small screens */
+    .universal-navbar .search-input::placeholder {
+        font-size: 0.9rem;
+    }
+}
+</style>
+
+<!-- Theme Toggle JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Theme handling for universal navbar
+    const themeToggles = document.querySelectorAll('.theme-toggle');
+    const storedTheme = localStorage.getItem('theme') || 'auto';
+    
+    // Set initial theme
+    if (storedTheme === 'auto') {
+        document.documentElement.removeAttribute('data-bs-theme');
+    } else {
+        document.documentElement.setAttribute('data-bs-theme', storedTheme);
+    }
+    
+    // Handle theme selection
+    themeToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const theme = this.getAttribute('data-bs-theme-value');
+            
+            if (theme === 'auto') {
+                document.documentElement.removeAttribute('data-bs-theme');
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', theme);
+            }
+            
+            localStorage.setItem('theme', theme);
+            
+            // Update active state
+            themeToggles.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+        
+        // Set initial active state
+        if (toggle.getAttribute('data-bs-theme-value') === storedTheme) {
+            toggle.classList.add('active');
+        }
+    });
+});
+</script>

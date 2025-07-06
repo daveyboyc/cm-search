@@ -1,0 +1,539 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-GB" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Search UK Capacity Market data: find power generation components, companies, technologies, and auction results. Battery storage, gas, wind, solar, nuclear, and DSR capacity data.">
+    <title>Capacity Market Search | Capacity Market Search</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        /* Base styles from your actual template */
+        html[data-bs-theme="light"] {
+            --bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-opacity='0.03'%3E%3Cpolygon fill='%23000' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        html[data-bs-theme="dark"] {
+            --bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-opacity='0.1'%3E%3Cpolygon fill='%23fff' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-image: var(--bg-image);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            background-color: rgba(var(--bs-body-bg-rgb), 0.92);
+            padding: 30px;
+            border-radius: 8px;
+            flex-grow: 1;
+            width: 95%;
+            color: var(--bs-body-color);
+        }
+
+        /* Your exact Google-like header styles */
+        .google-like-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding-top: 5vh;
+            padding-bottom: 5vh;
+            flex-shrink: 0;
+            position: relative;
+            color: white;
+        }
+        .google-like-header h1 {
+            font-weight: bold;
+            font-size: 3.0375rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .google-like-header .search-form {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .google-like-header .search-form .form-control {
+            height: 45px;
+            border-radius: 25px;
+            padding-left: 20px;
+            padding-right: 20px;
+            border: var(--bs-border-width) solid var(--bs-border-color);
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
+            box-shadow: 0 1px 6px rgba(32,33,36,0.1);
+            font-size: 14px;
+        }
+        .google-like-header .search-form .btn {
+            border-radius: 25px;
+            height: 45px;
+        }
+
+        /* Container styles for initial search */
+        .container-initial-search {
+            padding: 0 !important; 
+            margin: 0 !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Popover info links */
+        .google-like-header .popover-info-link {
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, text-decoration 0.15s ease-in-out;
+            display: inline-block; 
+        }
+
+        .google-like-header .popover-info-link:hover,
+        .google-like-header .popover-info-link:focus {
+            color: white;
+            text-decoration: underline;
+            background-color: transparent;
+            outline: none;
+            box-shadow: none;
+        }
+
+        /* Map view button styling */
+        .map-view-btn {
+            margin-right: 20px !important;
+            margin-left: 25px !important;
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+        }
+
+        /* Make Map View button green */
+        .stats-link-container .btn-info,
+        .stats-link-container a[href*="map"] {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+        }
+        
+        .stats-link-container .btn-info:hover,
+        .stats-link-container a[href*="map"]:hover {
+            background-color: #218838 !important;
+            border-color: #1e7e34 !important;
+            color: white !important;
+        }
+
+        /* AD STYLES */
+        .ad-container {
+            margin: 15px 0;
+            padding: 10px;
+            border: 2px dashed #007bff;
+            border-radius: 5px;
+            background-color: rgba(0, 123, 255, 0.05);
+            text-align: center;
+        }
+
+        /* TOP BANNER AD */
+        .top-banner-ad {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 0;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .top-banner-ad .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        /* SIDEBAR ADS for desktop */
+        .sidebar-ad {
+            position: fixed;
+            width: 160px;
+            height: 400px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+        }
+
+        .sidebar-ad.left {
+            left: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+        }
+
+        .sidebar-ad.right {
+            right: 20px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .sidebar-ad h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .sidebar-ad p {
+            font-size: 11px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .sidebar-ad .btn {
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 20px;
+        }
+
+        /* BOTTOM NATIVE AD */
+        .bottom-native-ad {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .ad-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        /* User status indicator */
+        .user-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 1200px) {
+            .sidebar-ad {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .google-like-header h1 {
+                display: block !important;
+                font-size: 1.5rem !important;
+                margin-bottom: 1rem !important;
+                font-weight: 600 !important;
+            }
+            
+            .google-like-header img {
+                width: 45px !important;
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .google-like-header .search-form {
+                margin: 0 20px !important;
+                max-width: calc(100% - 40px) !important;
+                width: calc(100% - 40px) !important;
+            }
+            
+            .google-like-header .search-form .input-group {
+                border-radius: 25px !important;
+                overflow: hidden;
+            }
+            
+            .google-like-header .search-form .form-control {
+                border-radius: 25px 0 0 25px !important;
+                border: 1px solid #ddd !important;
+                font-size: 12px !important;
+            }
+            
+            .google-like-header .search-form .btn {
+                border-radius: 0 25px 25px 0 !important;
+            }
+            
+            .google-like-header {
+                padding-top: 15vh !important;
+            }
+            
+            .stats-link-container .btn {
+                font-size: 0 !important;
+                width: 50px !important;
+                height: 50px !important;
+                border-radius: 12px !important;
+                padding: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            .stats-link-container .btn i,
+            .stats-link-container .btn .fa,
+            .stats-link-container .btn .fas,
+            .stats-link-container .btn .bi {
+                font-size: 20px !important;
+                display: block !important;
+            }
+            
+            .stats-link-container {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 10px !important;
+            }
+            
+            .stats-link-container .mb-2 {
+                display: flex !important;
+                justify-content: center !important;
+                gap: 15px !important;
+                margin-bottom: 10px !important;
+            }
+
+            .top-banner-ad {
+                font-size: 12px;
+                padding: 8px 15px;
+            }
+        }
+    </style>
+</head>
+<body class="search-page">
+    <!-- User Status Indicator -->
+    <div class="user-status">
+        NON-SUBSCRIBER - Ads Visible
+    </div>
+
+    <!-- TOP BANNER AD (non-subscribers only) -->
+    <div class="top-banner-ad" id="topBannerAd" style="position: relative;">
+        <button class="close-btn" onclick="closeBannerAd()">&times;</button>
+        <strong>🔋 Battery Storage Solutions</strong> - Professional energy storage systems for grid stability. 
+        <a href="#" style="color: #ffd700; text-decoration: none;">Get Free Consultation →</a>
+    </div>
+
+    <!-- LEFT SIDEBAR AD (Desktop only) -->
+    <div class="sidebar-ad left">
+        <div class="ad-label">Sponsored</div>
+        <div style="font-size: 30px; margin-bottom: 10px;">⚡</div>
+        <h4>Solar Energy</h4>
+        <p>Commercial solar installations. Cut energy costs by 40%.</p>
+        <button class="btn btn-primary btn-sm">Get Quote</button>
+    </div>
+
+    <!-- RIGHT SIDEBAR AD (Desktop only) -->
+    <div class="sidebar-ad right">
+        <div class="ad-label">Advertisement</div>
+        <div style="font-size: 30px; margin-bottom: 10px;">🏭</div>
+        <h4>Energy Trading</h4>
+        <p>Professional energy market analysis tools and forecasting.</p>
+        <button class="btn btn-success btn-sm">Free Trial</button>
+    </div>
+
+    <!-- Mobile Hamburger Menu (simplified) -->
+    <button class="mobile-hamburger-btn" style="position: fixed; top: 15px; right: 15px; width: 40px; height: 40px; background: rgba(0,0,0,0.7); border: none; border-radius: 5px; color: white; z-index: 1050;">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <!-- Google-like Header (your exact design) -->
+    <div class="google-like-header">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='25' fill='%234285f4'/%3E%3Ctext x='30' y='37' text-anchor='middle' fill='white' font-family='Arial' font-size='20' font-weight='bold'%3E⚡%3C/text%3E%3C/svg%3E" alt="Capacity Market Logo" style="width: 60px; height: auto; margin-bottom: 1rem; filter: drop-shadow(0 0 3px white) drop-shadow(0 0 5px white) drop-shadow(0 0 7px white) drop-shadow(0 0 9px white);">
+        <h1>Capacity Market Search</h1>
+        <form method="get" action="#" class="search-form">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Search company name, component, post code or CMU ID" value="">
+                <input type="hidden" name="per_page" value="10">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+
+        <!-- Explanatory Bubbles (your exact content) -->
+        <div class="explanatory-bubbles-container mt-4 d-flex justify-content-center gap-3">
+            <a tabindex="0" class="popover-info-link" role="button" data-bs-toggle="popover" data-bs-trigger="focus" 
+               data-bs-placement="bottom" data-bs-html="true" title="⚡ What Is the Capacity Market?"
+               data-bs-content="<p class='mb-2'>The UK's Capacity Market is a government-backed scheme that ensures the stability of electricity supply...</p>">
+                ⚡ What Is the Capacity Market?
+            </a>
+            <a tabindex="0" class="popover-info-link" role="button" data-bs-toggle="popover" data-bs-trigger="focus" 
+               data-bs-placement="bottom" data-bs-html="true" title="🔍 How to Use This Site"
+               data-bs-content="<p class='mb-2'>CapacityMarket.co.uk helps you explore and understand the assets...</p>">
+                🔍 How to Use This Site
+            </a>
+            <a href="#" class="popover-info-link">
+                📖 FAQ
+            </a>
+        </div>
+
+        <!-- Map Explorer and Buy Me a Coffee Buttons (your exact layout) -->
+        <div class="mt-4 text-center">
+            <div class="d-flex justify-content-center gap-3">
+                <a href="#" class="btn btn-success" style="width: 160px; font-size: 0.91rem; white-space: nowrap;"> 
+                    <i class="bi bi-map-fill" style="font-size: 0.91rem;"></i> Map Explorer
+                </a>
+                <a href="#" class="btn btn-warning" style="width: 160px; font-size: 0.91rem; white-space: nowrap;"> 
+                    <i class="bi bi-cup-hot-fill" style="font-size: 0.91rem;"></i> Buy Me a Coffee
+                </a>
+            </div>
+        </div>
+
+        <!-- Common Searches Section (your exact quick search buttons) -->
+        <div class="mt-3 text-center">
+            <p class="text-white mb-3" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
+                <small>Quick searches:</small>
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a href="#" class="btn btn-outline-light btn-sm" 
+                   style="border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                    <i class="bi bi-battery"></i> Battery
+                </a>
+                <a href="#" class="btn btn-outline-light btn-sm" 
+                   style="border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                    <i class="bi bi-fire"></i> CHP
+                </a>
+                <a href="#" class="btn btn-outline-light btn-sm" 
+                   style="border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                    <i class="bi bi-gear"></i> Gas/OCGT
+                </a>
+                <a href="#" class="btn btn-outline-light btn-sm" 
+                   style="border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                    <i class="bi bi-sun"></i> Solar
+                </a>
+                <a href="#" class="btn btn-outline-light btn-sm" 
+                   style="border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                    <i class="bi bi-wind"></i> Wind
+                </a>
+                <a href="#" class="btn btn-outline-light btn-sm" 
+                   style="border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                    <i class="bi bi-plug"></i> EV Charging
+                </a>
+                <a href="#" class="btn btn-outline-light btn-sm" 
+                   style="border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                    <i class="bi bi-lightning"></i> DSR
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NATIVE AD (appears after search/browsing) -->
+    <div class="container container-initial-search">
+        <div class="bottom-native-ad">
+            <div class="ad-label">Sponsored Content</div>
+            <div class="row align-items-center">
+                <div class="col-md-2 text-center">
+                    <div style="font-size: 40px; color: #28a745;">🌱</div>
+                </div>
+                <div class="col-md-7">
+                    <h5 style="margin-bottom: 5px; color: #333;">Renewable Energy Marketplace</h5>
+                    <p style="margin-bottom: 0; color: #666; font-size: 14px;">
+                        Connect with leading renewable energy providers. Solar, wind, and storage solutions for businesses.
+                    </p>
+                </div>
+                <div class="col-md-3 text-end">
+                    <button class="btn btn-success">Explore Options</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Ad management functions
+        function closeBannerAd() {
+            document.getElementById('topBannerAd').style.display = 'none';
+        }
+
+        // Theme switcher
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+        }
+
+        // Search form handler
+        document.querySelector('.search-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const searchValue = document.querySelector('input[name="q"]').value;
+            alert(`Search submitted: "${searchValue}"\n\nThis would redirect to search results with ads.`);
+        });
+
+        // Quick search buttons
+        document.querySelectorAll('.btn-outline-light').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const tech = this.textContent.trim();
+                alert(`Quick search: ${tech}\n\nThis would search for ${tech} components with ads displayed.`);
+            });
+        });
+
+        // Navigation buttons
+        document.querySelectorAll('.btn-success, .btn-warning').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const text = this.textContent.trim();
+                alert(`Navigate to: ${text}\n\nThis would open that section with appropriate ads.`);
+            });
+        });
+
+        // Initialize Bootstrap Popovers (simplified)
+        document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
+            new bootstrap.Popover(el, {
+                sanitize: false
+            });
+        });
+
+        // Theme toggle shortcut
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 't' || e.key === 'T') {
+                toggleTheme();
+            }
+        });
+
+        console.log('EXACT Homepage Ad Preview Loaded');
+        console.log('Press "T" to toggle dark/light theme');
+        console.log('All original functionality preserved with ads added for non-subscribers');
+    </script>
+    
+    <div style="position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 11px; z-index: 1000;">
+        Press "T" to toggle theme • EXACT HOMEPAGE WITH ADS
+    </div>
+</body>
+</html>

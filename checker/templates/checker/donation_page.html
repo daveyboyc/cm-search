@@ -1,0 +1,286 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Support the Capacity Market Search{% endblock %}
+
+{% block extra_head %}
+<script src="https://js.stripe.com/v3/"></script>
+<!-- Add hidden field with Stripe key for JS access -->
+<script>
+    // Store Stripe public key from Django context for potential use
+    const stripePublicKey = "{{ stripe_public_key }}";
+</script>
+<style>
+    .donation-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .donation-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .donation-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+        color: #212529;
+    }
+    
+    /* Dark mode styles - High contrast for better readability */
+    html[data-bs-theme="dark"] .donation-card {
+        background-color: #0d0d0d;
+        border-color: #4a4a4a;
+        color: #ffffff !important;
+    }
+    
+    html[data-bs-theme="dark"] .donation-card h3,
+    html[data-bs-theme="dark"] .donation-card h4 {
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+    
+    html[data-bs-theme="dark"] .donation-card p {
+        color: #ffffff !important;
+        opacity: 0.95;
+    }
+    
+    html[data-bs-theme="dark"] .feature-list li {
+        color: #ffffff !important;
+        opacity: 0.95;
+    }
+    
+    html[data-bs-theme="dark"] .donation-header h1 {
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+    
+    html[data-bs-theme="dark"] .donation-header .lead {
+        color: #ffffff !important;
+        opacity: 0.9;
+    }
+    
+    /* Make sure all text in dark mode is white/high contrast */
+    html[data-bs-theme="dark"] .donation-container {
+        color: #ffffff !important;
+    }
+    
+    html[data-bs-theme="dark"] .donation-container * {
+        color: inherit;
+    }
+    
+    /* Override any Bootstrap text-muted classes */
+    html[data-bs-theme="dark"] .text-muted {
+        color: #ffffff !important;
+        opacity: 0.9 !important;
+    }
+    
+    /* Ensure paragraphs and lists are fully visible */
+    html[data-bs-theme="dark"] p,
+    html[data-bs-theme="dark"] li,
+    html[data-bs-theme="dark"] ul,
+    html[data-bs-theme="dark"] h1,
+    html[data-bs-theme="dark"] h2,
+    html[data-bs-theme="dark"] h3,
+    html[data-bs-theme="dark"] h4,
+    html[data-bs-theme="dark"] h5,
+    html[data-bs-theme="dark"] h6 {
+        color: #ffffff !important;
+        opacity: 1 !important;
+    }
+    
+    html[data-bs-theme="dark"] .input-group-text {
+        background-color: #2a2a2a;
+        border-color: #3a3a3a;
+        color: #e0e0e0;
+    }
+    
+    html[data-bs-theme="dark"] .form-control {
+        background-color: #1a1a1a;
+        border-color: #3a3a3a;
+        color: #ffffff;
+    }
+    
+    html[data-bs-theme="dark"] .form-control:focus {
+        background-color: #1a1a1a;
+        border-color: #5469d4;
+        color: #ffffff;
+    }
+    
+    html[data-bs-theme="dark"] label {
+        color: #e0e0e0;
+    }
+    
+    html[data-bs-theme="dark"] small {
+        color: #b0b0b0;
+    }
+    
+    html[data-bs-theme="dark"] a {
+        color: #5a8dee;
+    }
+    .btn-donate {
+        background-color: #5469d4;
+        color: #ffffff;
+        font-weight: bold;
+        border: 0;
+        border-radius: 4px;
+        padding: 12px 16px;
+        margin-top: 16px;
+        width: 100%;
+        transition: all 0.2s ease;
+    }
+    .btn-donate:hover {
+        background-color: #4a5fc1;
+        transform: translateY(-1px);
+    }
+    .feature-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .feature-list li {
+        padding: 8px 0;
+        display: flex;
+        align-items: center;
+    }
+    .feature-list li:before {
+        content: "✓";
+        color: #28a745;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    
+    /* Dark mode button styles */
+    html[data-bs-theme="dark"] .btn-outline-primary {
+        color: #5a8dee;
+        border-color: #5a8dee;
+    }
+    
+    html[data-bs-theme="dark"] .btn-outline-primary:hover {
+        background-color: #5a8dee;
+        border-color: #5a8dee;
+        color: #ffffff;
+    }
+    
+    html[data-bs-theme="dark"] .btn-check:checked + .btn-outline-primary {
+        background-color: #5469d4;
+        border-color: #5469d4;
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="donation-container">
+    <div class="donation-header">
+        <h1>Support the Capacity Market Search</h1>
+        <p class="lead">Help us continue to provide this valuable resource for the energy market</p>
+    </div>
+    
+    <div class="donation-card">
+        <h3>Why Support Us?</h3>
+        <ul class="feature-list">
+            <li>Keep the database updated with the latest market data</li>
+            <li>Maintain the infrastructure that powers the search functionality</li>
+            <li>Enable new features and improvements to the platform</li>
+            <li>Support independent energy market information</li>
+        </ul>
+        
+        <h4 class="mt-4">Make a Donation</h4>
+        <p>Your contribution helps keep this tool accessible to everyone in the industry.</p>
+        
+        <form action="{% url 'create_checkout_session' %}" method="POST">
+            {% csrf_token %}
+            
+            <div class="donation-amounts mb-4">
+                <div class="amount-options">
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="amount" id="amount1" value="500" checked>
+                            <label class="btn btn-outline-primary w-100" for="amount1">£5</label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="amount" id="amount2" value="1000">
+                            <label class="btn btn-outline-primary w-100" for="amount2">£10</label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="amount" id="amount3" value="2000">
+                            <label class="btn btn-outline-primary w-100" for="amount3">£20</label>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="amount" id="amount4" value="5000">
+                            <label class="btn btn-outline-primary w-100" for="amount4">£50</label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="amount" id="amount5" value="10000">
+                            <label class="btn btn-outline-primary w-100" for="amount5">£100</label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="amount" id="custom" value="custom">
+                            <label class="btn btn-outline-primary w-100" for="custom">Custom</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="custom-amount-container" class="mt-3" style="display: none;">
+                    <label for="custom_amount">Enter amount (£):</label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">£</span>
+                        <input type="number" class="form-control" id="custom_amount" name="custom_amount" min="1" max="1000" step="0.01" placeholder="Enter amount">
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-donate">
+                Donate Now
+            </button>
+        </form>
+    </div>
+    
+    <div class="text-center mt-4">
+        <p><small>Payments securely processed by <a href="https://stripe.com" target="_blank">Stripe</a></small></p>
+        <p><small>The Capacity Market Search is an independent tool created to support transparency in the UK power market.</small></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all amount radio buttons
+        const amountInputs = document.querySelectorAll('input[name="amount"]');
+        const customAmountContainer = document.getElementById('custom-amount-container');
+        const customAmountInput = document.getElementById('custom_amount');
+        
+        // Add event listeners to all radio buttons
+        amountInputs.forEach(function(input) {
+            input.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customAmountContainer.style.display = 'block';
+                    customAmountInput.focus();
+                } else {
+                    customAmountContainer.style.display = 'none';
+                }
+            });
+        });
+        
+        // For form submission validation
+        const donationForm = document.querySelector('form');
+        donationForm.addEventListener('submit', function(event) {
+            const selectedAmount = document.querySelector('input[name="amount"]:checked').value;
+            
+            if (selectedAmount === 'custom') {
+                const customAmount = customAmountInput.value;
+                
+                if (!customAmount || customAmount <= 0) {
+                    event.preventDefault();
+                    alert('Please enter a valid amount greater than 0.');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ad Test</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+        .content { max-width: 800px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>Component Detail Test Page</h1>
+        <p>This is the main content area. The ads should be visible on the sides and above.</p>
+        
+        <!-- Banner Ad -->
+        <div style="text-align: center; margin: 15px auto; max-width: 728px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 12px; position: relative;">
+            <div style="position: absolute; top: 3px; right: 8px; font-size: 8px; color: #999; text-transform: uppercase; background: #fff; padding: 2px 4px; border-radius: 2px;">Advertisement</div>
+            <div style="padding: 15px; color: #555; font-size: 14px;">
+                <strong style="color: #dc3545; font-size: 16px;">🏗️ BANNER AD - Capacity Market Development Services</strong><br>
+                <span style="color: #666; font-size: 13px;">Expert consultation for energy projects • Planning • Financing • Operations</span>
+            </div>
+        </div>
+        
+        <p>More content here to make the page longer...</p>
+        <p>If you can see this text but not the ads, there's a CSS or rendering issue.</p>
+        <p>The sidebar ads should be fixed to the left and right sides of the screen.</p>
+    </div>
+
+    <!-- Left Sidebar Ad -->
+    <div style="position: fixed; left: 10px; top: 50%; transform: translateY(-50%); z-index: 1000; width: 160px;">
+        <div style="width: 160px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 12px; margin: 15px 0; position: relative; text-align: center; min-height: 200px;">
+            <div style="position: absolute; top: 3px; right: 6px; font-size: 7px; color: #999; text-transform: uppercase; background: #fff; padding: 1px 3px; border-radius: 2px;">Ad</div>
+            <div style="color: #555; font-size: 12px; line-height: 1.4;">
+                <div style="font-weight: 600; color: #007bff; margin-bottom: 8px; font-size: 13px;">⚡ LEFT SIDEBAR AD</div>
+                <div style="margin-bottom: 12px;">Energy Projects - Find capacity market investment opportunities</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Sidebar Ad -->
+    <div style="position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 1000; width: 160px;">
+        <div style="width: 160px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 12px; margin: 15px 0; position: relative; text-align: center; min-height: 200px;">
+            <div style="position: absolute; top: 3px; right: 6px; font-size: 7px; color: #999; text-transform: uppercase; background: #fff; padding: 1px 3px; border-radius: 2px;">Ad</div>
+            <div style="color: #555; font-size: 12px; line-height: 1.4;">
+                <div style="font-weight: 600; color: #28a745; margin-bottom: 8px; font-size: 13px;">📊 RIGHT SIDEBAR AD</div>
+                <div style="margin-bottom: 12px;">Market Analytics - Professional data analysis tools</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

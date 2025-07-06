@@ -1,0 +1,9 @@
+{% extends "checker/base.html" %}
+
+{% block extra_footer_js %}
+<script>
+// Override the popup functionality
+console.log('Map view - disabling popup');
+window.initMap = window.initMap || function() { console.log('Map initialization function not properly defined'); };
+</script>
+{% endblock %}

@@ -1,0 +1,9 @@
+fastapi==0.103.1
+uvicorn==0.23.2
+pydantic==2.3.0
+openai==0.28.0
+python-dotenv==1.0.0
+django==5.1.6
+# Database access
+psycopg2-binary>=2.8 # Use version compatible with Django project
+databases[postgresql]==0.8.0

@@ -1,0 +1,2017 @@
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0176s
+INFO Loaded company index from Redis with 1557 companies in 0.0176s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0105s
+INFO Loaded company index from Redis with 1557 companies in 0.0105s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO "GET / HTTP/1.1" 200 137738
+INFO "GET / HTTP/1.1" 200 137738
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+July 03, 2025 - 17:11:32
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0090s
+INFO Loaded company index from Redis with 1557 companies in 0.0090s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+July 03, 2025 - 17:14:43
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0095s
+INFO Loaded company index from Redis with 1557 companies in 0.0095s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 17:18:39
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO ✅ Loaded static location data into memory
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0171s
+INFO Loaded company index from Redis with 1557 companies in 0.0171s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 17:26:35
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0113s
+INFO Loaded company index from Redis with 1557 companies in 0.0113s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 17:27:11
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0103s
+INFO Loaded company index from Redis with 1557 companies in 0.0103s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 17:27:38
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0197s
+INFO Loaded company index from Redis with 1557 companies in 0.0197s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 17:33:07
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0194s
+INFO Loaded company index from Redis with 1557 companies in 0.0194s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 17:33:17
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0135s
+INFO Loaded company index from Redis with 1557 companies in 0.0135s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 17:33:28
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0102s
+INFO Loaded company index from Redis with 1557 companies in 0.0102s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/capacity_checker/settings.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/capacity_checker/settings.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 17:41:01
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0087s
+INFO Loaded company index from Redis with 1557 companies in 0.0087s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+July 03, 2025 - 17:44:33
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0129s
+INFO Loaded company index from Redis with 1557 companies in 0.0129s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+July 03, 2025 - 17:55:27
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0212s
+INFO Loaded company index from Redis with 1557 companies in 0.0212s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+July 03, 2025 - 17:57:35
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0081s
+INFO Loaded company index from Redis with 1557 companies in 0.0081s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/accounts/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+July 03, 2025 - 18:00:41
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0123s
+INFO Loaded company index from Redis with 1557 companies in 0.0123s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/capacity_checker/settings.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/capacity_checker/settings.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+July 03, 2025 - 20:09:07
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0120s
+INFO Loaded company index from Redis with 1557 companies in 0.0120s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 20:09:54
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0262s
+INFO Loaded company index from Redis with 1557 companies in 0.0262s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/middleware/access_control.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 20:32:17
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0099s
+INFO Loaded company index from Redis with 1557 companies in 0.0099s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO "GET / HTTP/1.1" 200 29118
+INFO "GET / HTTP/1.1" 200 29118
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1067
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1067
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1110
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1110
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130055
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130055
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 625
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 625
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233678
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233678
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521593
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521593
+INFO 🚀 Technology view using lazy loading - filters will load on dropdown interaction
+INFO Technology map view for EV Charging loaded in 0.16s
+INFO "GET /technologies/EV%20Charging/ HTTP/1.1" 200 41696
+INFO "GET /technologies/EV%20Charging/ HTTP/1.1" 200 41696
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1045
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1045
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1129
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1129
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130071
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130071
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 685
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 685
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521552
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521552
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233761
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233761
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO "GET /location/46554/ HTTP/1.1" 200 24258
+INFO "GET /location/46554/ HTTP/1.1" 200 24258
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 650
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 650
+INFO 🚀 Company map view using lazy loading - filters will load on dropdown interaction
+INFO 🗺️  EGRESS-OPTIMIZED company map for 'P3P Partners LLP':
+INFO    📊 Total locations: 321
+INFO    📋 Displayed: 10 items (page 1)
+INFO    🔍 Using lazy loading - no metadata sampling
+INFO    💾 Database queries: 0
+INFO    📦 Rows fetched: 10
+INFO    📊 Estimated data: 5,000 bytes (4.9 KB)
+INFO    ⏱️  Load time: 0.144s
+INFO    💡 Estimated egress reduction: 98.7% (385,200 → 5,000 bytes)
+INFO "GET /companies/P3P%20Partners%20LLP/ HTTP/1.1" 200 39294
+INFO "GET /companies/P3P%20Partners%20LLP/ HTTP/1.1" 200 39294
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 658
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 658
+INFO "GET / HTTP/1.1" 200 29110
+INFO "GET / HTTP/1.1" 200 29110
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 616
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 616
+INFO 🚀 Using cached filter approach for map explorer
+INFO 🚀 Using cached filter approach for map explorer
+INFO Cache MISS: Fetching complete filter options from database
+INFO Cache MISS: Fetching complete filter options from database
+INFO Cached complete filter options: 56 techs, 1557 companies, 21 years
+INFO Cached complete filter options: 56 techs, 1557 companies, 21 years
+INFO ✅ Cached filters: 56 techs, 1557 companies, 13 years in 0.293s
+INFO ✅ Cached filters: 56 techs, 1557 companies, 13 years in 0.293s
+INFO 🗺️  Map Explorer loaded in 0.951s
+INFO 🗺️  Map Explorer loaded in 0.951s
+INFO    📊 Stats: 15949 locations, 49545 components
+INFO    📊 Stats: 15949 locations, 49545 components
+INFO    🔧 Filters: status=all, tech=, company=
+INFO    🔧 Filters: status=all, tech=, company=
+INFO    🏢 Top companies: 105 companies loaded
+INFO    🏢 Top companies: 105 companies loaded
+INFO "GET /map-explorer/ HTTP/1.1" 200 47702
+INFO "GET /map-explorer/ HTTP/1.1" 200 47702
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 692
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 692
+INFO 🔄 Converting relevance to location sort (no query)
+INFO 🚀 Loading all filters directly for 'all locations' page
+INFO ✅ Loaded 56 technologies, 1557 companies, 21 years for all locations
+INFO 🚀 Using lazy loading - filters will load on dropdown interaction
+INFO 🗺️  LAZY search map view for '':
+INFO    📊 Total locations: 15949
+INFO    📋 Displayed: 25 items (page 1)
+INFO    🚀 Filter source: Lazy loading (AJAX on demand)
+INFO    📊 Filter counts: 0 (loaded on dropdown interaction)
+INFO    💾 Database queries: 0
+INFO    📦 Rows fetched: 25
+INFO    📊 Estimated data: 30,000 bytes (29.3 KB)
+INFO    ⏱️  Load time: 0.209s
+INFO    ⚡ Count query time: 0.018s (FAST SQL)
+INFO    🔧 Filters: status=all, auction=, tech=
+INFO    ✅ Count query optimized - was taking 3-5s with Django ORM, now 0.018s with raw SQL
+INFO    ⚡ Lazy loading saves: 25,000 bytes (24.4 KB) by deferring filter calculation
+INFO 🌐 Added browser cache headers: max-age=300, ETag="df5728c58db4bc15-1-no-query"
+INFO "GET /search-map/ HTTP/1.1" 200 95899
+INFO "GET /search-map/ HTTP/1.1" 200 95899
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1093
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1093
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1051
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1051
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130052
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130052
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 688
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 688
+INFO 🚀 REDIRECT: Technology filter 'Biomass' -> /technologies/Biomass/?sort_by=location&sort_order=asc
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&status=all&technology=Biomass HTTP/1.1" 302 0
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&status=all&technology=Biomass HTTP/1.1" 302 0
+INFO 🚀 Technology view using lazy loading - filters will load on dropdown interaction
+INFO Technology map view for Biomass loaded in 0.14s
+INFO "GET /technologies/Biomass/?sort_by=location&sort_order=asc HTTP/1.1" 200 46030
+INFO "GET /technologies/Biomass/?sort_by=location&sort_order=asc HTTP/1.1" 200 46030
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 659
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 659
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521532
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521532
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233729
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233729
+INFO 🔄 Technology filter API for 'Biomass': 12 techs, 57 companies, 15 years in 0.198s
+INFO 🔄 Technology filter API for 'Biomass': 12 techs, 57 companies, 15 years in 0.198s
+INFO "GET /api/search-filters/?technology=Biomass HTTP/1.1" 200 1147
+INFO "GET /api/search-filters/?technology=Biomass HTTP/1.1" 200 1147
+INFO 🔧 Applied company filter: Bilsthorpe Bio Power Limited
+INFO 🚀 Technology view using lazy loading - filters will load on dropdown interaction
+INFO Technology map view for Biomass loaded in 0.06s
+INFO "GET /technologies/Biomass/?sort_by=location&sort_order=asc&company=Bilsthorpe+Bio+Power+Limited HTTP/1.1" 200 37132
+INFO "GET /technologies/Biomass/?sort_by=location&sort_order=asc&company=Bilsthorpe+Bio+Power+Limited HTTP/1.1" 200 37132
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 618
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 618
+INFO "GET / HTTP/1.1" 200 29124
+INFO "GET / HTTP/1.1" 200 29124
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 635
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 635
+INFO 🚀 Using cached filter approach for map explorer
+INFO 🚀 Using cached filter approach for map explorer
+INFO ✅ Cached filters: 56 techs, 1557 companies, 13 years in 0.140s
+INFO ✅ Cached filters: 56 techs, 1557 companies, 13 years in 0.140s
+INFO 🗺️  Map Explorer loaded in 0.216s
+INFO 🗺️  Map Explorer loaded in 0.216s
+INFO    📊 Stats: 15949 locations, 49545 components
+INFO    📊 Stats: 15949 locations, 49545 components
+INFO    🔧 Filters: status=all, tech=, company=
+INFO    🔧 Filters: status=all, tech=, company=
+INFO    🏢 Top companies: 105 companies loaded
+INFO    🏢 Top companies: 105 companies loaded
+INFO "GET /map-explorer/ HTTP/1.1" 200 47639
+INFO "GET /map-explorer/ HTTP/1.1" 200 47639
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 626
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 626
+INFO 🚀 Loading all filters directly for 'all locations' page
+INFO ✅ Loaded 56 technologies, 1557 companies, 21 years for all locations
+INFO 🚀 Using lazy loading - filters will load on dropdown interaction
+INFO 🗺️  LAZY search map view for '':
+INFO    📊 Total locations: 15949
+INFO    📋 Displayed: 25 items (page 1)
+INFO    🚀 Filter source: Lazy loading (AJAX on demand)
+INFO    📊 Filter counts: 0 (loaded on dropdown interaction)
+INFO    💾 Database queries: 0
+INFO    📦 Rows fetched: 25
+INFO    📊 Estimated data: 30,000 bytes (29.3 KB)
+INFO    ⏱️  Load time: 0.231s
+INFO    ⚡ Count query time: 0.015s (FAST SQL)
+INFO    🔧 Filters: status=all, auction=, tech=
+INFO    ✅ Count query optimized - was taking 3-5s with Django ORM, now 0.015s with raw SQL
+INFO    ⚡ Lazy loading saves: 25,000 bytes (24.4 KB) by deferring filter calculation
+INFO 🌐 Added browser cache headers: max-age=300, ETag="df5728c58db4bc15-1-no-query"
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&per_page=25 HTTP/1.1" 200 96006
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&per_page=25 HTTP/1.1" 200 96006
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 688
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 688
+INFO "GET / HTTP/1.1" 200 29729
+INFO "GET / HTTP/1.1" 200 29729
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1014
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1014
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1068
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1068
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130136
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130136
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521577
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521577
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 672
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 672
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233768
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233768
+INFO "GET /donate/ HTTP/1.1" 200 20117
+INFO "GET /donate/ HTTP/1.1" 200 20117
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 664
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 664
+INFO "GET /donate/ HTTP/1.1" 200 20259
+INFO "GET /donate/ HTTP/1.1" 200 20259
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1062
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1091
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1091
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1062
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 662
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 662
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233727
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233727
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521554
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521554
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130146
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130146
+INFO "GET /donate/ HTTP/1.1" 200 20349
+INFO "GET /donate/ HTTP/1.1" 200 20349
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 682
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 682
+INFO "GET / HTTP/1.1" 200 29906
+INFO "GET / HTTP/1.1" 200 29906
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 685
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 685
+INFO "GET /donate/ HTTP/1.1" 200 20330
+INFO "GET /donate/ HTTP/1.1" 200 20330
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 679
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 679
+INFO "GET /donate/ HTTP/1.1" 200 20291
+INFO "GET /donate/ HTTP/1.1" 200 20291
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 678
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 678
+INFO "GET / HTTP/1.1" 200 29906
+INFO "GET / HTTP/1.1" 200 29906
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1071
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1071
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1129
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1129
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130101
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130101
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521553
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521553
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 712
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 712
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233747
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233747
+INFO 🚀 Technology view using lazy loading - filters will load on dropdown interaction
+INFO Technology map view for Gas loaded in 0.19s
+INFO "GET /technologies/Gas/ HTTP/1.1" 200 46175
+INFO "GET /technologies/Gas/ HTTP/1.1" 200 46175
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 652
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 652
+INFO "GET /search-map/ HTTP/1.1" 200 95930
+INFO "GET /search-map/ HTTP/1.1" 200 95930
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 689
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 689
+INFO 🚀 REDIRECT: Company filter '24 POWER LTD' -> /companies/24%20POWER%20LTD/?sort_by=location&sort_order=asc
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&status=all&company=24%20POWER%20LTD HTTP/1.1" 302 0
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&status=all&company=24%20POWER%20LTD HTTP/1.1" 302 0
+INFO 🚀 Company map view using lazy loading - filters will load on dropdown interaction
+INFO 🗺️  EGRESS-OPTIMIZED company map for '24 POWER LTD':
+INFO    📊 Total locations: 1
+INFO    📋 Displayed: 1 items (page 1)
+INFO    🔍 Using lazy loading - no metadata sampling
+INFO    💾 Database queries: 0
+INFO    📦 Rows fetched: 1
+INFO    📊 Estimated data: 500 bytes (0.5 KB)
+INFO    ⏱️  Load time: 0.112s
+INFO    💡 Estimated egress reduction: 58.3% (1,200 → 500 bytes)
+INFO "GET /companies/24%20POWER%20LTD/?sort_by=location&sort_order=asc HTTP/1.1" 200 37736
+INFO "GET /companies/24%20POWER%20LTD/?sort_by=location&sort_order=asc HTTP/1.1" 200 37736
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 657
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 657
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&per_page=25 HTTP/1.1" 200 95977
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&per_page=25 HTTP/1.1" 200 95977
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 669
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 669
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&per_page=25 HTTP/1.1" 200 95992
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&per_page=25 HTTP/1.1" 200 95992
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 693
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 693
+INFO "GET / HTTP/1.1" 200 29979
+INFO "GET / HTTP/1.1" 200 29979
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 694
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 694
+INFO 🔄 Converting relevance to location sort (no query)
+INFO 🚀 Loading all filters directly for 'all locations' page
+INFO ✅ Loaded 56 technologies, 1557 companies, 21 years for all locations
+INFO 🚀 Using lazy loading - filters will load on dropdown interaction
+INFO 🗺️  LAZY search map view for '':
+INFO    📊 Total locations: 15949
+INFO    📋 Displayed: 25 items (page 1)
+INFO    🚀 Filter source: Lazy loading (AJAX on demand)
+INFO    📊 Filter counts: 0 (loaded on dropdown interaction)
+INFO    💾 Database queries: 0
+INFO    📦 Rows fetched: 25
+INFO    📊 Estimated data: 30,000 bytes (29.3 KB)
+INFO    ⏱️  Load time: 0.284s
+INFO    ⚡ Count query time: 0.047s (FAST SQL)
+INFO    🔧 Filters: status=all, auction=, tech=
+INFO    ✅ Count query optimized - was taking 3-5s with Django ORM, now 0.047s with raw SQL
+INFO    ⚡ Lazy loading saves: 25,000 bytes (24.4 KB) by deferring filter calculation
+INFO 🔄 Converting relevance to location sort (no query)
+INFO 🚀 Loading all filters directly for 'all locations' page
+INFO ✅ Loaded 56 technologies, 1557 companies, 21 years for all locations
+INFO 🚀 Using lazy loading - filters will load on dropdown interaction
+INFO 🗺️  LAZY search map view for '':
+INFO    📊 Total locations: 15949
+INFO    📋 Displayed: 25 items (page 1)
+INFO    🚀 Filter source: Lazy loading (AJAX on demand)
+INFO    📊 Filter counts: 0 (loaded on dropdown interaction)
+INFO    💾 Database queries: 0
+INFO    📦 Rows fetched: 25
+INFO    📊 Estimated data: 30,000 bytes (29.3 KB)
+INFO    ⏱️  Load time: 0.197s
+INFO    ⚡ Count query time: 0.018s (FAST SQL)
+INFO    🔧 Filters: status=all, auction=, tech=
+INFO    ✅ Count query optimized - was taking 3-5s with Django ORM, now 0.018s with raw SQL
+INFO    ⚡ Lazy loading saves: 25,000 bytes (24.4 KB) by deferring filter calculation
+INFO 🌐 Added browser cache headers: max-age=300, ETag="df5728c58db4bc15-1-no-query"
+INFO "GET /search-map/ HTTP/1.1" 200 96716
+INFO "GET /search-map/ HTTP/1.1" 200 96716
+INFO - Broken pipe from ('127.0.0.1', 58120)
+INFO - Broken pipe from ('127.0.0.1', 58120)
+INFO 🌐 Added browser cache headers: max-age=300, ETag="df5728c58db4bc15-1-no-query"
+INFO "GET /search-map/ HTTP/1.1" 200 96723
+INFO "GET /search-map/ HTTP/1.1" 200 96723
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 654
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 654
+INFO "GET /search-map/ HTTP/1.1" 200 96701
+INFO "GET /search-map/ HTTP/1.1" 200 96701
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1057
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1057
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1066
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1066
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130115
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130115
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 701
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 701
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130070
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130070
+INFO "GET / HTTP/1.1" 200 29953
+INFO "GET / HTTP/1.1" 200 29953
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 615
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 615
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521538
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521538
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233746
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233746
+WARNING Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 652
+WARNING "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 652
+INFO "GET / HTTP/1.1" 200 29949
+INFO "GET / HTTP/1.1" 200 29949
+WARNING Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 672
+WARNING "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 672
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 696
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 696
+INFO 🚀 Technology view using lazy loading - filters will load on dropdown interaction
+INFO Technology map view for Combined Heat and Power (CHP) loaded in 0.14s
+INFO "GET /technologies/Combined%20Heat%20and%20Power%20(CHP)/ HTTP/1.1" 200 46463
+INFO "GET /technologies/Combined%20Heat%20and%20Power%20(CHP)/ HTTP/1.1" 200 46463
+WARNING Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 692
+WARNING "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 692
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 665
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 665
+INFO "GET /search-map/ HTTP/1.1" 200 96762
+INFO "GET /search-map/ HTTP/1.1" 200 96762
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1087
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1087
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1138
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1138
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130114
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130114
+WARNING Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 623
+WARNING "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 623
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 623
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 623
+INFO "GET / HTTP/1.1" 200 30337
+INFO "GET / HTTP/1.1" 200 30337
+WARNING Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 614
+WARNING "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 614
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 638
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 638
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521521
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521521
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233712
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233712
+INFO 🚀 Technology view using lazy loading - filters will load on dropdown interaction
+INFO Technology map view for Solar loaded in 0.17s
+INFO "GET /technologies/Solar/ HTTP/1.1" 200 46807
+INFO "GET /technologies/Solar/ HTTP/1.1" 200 46807
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1032
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1032
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1083
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1083
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130104
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130104
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521523
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521523
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233733
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233733
+INFO "GET /search-map/ HTTP/1.1" 200 96740
+INFO "GET /search-map/ HTTP/1.1" 200 96740
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 621
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 621
+INFO "GET /location/42566/ HTTP/1.1" 200 27042
+INFO "GET /location/42566/ HTTP/1.1" 200 27042
+INFO Looking up component with database ID (pk): 24923
+INFO Looking up component with database ID (pk): 24923
+INFO Using additional_data (dict) for component 24923
+INFO Using additional_data (dict) for component 24923
+INFO Raw CMU data found in CMURegistry for GB2337
+INFO Raw CMU data found in CMURegistry for GB2337
+INFO Rendering component detail page for Component PK: 24923, CMU ID: GB2337
+INFO Rendering component detail page for Component PK: 24923, CMU ID: GB2337
+INFO "GET /locations/42566/components/24923/ HTTP/1.1" 200 29149
+INFO "GET /locations/42566/components/24923/ HTTP/1.1" 200 29149
+INFO 🚀 Company map view using lazy loading - filters will load on dropdown interaction
+INFO 🗺️  EGRESS-OPTIMIZED company map for 'GRIDBEYOND LIMITED':
+INFO    📊 Total locations: 323
+INFO    📋 Displayed: 10 items (page 1)
+INFO    🔍 Using lazy loading - no metadata sampling
+INFO    💾 Database queries: 0
+INFO    📦 Rows fetched: 10
+INFO    📊 Estimated data: 5,000 bytes (4.9 KB)
+INFO    ⏱️  Load time: 0.126s
+INFO    💡 Estimated egress reduction: 98.7% (387,600 → 5,000 bytes)
+INFO "GET /companies/GRIDBEYOND%2520LIMITED/ HTTP/1.1" 200 41967
+INFO "GET /companies/GRIDBEYOND%2520LIMITED/ HTTP/1.1" 200 41967
+INFO 🔄 Company filter API for 'GRIDBEYOND LIMITED': 5 techs, 13 companies, 9 years in 0.382s
+INFO 🔄 Company filter API for 'GRIDBEYOND LIMITED': 5 techs, 13 companies, 9 years in 0.382s
+INFO "GET /api/search-filters/?company=GRIDBEYOND%20LIMITED HTTP/1.1" 200 528
+INFO "GET /api/search-filters/?company=GRIDBEYOND%20LIMITED HTTP/1.1" 200 528
+INFO "GET /search-map/ HTTP/1.1" 200 96710
+INFO "GET /search-map/ HTTP/1.1" 200 96710
+WARNING Not Found: /static/js/coffee-popup.js
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 640
+WARNING "GET /static/js/coffee-popup.js HTTP/1.1" 404 640
+INFO 🚀 REDIRECT: Technology filter 'Biomass' -> /technologies/Biomass/?sort_by=location&sort_order=asc
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&status=all&technology=Biomass HTTP/1.1" 302 0
+INFO "GET /search-map/?q=&sort_by=location&sort_order=asc&status=all&technology=Biomass HTTP/1.1" 302 0
+INFO 🚀 Technology view using lazy loading - filters will load on dropdown interaction
+INFO Technology map view for Biomass loaded in 0.17s
+INFO "GET /technologies/Biomass/?sort_by=location&sort_order=asc HTTP/1.1" 200 48289
+INFO "GET /technologies/Biomass/?sort_by=location&sort_order=asc HTTP/1.1" 200 48289
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1061
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1061
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1116
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1116
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130132
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130132
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521525
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521525
+INFO "GET / HTTP/1.1" 200 31485
+INFO "GET / HTTP/1.1" 200 31485
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233769
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233769
+INFO "GET /admin/ HTTP/1.1" 200 2241
+INFO "GET /admin/ HTTP/1.1" 200 2241
+INFO "GET /static/admin/css/base.css HTTP/1.1" 200 4979
+INFO "GET /static/admin/css/base.css HTTP/1.1" 200 4979
+INFO "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 883
+INFO "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 883
+INFO "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 900
+INFO "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 900
+INFO "GET /static/admin/css/dashboard.css HTTP/1.1" 200 361
+INFO "GET /static/admin/css/dashboard.css HTTP/1.1" 200 361
+INFO "GET /static/admin/js/theme.js HTTP/1.1" 200 628
+INFO "GET /static/admin/js/theme.js HTTP/1.1" 200 628
+INFO "GET /static/admin/css/responsive.css HTTP/1.1" 200 3528
+INFO "GET /static/admin/css/responsive.css HTTP/1.1" 200 3528
+INFO "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 912
+INFO "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 912
+INFO "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 357
+INFO "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 225
+INFO "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 225
+INFO "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 357
+INFO "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 200 321
+INFO "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 200 321
+WARNING Not Found: /favicon.ico
+WARNING "GET /favicon.ico HTTP/1.1" 404 662
+WARNING "GET /favicon.ico HTTP/1.1" 404 662
+INFO Company search found 0 matches in 0.083s
+INFO === SEARCH MAP VIEW: Processing query 'asda' ===
+INFO Cached 500 location IDs for search 'asda'
+INFO 🚀 Using lazy loading - filters will load on dropdown interaction
+INFO 🗺️  LAZY search map view for 'asda':
+INFO    📊 Total locations: 734
+INFO    📋 Displayed: 25 items (page 1)
+INFO    🚀 Filter source: Lazy loading (AJAX on demand)
+INFO    📊 Filter counts: 0 (loaded on dropdown interaction)
+INFO    💾 Database queries: 0
+INFO    📦 Rows fetched: 25
+INFO    📊 Estimated data: 30,000 bytes (29.3 KB)
+INFO    ⏱️  Load time: 0.634s
+INFO    ⚡ Count query time: 0.181s (FAST SQL)
+INFO    🔧 Filters: status=all, auction=, tech=
+INFO    ✅ Count query optimized - was taking 3-5s with Django ORM, now 0.181s with raw SQL
+INFO    ⚡ Lazy loading saves: 25,000 bytes (24.4 KB) by deferring filter calculation
+INFO "GET /search-map/?q=asda&per_page=25&sort_by=relevance&sort_order=desc HTTP/1.1" 200 50857
+INFO "GET /search-map/?q=asda&per_page=25&sort_by=relevance&sort_order=desc HTTP/1.1" 200 50857
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1047
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1047
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1113
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1113
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130068
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130068
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO "GET /location/42671/ HTTP/1.1" 200 27722
+INFO "GET /location/42671/ HTTP/1.1" 200 27722
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521562
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521562
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233725
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233725
+INFO Looking up component with database ID (pk): 46031
+INFO Looking up component with database ID (pk): 46031
+INFO Using additional_data (dict) for component 46031
+INFO Using additional_data (dict) for component 46031
+INFO Raw CMU data found in CMURegistry for F24091
+INFO Raw CMU data found in CMURegistry for F24091
+INFO Rendering component detail page for Component PK: 46031, CMU ID: F24091
+INFO Rendering component detail page for Component PK: 46031, CMU ID: F24091
+INFO "GET /locations/42671/components/46031/ HTTP/1.1" 200 29090
+INFO "GET /locations/42671/components/46031/ HTTP/1.1" 200 29090
+INFO "GET / HTTP/1.1" 200 31438
+INFO "GET / HTTP/1.1" 200 31438
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1058
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1058
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1089
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1089
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130080
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130080
+INFO "GET /trades/ HTTP/1.1" 200 20997
+INFO "GET /trades/ HTTP/1.1" 200 20997
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233769
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233769
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521573
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521573
+INFO "GET /guides/capacity-market-faq/ HTTP/1.1" 200 28254
+INFO "GET /guides/capacity-market-faq/ HTTP/1.1" 200 28254
+INFO "GET / HTTP/1.1" 200 31520
+INFO "GET / HTTP/1.1" 200 31520
+INFO Trial check for user admin: 0.0 hours remaining (elapsed: 252.91349078583335)
+INFO Trial check for user admin: 0.0 hours remaining (elapsed: 252.91349094055553)
+INFO Trial check for user admin: 0.0 hours remaining (elapsed: 252.91349403638887)
+INFO Trial check for user admin: 0.0 hours remaining (elapsed: 252.91349418833335)
+INFO "GET /accounts/account/ HTTP/1.1" 200 17830
+INFO "GET /accounts/account/ HTTP/1.1" 200 17830
+INFO Looking up component with database ID (pk): 46031
+INFO Looking up component with database ID (pk): 46031
+INFO Using additional_data (dict) for component 46031
+INFO Using additional_data (dict) for component 46031
+INFO Raw CMU data found in CMURegistry for F24091
+INFO Raw CMU data found in CMURegistry for F24091
+INFO Rendering component detail page for Component PK: 46031, CMU ID: F24091
+INFO Rendering component detail page for Component PK: 46031, CMU ID: F24091
+INFO "GET /locations/42671/components/46031/ HTTP/1.1" 200 29359
+INFO "GET /locations/42671/components/46031/ HTTP/1.1" 200 29359
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1094
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1094
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1069
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1069
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130063
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130063
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233693
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233693
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521505
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521505
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/views_search_map_simple.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/views_search_map_simple.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 20:32:30
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+[MEMORY] Before: RSS=41.0MB, VMS=401664.5MB
+[MONITOR] API Call Started: GET /technologies/EV Charging/
+[MEMORY] After: RSS=55.3MB, Delta: +14.3MB
+[MONITOR] API Call Completed: /technologies/EV Charging/
+[EGRESS] Response Size: 41,696 bytes (0.04MB)
+[PERFORMANCE] Duration: 242.50ms
+[MEMORY] Before: RSS=62.5MB, VMS=401667.5MB
+[MONITOR] API Call Started: GET /companies/P3P Partners LLP/
+[MEMORY] After: RSS=65.3MB, Delta: +2.8MB
+[MONITOR] API Call Completed: /companies/P3P Partners LLP/
+[EGRESS] Response Size: 39,294 bytes (0.04MB)
+[PERFORMANCE] Duration: 196.84ms
+[MEMORY] Before: RSS=100.8MB, VMS=401667.5MB
+[MONITOR] API Call Started: GET /technologies/Biomass/
+[MEMORY] After: RSS=104.6MB, Delta: +3.8MB
+[MONITOR] API Call Completed: /technologies/Biomass/
+[EGRESS] Response Size: 46,030 bytes (0.04MB)
+[PERFORMANCE] Duration: 199.27ms
+[MEMORY] Before: RSS=52.1MB, VMS=401667.5MB
+[MONITOR] API Call Started: GET /technologies/Biomass/
+[MEMORY] After: RSS=57.9MB, Delta: +5.8MB
+[MONITOR] API Call Completed: /technologies/Biomass/
+[EGRESS] Response Size: 37,132 bytes (0.04MB)
+[PERFORMANCE] Duration: 82.63ms
+[MEMORY] Before: RSS=55.2MB, VMS=401667.5MB
+[MONITOR] API Call Started: GET /technologies/Gas/
+[MEMORY] After: RSS=62.8MB, Delta: +7.6MB
+[MONITOR] API Call Completed: /technologies/Gas/
+[EGRESS] Response Size: 46,175 bytes (0.04MB)
+[PERFORMANCE] Duration: 274.35ms
+[MEMORY] Before: RSS=62.7MB, VMS=401667.5MB
+[MONITOR] API Call Started: GET /companies/24 POWER LTD/
+[MEMORY] After: RSS=65.2MB, Delta: +2.5MB
+[MONITOR] API Call Completed: /companies/24 POWER LTD/
+[EGRESS] Response Size: 37,736 bytes (0.04MB)
+[PERFORMANCE] Duration: 152.55ms
+[MEMORY] Before: RSS=44.2MB, VMS=401667.5MB
+[MONITOR] API Call Started: GET /technologies/Combined Heat and Power (CHP)/
+[MEMORY] After: RSS=58.6MB, Delta: +14.5MB
+[MONITOR] API Call Completed: /technologies/Combined Heat and Power (CHP)/
+[EGRESS] Response Size: 46,463 bytes (0.04MB)
+[PERFORMANCE] Duration: 202.79ms
+[MEMORY] Before: RSS=43.9MB, VMS=401667.5MB
+[MONITOR] API Call Started: GET /technologies/Solar/
+[MEMORY] After: RSS=101.7MB, Delta: +57.8MB
+[MONITOR] API Call Completed: /technologies/Solar/
+[EGRESS] Response Size: 46,807 bytes (0.04MB)
+[PERFORMANCE] Duration: 289.42ms
+[MEMORY] Before: RSS=42.4MB, VMS=401667.5MB
+[MONITOR] API Call Started: GET /companies/GRIDBEYOND%20LIMITED/
+[MEMORY] After: RSS=54.8MB, Delta: +12.4MB
+[MONITOR] API Call Completed: /companies/GRIDBEYOND%20LIMITED/
+[EGRESS] Response Size: 41,967 bytes (0.04MB)
+[PERFORMANCE] Duration: 173.26ms
+[MEMORY] Before: RSS=51.7MB, VMS=401667.5MB
+[MONITOR] API Call Started: GET /technologies/Biomass/
+[MEMORY] After: RSS=60.0MB, Delta: +8.3MB
+[MONITOR] API Call Completed: /technologies/Biomass/
+[EGRESS] Response Size: 48,289 bytes (0.05MB)
+[PERFORMANCE] Duration: 224.19ms
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0148s
+INFO Loaded company index from Redis with 1557 companies in 0.0148s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/views_search_filters_api.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/views_search_filters_api.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 21:19:53
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0403s
+INFO Loaded company index from Redis with 1557 companies in 0.0403s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/views_search_filters_api.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/views_search_filters_api.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 21:20:04
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.1012s
+INFO Loaded company index from Redis with 1557 companies in 0.1012s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/views_search_filters_api.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/views_search_filters_api.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 21:20:10
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0144s
+INFO Loaded company index from Redis with 1557 companies in 0.0144s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+INFO Trial check for user admin: 0.0 hours remaining (elapsed: 253.05865540305558)
+INFO Trial check for user admin: 0.0 hours remaining (elapsed: 253.05865568083334)
+INFO Trial check for user admin: 0.0 hours remaining (elapsed: 253.05866800166666)
+INFO Trial check for user admin: 0.0 hours remaining (elapsed: 253.05866807472222)
+INFO "GET /accounts/account/ HTTP/1.1" 200 17859
+INFO "GET /accounts/account/ HTTP/1.1" 200 17859
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1093
+INFO "GET /static/css/ios-viewport-fix.css HTTP/1.1" 200 1093
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1098
+INFO "GET /static/js/theme-switcher.js HTTP/1.1" 200 1098
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521600
+INFO "GET /static/images/backgrounds/industrial_background.jpeg HTTP/1.1" 200 1521600
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233700
+INFO "GET /static/images/backgrounds/industrial_background_dark.jpeg HTTP/1.1" 200 1233700
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130086
+INFO "GET /static/images/favicon.png HTTP/1.1" 200 130086
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/views_search_filters_api.py changed, reloading.
+INFO /Users/davidcrawford/PycharmProjects/cmr/checker/views_search_filters_api.py changed, reloading.
+Performing system checks...
+
+🔥 ACCESS CONTROL MIDDLEWARE IMPORTED - THIS SHOULD APPEAR IN LOGS
+System check identified no issues (0 silenced).
+🚨 MIDDLEWARE __INIT__ CALLED - MIDDLEWARE IS BEING LOADED!
+July 03, 2025 - 21:21:02
+Django version 5.1.6, using settings 'capacity_checker.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+INFO Performing startup cache validation...
+INFO Performing startup cache validation...
+INFO Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+INFO ✅ Redis connection successful
+INFO ✅ Redis connection successful
+INFO Using FAST postcode helpers with static JSON files
+INFO Using FAST postcode helpers with static JSON files
+DEBUG: Loading main urls.py
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in component_search
+INFO Using FAST postcode helpers in location_search
+INFO Using FAST postcode helpers in location_search
+INFO Location group search functions imported successfully
+INFO Location group search functions imported successfully
+INFO Using FAST postcode helpers
+INFO Using FAST postcode helpers
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO Unable to bulk clear search cache - will be refreshed gradually
+INFO ✅ Loaded static location data into memory
+INFO ✅ Loaded static location data into memory
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ STATIC LOCATION MAPPING LOADED: Found pre-built mapping with 15852 locations
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Location lookups will use static files and be INSTANT (<10ms)
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ Sample mapping - Location: 'Sandpit Road  DA1 5BP' → Postcodes: ['DA1', 'DA1', 'DA1', 'DA1', 'DA1', 'DA1']
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ REDIS LOCATION MAPPING LOADED: Found pre-built mapping
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO ✅ Location lookups will use Redis cache and NOT timeout or rebuild each time
+INFO Loaded CMU dataframe from Redis cache (16164 records)
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU DATAFRAME LOADED: Found cached dataframe with 16164 records
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO ✅ CMU searches will use Redis cache and be much faster (saving ~1.4s per search)
+INFO Loaded company index from Redis with 1557 companies in 0.0104s
+INFO Loaded company index from Redis with 1557 companies in 0.0104s
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ COMPANY INDEX LOADED: Found prebuilt index with 1557 companies
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ✅ Company searches will use Redis index and be much faster (saving ~2.9s per search)
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+INFO ⚠️ Cache MISS: No cached map data found for key: map_data_v2.1:ee5555cff4ec5228b0061260f9e17c3d
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'
+WARNING ❓ Map cache not found in Redis - run 'python manage.py build_map_cache'

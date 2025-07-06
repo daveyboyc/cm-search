@@ -1,0 +1,166 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Test Access Code Generated{% endblock %}
+
+{% block extra_head %}
+<style>
+    .success-container {
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    .success-card {
+        border: 1px solid #28a745;
+        border-radius: 8px;
+        padding: 40px;
+        margin-bottom: 20px;
+        background-color: #f8fff8;
+        color: #212529;
+    }
+    .access-code {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #28a745;
+        background-color: #e9f7e9;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px dashed #28a745;
+        margin: 20px 0;
+        letter-spacing: 2px;
+        font-family: 'Courier New', monospace;
+    }
+    .test-badge {
+        background-color: #28a745;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+    
+    /* Dark mode styles */
+    html[data-bs-theme="dark"] .success-card {
+        background-color: #0a2e0a;
+        border-color: #28a745;
+        color: #ffffff !important;
+    }
+    
+    html[data-bs-theme="dark"] .success-card h1,
+    html[data-bs-theme="dark"] .success-card h3,
+    html[data-bs-theme="dark"] .success-card p {
+        color: #ffffff !important;
+    }
+    
+    html[data-bs-theme="dark"] .access-code {
+        background-color: #1a4a1a;
+        color: #4ade80;
+        border-color: #4ade80;
+    }
+    
+    .next-steps {
+        background-color: #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        text-align: left;
+    }
+    
+    html[data-bs-theme="dark"] .next-steps {
+        background-color: #2a2a2a;
+        color: #ffffff;
+    }
+    
+    .step-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .step-list li {
+        padding: 8px 0;
+        display: flex;
+        align-items: center;
+    }
+    .step-list li:before {
+        content: "✅";
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-card">
+        <span class="test-badge">TEST ACCESS GRANTED</span>
+        
+        <h1><i class="bi bi-check-circle-fill me-2"></i>Payment Successful!</h1>
+        
+        <p class="lead">Thank you for your contribution of <strong>£{{ amount_paid }}</strong></p>
+        
+        <h3>Your Test Access Code:</h3>
+        
+        <div class="access-code">
+            {{ access_code }}
+        </div>
+        
+        <div class="next-steps">
+            <h4>What happens now:</h4>
+            <ul class="step-list">
+                <li>Your test access is automatically active for 24 hours</li>
+                <li>You can now browse all features without restrictions</li>
+                <li>Access expires at: {{ expiry_time|date:"M j, Y g:i A" }}</li>
+                <li>No registration required for this test</li>
+                <li>Your session will remember your access status</li>
+            </ul>
+        </div>
+        
+        <div class="mt-4">
+            <a href="{% url 'homepage' %}" class="btn btn-success btn-lg me-3">
+                <i class="bi bi-house-fill me-2"></i>Start Exploring
+            </a>
+            <a href="{% url 'test_access_status' %}" class="btn btn-outline-success">
+                <i class="bi bi-info-circle me-2"></i>Check Access Status
+            </a>
+        </div>
+        
+        <div class="mt-4">
+            <small class="text-muted">
+                This is a test environment. Your access code: <code>{{ access_code }}</code>
+            </small>
+        </div>
+    </div>
+    
+    <div class="text-center mt-4">
+        <p><small>Test payment processed securely by <a href="https://stripe.com" target="_blank">Stripe</a></small></p>
+        <p><small>Questions? <a href="mailto:hello@capacitymarket.co.uk">Contact us</a></small></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-select access code for easy copying
+        const accessCodeDiv = document.querySelector('.access-code');
+        if (accessCodeDiv) {
+            accessCodeDiv.addEventListener('click', function() {
+                // Create a temporary input to select text
+                const textArea = document.createElement('textarea');
+                textArea.value = this.textContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // Show feedback
+                const originalText = this.textContent;
+                this.textContent = 'COPIED!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        }
+    });
+</script>
+{% endblock %} 

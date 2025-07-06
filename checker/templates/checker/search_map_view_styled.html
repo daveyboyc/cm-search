@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ query }} - Search Results</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Header with background image */
+        .page-header {
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300"><rect fill="%235a8a9c" width="1200" height="300"/><path fill="%234a7a8c" d="M0 150L50 140L100 155L150 145L200 160L250 150L300 165L350 155L400 170L450 160L500 175L550 165L600 180L650 170L700 185L750 175L800 190L850 180L900 195L950 185L1000 200L1050 190L1100 205L1150 195L1200 210L1200 300L0 300Z"/></svg>') center/cover;
+            color: white;
+            padding: 20px 40px;
+            position: relative;
+        }
+        
+        /* Navigation bar */
+        .nav-bar {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .nav-bar a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 16px;
+            transition: opacity 0.2s;
+        }
+        
+        .nav-bar a:hover {
+            opacity: 0.8;
+        }
+        
+        .nav-bar .theme-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Logo and search */
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+        
+        .search-container {
+            display: flex;
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .search-input {
+            flex: 1;
+            border: none;
+            padding: 16px 20px;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .search-button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .search-button:hover {
+            background: #357ae8;
+        }
+        
+        /* Results section */
+        .results-header {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .results-title {
+            font-size: 24px;
+            font-weight: normal;
+            margin: 0 0 5px 0;
+            color: #202124;
+        }
+        
+        .results-count {
+            color: #70757a;
+            font-size: 14px;
+        }
+        
+        .filter-buttons {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            background: white;
+            border: 1px solid #dadce0;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            background: #f8f9fa;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .filter-btn.active {
+            background: #e8f0fe;
+            color: #1967d2;
+            border-color: #1967d2;
+        }
+        
+        /* Main container */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 280px);
+        }
+        
+        .results-panel {
+            width: 600px;
+            background: white;
+            overflow-y: auto;
+            padding: 0;
+        }
+        
+        .map-panel {
+            flex: 1;
+            position: relative;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Result items */
+        .result-item {
+            padding: 20px 40px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .result-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .location-marker {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            color: #1a73e8;
+            text-decoration: none;
+            margin-bottom: 8px;
+        }
+        
+        .location-marker:hover {
+            text-decoration: underline;
+        }
+        
+        .location-icon {
+            color: #ea4335;
+            font-size: 24px;
+        }
+        
+        .result-description {
+            color: #5f6368;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        
+        .result-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-company {
+            background: #e6f4ea;
+            color: #1e8e3e;
+        }
+        
+        .badge-tech {
+            background: #e8f0fe;
+            color: #1967d2;
+        }
+        
+        .badge-capacity {
+            background: #fef7e0;
+            color: #f9ab00;
+        }
+        
+        .status-text {
+            font-size: 12px;
+            color: #5f6368;
+            font-style: italic;
+        }
+        
+        .inactive {
+            color: #ea4335;
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4285f4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Info window styling */
+        .gm-style-iw-d {
+            max-width: 300px !important;
+        }
+        
+        .info-window-content h6 {
+            margin: 0 0 10px 0;
+            color: #1a73e8;
+        }
+        
+        .info-window-content p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .info-window-content a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        
+        .info-window-content a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="page-header">
+        <nav class="nav-bar">
+            <a href="/">Search</a>
+            <a href="/map/">Map</a>
+            <a href="/statistics/">Stats</a>
+            {% if user.is_staff %}
+            <a href="/admin/">Admin</a>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <a href="/accounts/account/">Account</a>
+            <a href="/accounts/logout/">Logout</a>
+            {% else %}
+            <a href="/accounts/login/">Login</a>
+            {% endif %}
+            <button class="theme-toggle">
+                <i class="bi bi-circle-half"></i> Auto
+            </button>
+        </nav>
+        
+        <div class="header-content">
+            <div class="logo">⚡</div>
+            <form method="get" action="{% url 'search_map_view' %}">
+                <div class="search-container">
+                    <input type="text" name="q" class="search-input" placeholder="Search companies, locations, technologies..." value="{{ query }}" autofocus>
+                    <button type="submit" class="search-button">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if query %}
+    <!-- Results header -->
+    <div class="results-header">
+        <h1 class="results-title">Search Results for "{{ query }}"</h1>
+        <div class="results-count" id="resultsCount">
+            Loading results...
+        </div>
+        
+        <div class="filter-buttons">
+            <button class="filter-btn active" id="allFilter">
+                <i class="bi bi-globe2"></i> All
+            </button>
+            <button class="filter-btn" id="yearsFilter">
+                <i class="bi bi-calendar3"></i> All Years <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main content -->
+    <div class="main-container">
+        <div class="results-panel" id="resultsPanel">
+            <div style="padding: 40px; text-align: center;">
+                <div class="spinner"></div>
+                <p style="margin-top: 20px;">Loading results...</p>
+            </div>
+        </div>
+        
+        <div class="map-panel">
+            <div id="map"></div>
+            <div class="loading-overlay" id="mapLoading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    let map;
+    let markers = [];
+    let infoWindow;
+    let bounds;
+    
+    function initMap() {
+        const mapElement = document.getElementById("map");
+        if (!mapElement) {
+            console.error('Map element not found!');
+            return;
+        }
+        
+        map = new google.maps.Map(mapElement, {
+            zoom: 6,
+            center: { lat: 54.5, lng: -3.5 }, // UK center
+            mapTypeControl: true,
+            streetViewControl: false,
+            fullscreenControl: true,
+        });
+        
+        infoWindow = new google.maps.InfoWindow();
+        bounds = new google.maps.LatLngBounds();
+        
+        // Load markers
+        loadMarkersFromGeoJSON();
+    }
+    
+    function loadMarkersFromGeoJSON() {
+        const query = "{{ query }}";
+        const page = {{ page|default:1 }};
+        
+        if (!query) return;
+        
+        // Fetch GeoJSON data
+        const apiUrl = `/api/search-geojson/?q=${encodeURIComponent(query)}&page=${page}&per_page=25`;
+        
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading overlay
+                document.getElementById('mapLoading').style.display = 'none';
+                
+                // Update results count
+                const resultsCount = document.getElementById('resultsCount');
+                if (resultsCount) {
+                    resultsCount.textContent = `${data.features.length} unique locations (${data.metadata.total || 0} components)`;
+                }
+                
+                // Render results in the panel
+                renderSearchResults(data.features);
+                
+                if (data.features && data.features.length > 0) {
+                    data.features.forEach((feature, index) => {
+                        if (feature.geometry && feature.geometry.coordinates) {
+                            const [lng, lat] = feature.geometry.coordinates;
+                            const props = feature.properties;
+                            
+                            const marker = new google.maps.Marker({
+                                position: { lat: lat, lng: lng },
+                                map: map,
+                                title: props.title || props.location,
+                                icon: {
+                                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+                                            <circle cx="20" cy="20" r="18" fill="#ea4335" stroke="#fff" stroke-width="2"/>
+                                            <text x="20" y="26" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="white">${index + 1}</text>
+                                        </svg>
+                                    `),
+                                    scaledSize: new google.maps.Size(40, 40),
+                                    anchor: new google.maps.Point(20, 20)
+                                }
+                            });
+                            
+                            // Create info window content
+                            const content = `
+                                <div class="info-window-content">
+                                    <h6>${props.title || props.location}</h6>
+                                    <p>
+                                        <strong>Technology:</strong> ${props.technology}<br>
+                                        <strong>Company:</strong> ${props.company}<br>
+                                        <strong>Components:</strong> ${props.component_count}<br>
+                                        ${props.capacity_display ? `<strong>Capacity:</strong> ${props.capacity_display}<br>` : ''}
+                                    </p>
+                                    <a href="${props.detailUrl}" target="_blank">View details →</a>
+                                </div>
+                            `;
+                            
+                            marker.addListener('click', () => {
+                                infoWindow.setContent(content);
+                                infoWindow.open(map, marker);
+                            });
+                            
+                            markers.push(marker);
+                            bounds.extend(marker.getPosition());
+                        }
+                    });
+                    
+                    // Fit map to show all markers
+                    if (markers.length > 0) {
+                        map.fitBounds(bounds);
+                        // Don't zoom in too much for single markers
+                        if (markers.length === 1) {
+                            map.setZoom(12);
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading map data:', error);
+                document.getElementById('mapLoading').style.display = 'none';
+                document.getElementById('resultsCount').textContent = 'Error loading results';
+            });
+    }
+    
+    function renderSearchResults(features) {
+        const resultsPanel = document.getElementById('resultsPanel');
+        
+        if (!features || features.length === 0) {
+            resultsPanel.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: #70757a;">
+                    <i class="bi bi-search" style="font-size: 48px; margin-bottom: 20px; display: block;"></i>
+                    <p>No results found for "${"{{ query }}"}"</p>
+                    <p>Try different keywords or check the spelling</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        features.forEach((feature, index) => {
+            const props = feature.properties;
+            const isActive = props.is_active !== false;
+            
+            html += `
+                <div class="result-item" data-index="${index}">
+                    <a href="#" class="location-marker" onclick="centerMapOnLocation(${index}); return false;">
+                        <i class="bi bi-geo-alt-fill location-icon"></i>
+                        ${props.title || props.location}
+                    </a>
+                    <div class="result-description">
+                        ${props.description || ''}
+                    </div>
+                    <div class="result-badges">
+                        ${props.company ? `<span class="badge badge-company">${props.company}</span>` : ''}
+                        ${props.technology ? `<span class="badge badge-tech">${props.technology}</span>` : ''}
+                        ${props.capacity_display ? `<span class="badge badge-capacity">${props.capacity_display}</span>` : ''}
+                    </div>
+                    <div class="status-text">
+                        ${isActive ? 
+                            `Active - ${props.years_string || props.component_count + ' components'}` : 
+                            `<span class="inactive">Inactive - ${props.years_string || props.component_count + ' components'}</span>`
+                        }
+                    </div>
+                </div>
+            `;
+        });
+        
+        resultsPanel.innerHTML = html;
+        
+        // Add click handlers
+        const resultItems = resultsPanel.querySelectorAll('.result-item');
+        resultItems.forEach((item, index) => {
+            item.addEventListener('click', function(e) {
+                if (!e.target.closest('a')) {
+                    centerMapOnLocation(index);
+                }
+            });
+        });
+    }
+    
+    // Function to center map on a specific location when clicked
+    function centerMapOnLocation(index) {
+        if (markers[index]) {
+            const marker = markers[index];
+            map.setCenter(marker.getPosition());
+            map.setZoom(14);
+            
+            // Trigger click to show info window
+            google.maps.event.trigger(marker, 'click');
+            
+            // Smooth scroll to show map on mobile
+            if (window.innerWidth < 768) {
+                document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }
+    
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key|default:'AIzaSyDXSnvzc2VfdPIHH3HgPQkG-No-T70hbeI' }}&callback=initMap" async defer></script>
+    {% endif %}
+</body>
+</html>

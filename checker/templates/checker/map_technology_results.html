@@ -1,0 +1,721 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Technology Selection - Capacity Market Search{% endblock %}
+
+{# Override the container class to use container-lg for more constrained width #}
+{% block container_class %}container-fluid{% endblock %}
+
+{% block extra_head %}
+<style>
+    #map-container {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        overflow: hidden;
+    }
+    
+    #map {
+        height: 100%;
+        width: 100%;
+    }
+    
+    #loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    #map-status {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        max-width: 90%;
+        text-align: center;
+        z-index: 1000;
+        display: none;
+    }
+    
+    /* Mobile Legend Toggle Bar */
+    .mobile-legend-toggle {
+        display: none;
+        position: fixed;
+        top: 70px; /* Move below the debug banner */
+        left: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        padding: 12px 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        z-index: 1006; /* Higher than back button */
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-legend-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        font-size: 14px;
+        color: #333;
+    }
+    
+    .mobile-legend-arrow {
+        font-size: 16px;
+        transition: transform 0.3s ease;
+        color: #007bff;
+    }
+    
+    .mobile-legend-toggle.expanded .mobile-legend-arrow {
+        transform: rotate(180deg);
+    }
+    
+    .mobile-legend-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        margin-top: 0;
+    }
+    
+    .mobile-legend-toggle.expanded .mobile-legend-content {
+        max-height: 400px;
+        margin-top: 12px;
+    }
+    
+    .mobile-legend-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        margin-bottom: 6px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .mobile-legend-item:hover {
+        background: rgba(0, 123, 255, 0.1);
+        border-color: rgba(0, 123, 255, 0.3);
+    }
+    
+    .mobile-legend-item.active {
+        background: rgba(0, 123, 255, 0.15);
+        border-color: rgba(0, 123, 255, 0.4);
+        font-weight: 600;
+    }
+    
+    .mobile-legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        margin-right: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        flex-shrink: 0;
+    }
+    
+    .mobile-legend-text {
+        font-size: 14px;
+        color: #333;
+    }
+    
+    /* Specific style for the Back to Search button when overlaid */
+    .back-to-search-map-overlay {
+        position: absolute !important;
+        top: 70px !important; /* Adjusted to be below main nav */
+        right: 15px !important; /* Moved to the right */
+        left: auto !important; /* Ensure left is not applied */
+        z-index: 1005 !important; /* Increased z-index */
+        background: rgba(13, 110, 253, 0.9) !important;
+        border-color: rgba(13, 110, 253, 0.5) !important;
+        color: white !important; 
+        padding: 6px 12px !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        border-radius: 4px !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+        text-decoration: none !important; 
+    }
+
+    .back-to-search-map-overlay:hover {
+        background: rgba(13, 110, 253, 1) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+    }
+    
+    /* Top navigation buttons */
+    .top-nav-buttons {
+        position: absolute;
+        top: 70px;
+        left: 10px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .top-nav-buttons .btn {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color: #333;
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 4px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s ease;
+    }
+    
+    .top-nav-buttons .btn:hover {
+        background: rgba(255, 255, 255, 1);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        text-decoration: none;
+    }
+    
+    .top-nav-buttons .btn-primary {
+        background: rgba(13, 110, 253, 0.9);
+        border-color: rgba(13, 110, 253, 0.5);
+        color: white;
+    }
+    
+    .top-nav-buttons .btn-primary:hover {
+        background: rgba(13, 110, 253, 1);
+        color: white;
+    }
+    
+    .top-nav-buttons .btn-success {
+        background: rgba(25, 135, 84, 0.9);
+        border-color: rgba(25, 135, 84, 0.5);
+        color: white;
+    }
+    
+    .top-nav-buttons .btn-success:hover {
+        background: rgba(25, 135, 84, 1);
+        color: white;
+    }
+    
+    /* Technology Legend Styling */
+    .map-legend {
+        position: absolute;
+        top: 155px;
+        left: 10px;
+        width: 180px;
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 12px;
+        padding-right: 35px;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        transition: transform 0.3s ease;
+    }
+    
+    .legend-title {
+        font-weight: bold;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #333;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 6px;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        font-size: 13px;
+    }
+    
+    .legend-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .legend-item.active {
+        background-color: rgba(13, 110, 253, 0.1);
+        border: 1px solid rgba(13, 110, 253, 0.3);
+    }
+    
+    .legend-color {
+        width: 14px;
+        height: 14px;
+        border-radius: 2px;
+        margin-right: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        flex-shrink: 0;
+    }
+    
+    /* Welcome message */
+    .welcome-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        text-align: center;
+        max-width: 400px;
+    }
+    
+    .welcome-message h4 {
+        color: #333;
+        margin-bottom: 12px;
+    }
+    
+    .welcome-message p {
+        color: #666;
+        margin-bottom: 0;
+        font-size: 14px;
+    }
+    
+    /* Mobile Optimizations */
+    @media (max-width: 768px) {
+        /* Show mobile legend toggle */
+        .mobile-legend-toggle {
+            display: block !important;
+            top: 70px !important; /* Ensure it's below debug banner */
+        }
+        
+        /* Hide desktop elements on mobile */
+        .map-legend,
+        .top-nav-buttons,
+        .welcome-message {
+            display: none !important;
+        }
+        
+        /* Adjust map container for mobile - full screen */
+        #map-container {
+            height: 100vh !important;
+            margin-top: 0 !important;
+        }
+        
+        #map {
+            height: 100vh !important;
+            width: 100% !important;
+        }
+        
+        /* Mobile-specific loading overlay */
+        #loading-overlay {
+            top: 0 !important;
+            height: 100vh !important;
+        }
+        
+        /* Mobile-specific status message */
+        #map-status {
+            bottom: 15px;
+            left: 10px;
+            right: 10px;
+            transform: none;
+            max-width: none;
+            font-size: 13px;
+        }
+
+        /* Mobile Back to Search Button - Icon Only */
+        .back-to-search-map-overlay {
+            top: 70px !important; /* Move below debug banner */
+            right: 10px !important;
+            left: auto !important;
+            width: 40px !important;
+            height: 40px !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 4px !important;
+            background-color: #0d6efd !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+            z-index: 1005 !important;
+        }
+
+        .back-to-search-map-overlay .button-text {
+            display: none !important; /* Hide text on mobile */
+        }
+
+        .back-to-search-map-overlay i.bi-arrow-left {
+            font-size: 1.1rem !important; /* Icon size */
+            margin: 0 !important;
+            color: white !important;
+        }
+        
+        /* Ensure mobile legend toggle is still displayed if it was intended */
+        .mobile-legend-toggle {
+            display: block !important; /* Or flex, depending on its original style */
+            /* Adjust z-index if it conflicts with the back button */
+            z-index: 999 !important; /* Lower than back button */
+        }
+    }
+    
+    /* Small mobile phones */
+    @media (max-width: 480px) {
+        .mobile-legend-toggle {
+            top: 70px !important;
+            left: 5px;
+            right: 5px;
+            padding: 10px 12px;
+        }
+        
+        .mobile-legend-header {
+            font-size: 13px;
+        }
+        
+        .mobile-legend-arrow {
+            font-size: 14px;
+        }
+        
+        .mobile-legend-item {
+            padding: 6px 10px;
+            margin-bottom: 4px;
+        }
+        
+        .mobile-legend-text {
+            font-size: 13px;
+        }
+        
+        .mobile-legend-color {
+            width: 14px;
+            height: 14px;
+            margin-right: 8px;
+        }
+
+        /* Back to Search button will inherit styles from the 768px breakpoint */
+        /* No specific changes needed here unless further refinement is required */
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+    <!-- Override navbar to be empty for fullscreen map -->
+{% endblock %}
+
+{% block content %}
+<div style="position:fixed; top:0; left:0; width:100%; padding:20px; background:red; color:white; font-size:24px; font-weight:bold; z-index:9999; text-align:center;">
+    DEBUG TEST - MAP TECHNOLOGY RESULTS HTML - {{ NOW }} 
+</div>
+
+    <!-- Mobile Legend Toggle Bar -->
+    <div class="mobile-legend-toggle" id="mobile-legend-toggle">
+        <div class="mobile-legend-header">
+            <span><i class="bi bi-gear-wide-connected me-2"></i>Select Technology</span>
+            <i class="bi bi-chevron-down mobile-legend-arrow"></i>
+        </div>
+        <div class="mobile-legend-content" id="mobile-legend-content">
+            <!-- Technology items will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map-container">
+        <div id="map"></div>
+        <div id="loading-overlay" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <div id="map-status"></div>
+        
+        <!-- Moved Back to Search Button - Ensure span for text exists -->
+        <a href="javascript:history.back()" class="btn btn-primary back-to-search-map-overlay" title="Return to search">
+            <i class="bi bi-arrow-left"></i> <span class="d-none d-md-inline">Back to Search</span>
+        </a>
+
+        <!-- Top Navigation Buttons (excluding Back to Search) -->
+        <div class="top-nav-buttons">
+            <a href="{% url 'map_view' %}" class="btn btn-success" title="View the complete map with all UK components and technologies">
+                <i class="bi bi-globe"></i> Full Map
+            </a>
+            <a href="{% url 'map_search_results' %}" class="btn btn-outline-light" title="Go to text search">
+                <i class="bi bi-search"></i> Text Search
+            </a>
+        </div>
+        
+        <!-- Technology Legend -->
+        <div class="map-legend" id="map-legend">
+            <div class="legend-title">Select Technology</div>
+            <div id="legend-items">
+                <!-- Technology items will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Welcome Message -->
+        <div class="welcome-message" id="welcome-message">
+            <h4><i class="bi bi-gear-wide-connected me-2"></i>Technology Selection</h4>
+            <p>Select a technology type from the legend to view all components of that type across the UK.</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    console.log("Technology map JavaScript starting");
+    
+    // Global variables
+    let map;
+    let markers = [];
+    
+    // Technology color mapping
+    const techColors = {
+        'Gas': '#ff5252',
+        'DSR': '#f57c00',
+        'Nuclear': '#8d6e63',
+        'CHP': '#5c6bc0',
+        'Solar': '#fdd835',
+        'Wind': '#29b6f6',
+        'Battery': '#4caf50',
+        'Biomass': '#8bc34a',
+        'Hydro': '#0097a7',
+        'Interconnector': '#9c27b0',
+        'Coal': '#424242'
+    };
+    
+    console.log("Tech colors defined:", Object.keys(techColors));
+    
+    // Function to show status messages
+    function showStatus(message, duration) {
+        console.log("Status:", message);
+        const statusEl = document.getElementById('map-status');
+        if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+            
+            if (duration && duration > 0) {
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, duration);
+            }
+        }
+    }
+    
+    // Initialize the technology legend
+    function initTechnologyLegend() {
+        console.log("Initializing technology legend");
+        const legendItems = document.getElementById('legend-items');
+        
+        if (!legendItems) {
+            console.error("Legend items element not found!");
+            return;
+        }
+        
+        legendItems.innerHTML = '';
+        
+        // Add technology items
+        Object.keys(techColors).forEach(tech => {
+            const color = techColors[tech];
+            
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            item.dataset.technology = tech;
+            item.innerHTML = `
+                <div class="legend-color" style="background-color: ${color};"></div>
+                <span>${tech}</span>
+            `;
+            
+            item.addEventListener('click', () => {
+                selectTechnology(tech);
+            });
+            
+            legendItems.appendChild(item);
+        });
+        
+        console.log("Technology legend initialized with", Object.keys(techColors).length, "items");
+    }
+    
+    // Initialize mobile legend
+    function initMobileLegend() {
+        console.log("Initializing mobile legend");
+        const mobileContent = document.getElementById('mobile-legend-content');
+        
+        if (!mobileContent) {
+            console.error("Mobile legend content element not found!");
+            return;
+        }
+        
+        // Clear existing content
+        mobileContent.innerHTML = '';
+        
+        // Add technology items
+        Object.keys(techColors).forEach(tech => {
+            const color = techColors[tech];
+            
+            const item = document.createElement('div');
+            item.className = 'mobile-legend-item';
+            item.dataset.technology = tech;
+            item.innerHTML = `
+                <div class="mobile-legend-color" style="background-color: ${color};"></div>
+                <span class="mobile-legend-text">${tech}</span>
+            `;
+            
+            item.addEventListener('click', () => {
+                selectTechnology(tech);
+                
+                // Close mobile legend after selection
+                const mobileToggle = document.getElementById('mobile-legend-toggle');
+                if (mobileToggle) {
+                    mobileToggle.classList.remove('expanded');
+                }
+            });
+            
+            mobileContent.appendChild(item);
+        });
+        
+        console.log("Mobile legend initialized");
+    }
+    
+    // Function to handle technology selection (works for both desktop and mobile)
+    function selectTechnology(tech) {
+        console.log("Selected technology:", tech);
+        
+        // Hide welcome message
+        const welcomeMessage = document.getElementById('welcome-message');
+        if (welcomeMessage) {
+            welcomeMessage.style.display = 'none';
+        }
+        
+        // Update desktop legend active state
+        document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('active'));
+        const legendItem = document.querySelector(`.legend-item[data-technology="${tech}"]`);
+        if (legendItem) {
+            legendItem.classList.add('active');
+        }
+        
+        // Update mobile legend active state
+        document.querySelectorAll('.mobile-legend-item').forEach(i => i.classList.remove('active'));
+        const mobileLegendItem = document.querySelector(`.mobile-legend-item[data-technology="${tech}"]`);
+        if (mobileLegendItem) {
+            mobileLegendItem.classList.add('active');
+        }
+        
+        showStatus(`Loading ${tech} components...`, 0);
+        
+        // Here you would typically load the components for this technology
+        // For now, just show a status message
+        setTimeout(() => {
+            showStatus(`Showing ${tech} components`, 3000);
+        }, 1000);
+    }
+    
+    // Initialize mobile controls
+    function initMobileControls() {
+        console.log("Initializing mobile controls");
+        
+        // Mobile legend toggle functionality
+        const legendToggle = document.getElementById('mobile-legend-toggle');
+        
+        if (legendToggle) {
+            legendToggle.addEventListener('click', () => {
+                const isExpanded = legendToggle.classList.contains('expanded');
+                
+                if (isExpanded) {
+                    legendToggle.classList.remove('expanded');
+                } else {
+                    legendToggle.classList.add('expanded');
+                }
+            });
+        }
+        
+        console.log("Mobile controls initialized");
+    }
+    
+    // Initialize map
+    function initMap() {
+        console.log("initMap called");
+        
+        try {
+            const mapElement = document.getElementById("map");
+            console.log("Map element found:", !!mapElement);
+            
+            // Create map
+            map = new google.maps.Map(mapElement, {
+                zoom: 6,
+                center: { lat: 54.5, lng: -3.0 }, // Center on UK
+                mapTypeId: "roadmap"
+            });
+            
+            console.log("Map created successfully");
+            
+            // Initialize desktop legend
+            initTechnologyLegend();
+            
+            // Initialize mobile controls
+            initMobileLegend();
+            initMobileControls();
+            
+            // Show appropriate initial message based on screen size
+            if (window.innerWidth <= 768) {
+                showStatus("Tap 'Select Technology' above to choose a technology type", 0);
+            } else {
+                showStatus("Select a technology from the legend to begin", 0);
+            }
+            
+        } catch (error) {
+            console.error("Error initializing map:", error);
+        }
+    }
+    
+    // Handle window resize to update status message
+    function handleResize() {
+        if (window.innerWidth <= 768) {
+            const statusEl = document.getElementById('map-status');
+            if (statusEl && (statusEl.textContent.includes('legend') || statusEl.textContent.includes('dropdown'))) {
+                showStatus("Tap 'Select Technology' above to choose a technology type", 0);
+            }
+        } else {
+            const statusEl = document.getElementById('map-status');
+            if (statusEl && (statusEl.textContent.includes('Select Technology') || statusEl.textContent.includes('dropdown'))) {
+                showStatus("Select a technology from the legend to begin", 0);
+            }
+        }
+    }
+    
+    // Add window resize listener
+    window.addEventListener('resize', handleResize);
+    
+    // Initialize everything when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM loaded, initializing mobile controls if map hasn't loaded yet");
+        
+        // If map hasn't been initialized yet, initialize mobile controls
+        if (!map) {
+            initMobileControls();
+            initMobileLegend();
+        }
+    });
+    
+    // Set up global initialization function for Google Maps
+    window.initMap = initMap;
+    console.log("initMap function set globally");
+</script>
+
+<!-- Google Maps API -->
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap&libraries=places&v=weekly">
+</script>
+{% endblock %}

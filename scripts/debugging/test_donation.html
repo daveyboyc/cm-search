@@ -1,0 +1,220 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Test Donation Page - Capacity Market Search{% endblock %}
+
+{% block extra_head %}
+<style>
+    .donation-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .donation-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 1px solid #dee2e6;
+    }
+    
+    html[data-bs-theme="dark"] .donation-card {
+        background: rgba(33, 37, 41, 0.95);
+        border-color: #495057;
+    }
+    
+    .amount-option {
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+    }
+    
+    .amount-option:hover {
+        border-color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    .amount-option.selected {
+        border-color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.2);
+    }
+    
+    .feature-list {
+        background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+    
+    html[data-bs-theme="dark"] .feature-list {
+        background: linear-gradient(45deg, #1a3a52, #2d1b40);
+    }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="donation-container">
+    <div class="donation-card">
+        <div class="text-center mb-4">
+            <h1 class="mb-3">🚀 Support Capacity Market Search</h1>
+            <p class="lead">Choose your contribution to get unlimited access to all premium features</p>
+        </div>
+        
+        <div class="feature-list">
+            <h5 class="mb-3">✨ What you'll get with premium access:</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Interactive map views</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Advanced search filtering</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Component location mapping</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Technology heat maps</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Company portfolio views</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Export capabilities</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited usage</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>No monthly subscription</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <h5 class="text-center mb-4">Choose your contribution amount:</h5>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="amount-option" data-amount="5">
+                    <h4 class="text-primary">£5</h4>
+                    <p class="mb-0">Basic Support</p>
+                    <small class="text-muted">Perfect for individual use</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="amount-option" data-amount="15">
+                    <h4 class="text-primary">£15</h4>
+                    <p class="mb-0">Generous Support</p>
+                    <small class="text-muted">Help us improve features</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="amount-option" data-amount="30">
+                    <h4 class="text-primary">£30</h4>
+                    <p class="mb-0">Champion Support</p>
+                    <small class="text-muted">Enable new development</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <label for="customAmount" class="form-label">Or enter custom amount:</label>
+                    <div class="input-group">
+                        <span class="input-group-text">£</span>
+                        <input type="number" class="form-control" id="customAmount" placeholder="Enter amount" min="1" max="1000">
+                    </div>
+                </div>
+                <div class="col-md-6 text-center">
+                    <button id="proceedBtn" class="btn btn-primary btn-lg" disabled>
+                        <i class="bi bi-credit-card-2-front-fill me-2"></i>
+                        Proceed to Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <p class="small text-muted">
+                <i class="bi bi-shield-check me-1"></i>
+                Secure payment via Stripe • No subscription • Lifetime access
+            </p>
+            <p class="small text-muted">
+                <strong>Current Status:</strong> 
+                {% if user.is_authenticated %}
+                    {% if user.profile and user.profile.has_paid_access %}
+                        <span class="text-success">✅ Premium Access Active</span>
+                    {% else %}
+                        <span class="text-warning">⏳ Free Trial User</span>
+                    {% endif %}
+                {% else %}
+                    <span class="text-info">👤 Not Logged In</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <a href="{% url 'homepage' %}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left me-2"></i>Back to Search
+            </a>
+            {% if user.is_authenticated and user.profile and user.profile.has_paid_access %}
+                <a href="/map/" class="btn btn-success">
+                    <i class="bi bi-map me-2"></i>Access Premium Maps
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const amountOptions = document.querySelectorAll('.amount-option');
+        const customAmount = document.getElementById('customAmount');
+        const proceedBtn = document.getElementById('proceedBtn');
+        let selectedAmount = 0;
+        
+        // Handle preset amount selection
+        amountOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                amountOptions.forEach(opt => opt.classList.remove('selected'));
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                // Clear custom amount
+                customAmount.value = '';
+                // Set selected amount
+                selectedAmount = parseInt(this.dataset.amount);
+                updateProceedButton();
+            });
+        });
+        
+        // Handle custom amount input
+        customAmount.addEventListener('input', function() {
+            // Remove selected class from preset options
+            amountOptions.forEach(opt => opt.classList.remove('selected'));
+            // Set selected amount
+            selectedAmount = parseInt(this.value) || 0;
+            updateProceedButton();
+        });
+        
+        function updateProceedButton() {
+            if (selectedAmount >= 1) {
+                proceedBtn.disabled = false;
+                proceedBtn.innerHTML = `<i class="bi bi-credit-card-2-front-fill me-2"></i>Pay £${selectedAmount}`;
+            } else {
+                proceedBtn.disabled = true;
+                proceedBtn.innerHTML = '<i class="bi bi-credit-card-2-front-fill me-2"></i>Select Amount First';
+            }
+        }
+        
+        // Handle proceed button click
+        proceedBtn.addEventListener('click', function() {
+            if (selectedAmount >= 1) {
+                alert(`TEST MODE: Would process payment of £${selectedAmount}\n\nIn production this would redirect to Stripe payment page.`);
+            }
+        });
+    });
+</script>
+{% endblock %}

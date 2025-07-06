@@ -1,0 +1,141 @@
+{% load user_tags %}
+<!-- Map Timer Modal for trial users -->
+<div class="modal fade" id="mapTimerModal" tabindex="-1" aria-labelledby="mapTimerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="mapTimerLabel">
+                    <i class="bi bi-map-fill me-2"></i>Map Features Trial
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="bi bi-clock-fill text-warning" style="font-size: 3rem;"></i>
+                </div>
+                <h6 class="text-center mb-3">🗺️ <strong id="map-timer-display">5 minutes</strong> to explore map features!</h6>
+                <p class="mb-3">
+                    You're in your 24-hour trial period. Map features are available for 5 minutes after first access.
+                </p>
+                <div class="alert alert-info text-center">
+                    <strong>After map trial expires:</strong><br>
+                    <small>Lists remain accessible, maps require payment</small>
+                </div>
+                <p class="small text-muted mb-0">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Choose your plan: £2 (lists only) or £5 (full access)
+                </p>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Continue Exploring
+                </button>
+                <a href="{% url 'accounts:payment_selection' %}" class="btn btn-primary">
+                    <i class="bi bi-credit-card-2-front-fill me-2"></i>Choose Plan Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Prevent duplicate execution
+if (!window.mapTimerInitialized) {
+    window.mapTimerInitialized = true;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Map timer script loaded for trial user');
+        
+        // Check if map trial has already expired
+        const mapTrialExpired = sessionStorage.getItem('mapTrialExpired');
+        if (mapTrialExpired) {
+            console.log('Map trial has expired - redirecting to payment selection');
+            window.location.href = "{% url 'accounts:payment_selection' %}";
+            return;
+        }
+        
+        // Function to show the map timer modal
+        function showMapTimerModal() {
+            const mapTimerModalElement = document.getElementById('mapTimerModal');
+            if (mapTimerModalElement) {
+                try {
+                    const mapTimerModal = new bootstrap.Modal(mapTimerModalElement, {
+                        backdrop: true,
+                        keyboard: true
+                    });
+                    mapTimerModal.show();
+                    
+                    // Ensure modal backdrop is properly removed when closed
+                    mapTimerModalElement.addEventListener('hidden.bs.modal', function () {
+                        const backdrops = document.querySelectorAll('.modal-backdrop');
+                        backdrops.forEach(backdrop => backdrop.remove());
+                        document.body.classList.remove('modal-open');
+                        document.body.style.removeProperty('padding-right');
+                    });
+                } catch (error) {
+                    console.error('Error showing map timer modal:', error);
+                }
+            }
+        }
+        
+        // Start 5-minute map timer
+        let mapStartTime = sessionStorage.getItem('mapTimerStart');
+        if (!mapStartTime) {
+            mapStartTime = Date.now();
+            sessionStorage.setItem('mapTimerStart', mapStartTime);
+            console.log('Starting 5-minute map timer');
+            
+            // Show modal immediately when first accessing maps
+            setTimeout(showMapTimerModal, 1000);
+        } else {
+            mapStartTime = parseInt(mapStartTime);
+            console.log('Resuming existing map timer');
+        }
+        
+        const mapTimerDuration = 300; // 5 minutes = 300 seconds
+        const timerDisplay = document.getElementById('map-timer-display');
+        
+        // Show warning popup in last 30 seconds
+        const warningInterval = setInterval(function() {
+            const elapsed = Math.floor((Date.now() - mapStartTime) / 1000);
+            if (elapsed >= 270 && elapsed < 300) { // 4:30 to 5:00
+                showMapTimerModal();
+            }
+        }, 1000);
+        
+        function updateMapTimer() {
+            const elapsed = Math.floor((Date.now() - mapStartTime) / 1000);
+            const timeRemaining = Math.max(0, mapTimerDuration - elapsed);
+            
+            if (timerDisplay) {
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                if (minutes > 0) {
+                    timerDisplay.textContent = `${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`;
+                } else {
+                    timerDisplay.textContent = `${seconds} second${seconds !== 1 ? 's' : ''}`;
+                }
+            }
+            
+            console.log('Map Timer:', timeRemaining + 's remaining');
+            
+            if (timeRemaining <= 0) {
+                clearInterval(warningInterval);
+                console.log('5-minute map timer expired');
+                
+                // Mark map trial as expired
+                sessionStorage.setItem('mapTrialExpired', Date.now().toString());
+                sessionStorage.removeItem('mapTimerStart');
+                
+                // Redirect to payment selection
+                window.location.href = "{% url 'accounts:payment_selection' %}";
+                return;
+            }
+        }
+        
+        // Update timer every second
+        updateMapTimer();
+        const timerInterval = setInterval(updateMapTimer, 1000);
+    });
+}
+</script>

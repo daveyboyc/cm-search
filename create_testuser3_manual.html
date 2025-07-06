@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create testuser3</title>
+</head>
+<body>
+    <h1>Create testuser3 Manually</h1>
+    <p>Since the server is running, you can create testuser3 through the Django admin:</p>
+    
+    <h2>Step 1: Create User</h2>
+    <p>Go to: <a href="http://localhost:8000/admin/auth/user/add/">http://localhost:8000/admin/auth/user/add/</a></p>
+    <ul>
+        <li>Username: <strong>testuser3</strong></li>
+        <li>Password: <strong>password123</strong></li>
+        <li>Email: <strong>testuser3@example.com</strong></li>
+    </ul>
+    
+    <h2>Step 2: Create/Update Profile</h2>
+    <p>Go to: <a href="http://localhost:8000/admin/accounts/userprofile/">http://localhost:8000/admin/accounts/userprofile/</a></p>
+    <p>Find testuser3's profile and set:</p>
+    <ul>
+        <li>Has paid access: <strong>✓ (checked)</strong></li>
+        <li>Payment amount: <strong>2.00</strong></li>
+        <li>Free access start time: <strong>(leave blank or null)</strong></li>
+    </ul>
+    
+    <h2>Step 3: Test Access Level</h2>
+    <p>You can test the access level by adding this to a template temporarily:</p>
+    <pre>
+Access Level: {{ user|user_access_level }}
+Can Access Maps: {{ user|can_access_maps }}
+Can Access Lists: {{ user|can_access_list_view }}
+    </pre>
+    
+    <h2>Expected Results for testuser3:</h2>
+    <ul>
+        <li>Access Level: <strong>list_only</strong></li>
+        <li>Can Access Maps: <strong>False</strong></li>
+        <li>Can Access Lists: <strong>True</strong></li>
+        <li>Should NOT redirect to payment page</li>
+        <li>Should see padlock icons on map buttons</li>
+    </ul>
+</body>
+</html>

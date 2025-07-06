@@ -1,0 +1,42 @@
+{
+  "timestamp": "2025-06-26T08:15:44.954182+00:00",
+  "data_status": {
+    "components": 63847,
+    "latest_update": "2025-06-23T16:08:03.560638+00:00",
+    "auction_count": 23
+  },
+  "api_checks": {
+    "2029-30": {
+      "api_count": "error",
+      "local_count": 0,
+      "difference": "unknown",
+      "status": "error: HTTPSConnectionPool(host='data.nationalgrideso.com', port=443): Max retries exceeded with url: /api/3/action/datastore_search?resource_id=790f5fa0-f8eb-4d82-b98d-0d34d3e404e8&q=2029-30&limit=5 (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x1072ed2d0>: Failed to resolve 'data.nationalgrideso.com' ([Errno 8] nodename nor servname provided, or not known)\"))",
+      "sample_records": []
+    },
+    "2030-31": {
+      "api_count": "error",
+      "local_count": 0,
+      "difference": "unknown",
+      "status": "error: HTTPSConnectionPool(host='data.nationalgrideso.com', port=443): Max retries exceeded with url: /api/3/action/datastore_search?resource_id=790f5fa0-f8eb-4d82-b98d-0d34d3e404e8&q=2030-31&limit=5 (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x114725ff0>: Failed to resolve 'data.nationalgrideso.com' ([Errno 8] nodename nor servname provided, or not known)\"))",
+      "sample_records": []
+    }
+  },
+  "crawl_results": {
+    "attempted": 0,
+    "successful": 0,
+    "new_records_count": 0,
+    "updated_records_count": 0,
+    "new_records": [],
+    "errors": [
+      "2029-30: HTTPSConnectionPool(host='data.nationalgrideso.com', port=443): Max retries exceeded with url: /api/3/action/datastore_search?resource_id=790f5fa0-f8eb-4d82-b98d-0d34d3e404e8&filters=%7B%22Delivery+Year%22%3A+%222029-30%22%7D&limit=3 (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x1147269e0>: Failed to resolve 'data.nationalgrideso.com' ([Errno 8] nodename nor servname provided, or not known)\"))",
+      "2030-31: HTTPSConnectionPool(host='data.nationalgrideso.com', port=443): Max retries exceeded with url: /api/3/action/datastore_search?resource_id=790f5fa0-f8eb-4d82-b98d-0d34d3e404e8&filters=%7B%22Delivery+Year%22%3A+%222030-31%22%7D&limit=3 (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x114727250>: Failed to resolve 'data.nationalgrideso.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+    ]
+  },
+  "analysis": {
+    "summary": "\u2705 Database appears current with API",
+    "action_needed": false,
+    "new_data_confirmed": false,
+    "recommendations": [],
+    "priority": "low"
+  }
+}

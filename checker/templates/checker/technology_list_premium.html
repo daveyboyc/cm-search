@@ -1,0 +1,89 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+
+{% block title %}Technologies (Premium) - CMR Capacity Auction Components{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-4">
+        <h2>Technologies - Premium Map View</h2>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            This premium view includes interactive map functionality for each technology.
+        </div>
+        <p class="text-muted">
+            Total Technologies: {{ technologies|length }}
+        </p>
+    </div>
+    
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th style="width: 50%;">
+                    {% if sort_by == 'name' %}
+                        {% if sort_order == 'asc' %}
+                            <a href="?sort_by=name&sort_order=desc" class="text-decoration-none text-dark">Technology Name <i class="bi bi-caret-up-fill"></i></a>
+                        {% else %}
+                            <a href="?sort_by=name&sort_order=asc" class="text-decoration-none text-dark">Technology Name <i class="bi bi-caret-down-fill"></i></a>
+                        {% endif %}
+                    {% else %}
+                        <a href="?sort_by=name&sort_order=asc" class="text-decoration-none text-dark">Technology Name</a>
+                    {% endif %}
+                </th>
+                <th class="text-center" style="width: 20%;">
+                    {% if sort_by == 'components' %}
+                        {% if sort_order == 'asc' %}
+                            <a href="?sort_by=components&sort_order=desc" class="text-decoration-none text-dark">Components <i class="bi bi-caret-up-fill"></i></a>
+                        {% else %}
+                            <a href="?sort_by=components&sort_order=asc" class="text-decoration-none text-dark">Components <i class="bi bi-caret-down-fill"></i></a>
+                        {% endif %}
+                    {% else %}
+                        <a href="?sort_by=components&sort_order=desc" class="text-decoration-none text-dark">Components</a>
+                    {% endif %}
+                </th>
+                <th class="text-center" style="width: 20%;">
+                    {% if sort_by == 'mw' %}
+                        {% if sort_order == 'asc' %}
+                            <a href="?sort_by=mw&sort_order=desc" class="text-decoration-none text-dark">Total MW <i class="bi bi-caret-up-fill"></i></a>
+                        {% else %}
+                            <a href="?sort_by=mw&sort_order=asc" class="text-decoration-none text-dark">Total MW <i class="bi bi-caret-down-fill"></i></a>
+                        {% endif %}
+                    {% else %}
+                        <a href="?sort_by=mw&sort_order=desc" class="text-decoration-none text-dark">Total MW</a>
+                    {% endif %}
+                </th>
+                <th class="text-center" style="width: 10%;">View</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tech in technologies %}
+            <tr>
+                <td>
+                    <a href="{% url 'technology_detail_map' technology_name=tech.technology %}" class="text-decoration-none">
+                        <span class="badge me-2" style="background-color: {{ tech.technology|technology_color }}; color: white; font-size: 1rem; font-weight: normal; padding: 0.5rem 1rem;">
+                            {{ tech.technology }}
+                        </span>
+                    </a>
+                </td>
+                <td class="text-center">{{ tech.component_count }}</td>
+                <td class="text-center">{{ tech.total_mw|floatformat:1 }}</td>
+                <td class="text-center">
+                    <a href="{% url 'technology_detail_map' technology_name=tech.technology|urlencode %}" 
+                       class="btn btn-sm btn-success" 
+                       title="View {{ tech.technology }} locations on map">
+                        <i class="bi bi-map-fill"></i> Map
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="mt-4 text-center">
+        <a href="{% url 'technology_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Standard View
+        </a>
+    </div>
+</div>
+{% endblock %}

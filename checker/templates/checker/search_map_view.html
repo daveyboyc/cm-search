@@ -1,0 +1,822 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+{% load humanize %}
+
+{% block title %}{{ query }} - Map View - Capacity Market Search{% endblock %}
+
+{% block body_class %}map-view-page map-page{% endblock %}
+
+{% block container_class %}map-view-full-container{% endblock %}
+
+{% block extra_head %}
+    <!-- Keep all the same styles from search.html -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}" sizes="32x32">
+    <link rel="apple-touch-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        /* Override base template styles for fullscreen map view */
+        /* Cache bust: v2 */
+        body.map-view-page {
+            background-image: none !important;
+            background-color: #f8f9fa !important;
+        }
+        
+        /* Target all container variations with more specific selectors */
+        body.map-view-page > .container,
+        body.map-view-page > .container-fluid,
+        body.map-view-page > .map-view-full-container,
+        body.map-view-page > div[class*="container"] {
+            max-width: 100% !important;
+            width: 100vw !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: transparent !important;
+            border-radius: 0 !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+            box-shadow: none !important;
+        }
+        
+        /* Map view wrapper for full screen layout */
+        .map-view-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+            overflow: hidden;
+        }
+        
+        /* Header section */
+        .header-section {
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Main content area with split view */
+        .map-view-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 220px); /* Adjust based on header height */
+            overflow: hidden;
+        }
+        
+        .search-results-panel {
+            flex: 0 0 50%;
+            overflow-y: auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        }
+        
+        .map-panel {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Google-like header styles */
+        .google-like-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px 0;
+            color: white;
+        }
+        
+        .google-like-header h1 {
+            font-weight: bold;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .google-like-header .search-form {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .google-like-header .search-form .form-control {
+            height: 45px;
+            border-radius: 25px;
+            padding-left: 20px;
+            padding-right: 20px;
+            border: 1px solid #ddd;
+            background-color: white;
+            color: #333;
+            box-shadow: 0 1px 6px rgba(32,33,36,0.1);
+            font-size: 14px;
+        }
+        
+        .google-like-header .search-form .btn {
+            border-radius: 25px;
+            height: 45px;
+        }
+        
+        /* Navigation buttons */
+        .stats-link-container {
+            margin-top: 15px;
+        }
+        
+        .stats-link-container .btn {
+            margin: 0 5px;
+        }
+        
+        /* Results styling */
+        .results-list .result-item {
+            border-bottom: 1px solid #dee2e6;
+            padding: 15px 0;
+        }
+        
+        .results-list .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .company-links-section h3,
+        .component-results-section h3 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 5px;
+            display: inline-block;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .section-header h3 {
+            margin-bottom: 0;
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 5px;
+        }
+        
+        .sort-controls {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            border: 1px solid #dee2e6;
+        }
+        
+        .sort-controls a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #0d6efd;
+        }
+        
+        .sort-controls .active-sort {
+            font-weight: bold;
+            color: #000;
+        }
+        
+        /* Map status indicator */
+        .map-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        /* Hide elements that interfere with fullscreen */
+        body.map-view-page .page-footer,
+        body.map-view-page .theme-button-container,
+        body.map-view-page #helpButton,
+        body.map-view-page .top-nav-container {
+            display: none !important;
+        }
+        
+        /* Force override base.html container styles specifically */
+        body.map-page .container,
+        body.map-page div[class*="container"] {
+            background-image: none !important;
+            background-color: transparent !important;
+            flex-grow: unset !important;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 992px) {
+            .map-view-container {
+                flex-direction: column;
+            }
+            
+            .search-results-panel {
+                flex: 0 0 50vh;
+                width: 100%;
+            }
+            
+            .map-panel {
+                flex: 1;
+                width: 100%;
+                min-height: 400px;
+            }
+            
+            .google-like-header h1 {
+                font-size: 1.8rem;
+            }
+        }
+        
+        /* Custom Map Type Control */
+        .custom-map-type-control {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .map-type-btn {
+            border: none;
+            background: white;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: Roboto, Arial, sans-serif;
+            color: #333;
+            transition: background-color 0.2s;
+            border-right: 1px solid #e0e0e0;
+        }
+        
+        .map-type-btn:last-child {
+            border-right: none;
+        }
+        
+        .map-type-btn:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .map-type-btn.active {
+            background-color: #1976d2;
+            color: white;
+        }
+        
+        .map-type-btn.active:hover {
+            background-color: #1565c0;
+        }
+        
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .custom-map-type-control {
+                top: 5px;
+                right: 5px;
+            }
+            
+            .map-type-btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block navbar %}
+<!-- Skip default navbar -->
+{% endblock %}
+
+{% block content %}
+<div class="map-view-wrapper">
+    <div class="header-section">
+        <!-- Exact copy of search.html header -->
+        <div class="google-like-header">
+            <img src="{% static 'images/favicon.png' %}" alt="Capacity Market Logo" style="width: 80px; height: auto; margin-bottom: 1rem; filter: drop-shadow(0 0 3px white) drop-shadow(0 0 5px white);">
+            <h1>Capacity Market Search - Map View</h1>
+            <form method="get" action="{% url 'search_map_view' %}" class="search-form">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="Search company name, component, post code or CMU ID" value="{{ query }}">
+                    <input type="hidden" name="per_page" value="{{ per_page|default:'25' }}">
+                    {% if sort_by %}<input type="hidden" name="sort_by" value="{{ sort_by }}">{% endif %}
+                    {% if sort_order %}<input type="hidden" name="sort_order" value="{{ sort_order }}">{% endif %}
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </form>
+            
+            <!-- Navigation buttons -->
+            <div class="stats-link-container text-center"> 
+                <div class="d-flex justify-content-center gap-2"> 
+                    <a href="{% url 'search_components' %}?q={{ query }}" class="btn btn-light btn-sm list-view-btn"> 
+                        <i class="bi bi-list me-2"></i><span class="btn-text">List View</span>
+                    </a>
+                    {# REMOVED: Statistics page (caused excessive database costs) #}
+                    <a href="{% url 'map_view' %}" class="btn btn-success btn-sm"> 
+                        <i class="bi bi-map-fill"></i> Full Map
+                    </a>
+                    <a href="{% url 'donation_page' %}" class="btn btn-warning btn-sm"> 
+                        <i class="bi bi-cup-hot-fill"></i> Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if query %}
+    <!-- Main container with map -->
+    <div class="map-view-container">
+        <!-- Left panel: Search results -->
+        <div class="search-results-panel">
+            <!-- Sort Controls -->
+            <div class="sort-controls d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center">
+                    <span class="me-3">Sort by:</span>
+                    {% url 'search_map_view' as sort_base_url %}
+                    
+                    {% with current_sort_field='location' %}
+                        <a href="{{ sort_base_url }}?q={{ query|urlencode }}&per_page={{ per_page }}&sort_by={{ current_sort_field }}&sort_order={% if current_sort_field == sort_by and sort_order == 'asc' %}desc{% else %}asc{% endif %}"
+                           class="btn btn-sm {% if current_sort_field == sort_by %}btn-primary{% else %}btn-outline-secondary{% endif %} mx-1">
+                           A-Z
+                        </a>
+                    {% endwith %}
+
+                    {% with current_sort_field='components' %}
+                        <a href="{{ sort_base_url }}?q={{ query|urlencode }}&per_page={{ per_page }}&sort_by={{ current_sort_field }}&sort_order={% if current_sort_field == sort_by and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                           class="btn btn-sm {% if current_sort_field == sort_by %}btn-primary{% else %}btn-outline-secondary{% endif %} mx-1">
+                           Components
+                        </a>
+                    {% endwith %}
+
+                    {% with current_sort_field='mw' %}
+                        <a href="{{ sort_base_url }}?q={{ query|urlencode }}&per_page={{ per_page }}&sort_by={{ current_sort_field }}&sort_order={% if current_sort_field == sort_by and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                           class="btn btn-sm {% if current_sort_field == sort_by %}btn-primary{% else %}btn-outline-secondary{% endif %} mx-1">
+                           MW ↓
+                        </a>
+                    {% endwith %}
+
+                    {% with current_sort_field='date' %}
+                        <a href="{{ sort_base_url }}?q={{ query|urlencode }}&per_page={{ per_page }}&sort_by={{ current_sort_field }}&sort_order={% if current_sort_field == sort_by and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                           class="btn btn-sm {% if current_sort_field == sort_by %}btn-primary{% else %}btn-outline-secondary{% endif %} mx-1">
+                           Date
+                        </a>
+                    {% endwith %}
+                </div>
+            </div>
+            
+            {% if company_links or component_count > 0 or error %}
+                {% if note %}
+                    <div class="alert alert-secondary small">{{ note }}</div>
+                {% endif %}
+
+                {% if from_cache %}
+                    <div class="alert alert-info small">Results from cache.</div>
+                {% endif %}
+
+                {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Display Counts -->
+                <div class="mt-3 mb-3">
+                    <p class="text-muted">
+                        {% if component_count and page_obj %}
+                            Displaying <strong>{{ page_obj.start_index }} - {{ page_obj.end_index }}</strong> of <strong>{{ page_obj.paginator.count }}</strong> location groups 
+                            {% if page_obj.paginator.num_pages > 1 %}(Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}){% endif %}
+                            from <strong>{{ component_count }}</strong> total matching components
+                        {% elif component_count == 0 %}
+                            Found 0 matching components.
+                        {% else %}
+                            Loading component counts...
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Company Links Section -->
+                {% if company_links %}
+                    <div class="company-links-section mb-4">
+                        <div class="section-header">
+                            <h3>Matching Companies ({{ company_links|length }})</h3>
+                        </div>
+                        
+                        <div class="list-group" id="company-links-list">
+                            {% for link_html in company_links %}
+                                {% if forloop.counter0 < 3 %}
+                                    <div class="list-group-item company-link-item">{{ link_html|safe }}</div> 
+                                {% else %}
+                                    <div class="list-group-item company-link-item" style="display: none;">{{ link_html|safe }}</div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        {% if company_links|length > 3 %}
+                            <button id="show-more-companies-btn" class="btn btn-outline-secondary btn-sm mt-2">Show More Companies ({{ company_links|length|add:"-3" }} more)</button>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <!-- Component Results Section -->
+                {% if page_obj %}
+                    <div class="component-results-section">
+                        <div class="section-header mt-4">
+                            <h3>Location Results ({{ component_count }} components, {{ page_obj.paginator.count }} locations)</h3>
+                        </div>
+
+                        <div class="results-list" id="location-results">
+                            {% for group in page_obj %}
+                                {% if group.is_location_group %}
+                                    <div class="location-group-item result-item" 
+                                         data-location="{{ group.location }}"
+                                         data-id="{{ group.location_group_id }}">
+                                        {% include 'checker/components/_location_group_item.html' with location_group=group %}
+                                    </div>
+                                {% else %}
+                                    <div class="result-item mb-3 border-bottom pb-3">
+                                        <h5>
+                                            <i class="bi bi-geo-alt-fill me-1"></i>
+                                            {{ group.location|default:"Location N/A" }}
+                                        </h5>
+                                    </div>
+                                {% endif %}
+                            {% empty %}
+                                <div class="alert alert-warning">No components found matching your criteria for this page.</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        {% if page_obj.paginator.num_pages > 1 %}
+                            <nav aria-label="Component navigation" class="pagination-nav mt-4">
+                                <ul class="pagination pagination-lg justify-content-center">
+                                    {% url 'search_map_view' as base_search_url %}
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item"><a class="page-link" href="{{ base_search_url }}?q={{ query|urlencode }}&page=1&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">First</a></li>
+                                        <li class="page-item"><a class="page-link" href="{{ base_search_url }}?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Previous</a></li>
+                                    {% else %}
+                                        <li class="page-item disabled"><span class="page-link">First</span></li>
+                                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                                    {% endif %}
+
+                                    {% for i in page_range %}
+                                        {% if i == page_obj.number %}
+                                            <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                                        {% elif i == 0 %}
+                                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                                        {% else %}
+                                            <li class="page-item"><a class="page-link" href="{{ base_search_url }}?q={{ query|urlencode }}&page={{ i }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">{{ i }}</a></li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item"><a class="page-link" href="{{ base_search_url }}?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Next</a></li>
+                                        <li class="page-item"><a class="page-link" href="{{ base_search_url }}?q={{ query|urlencode }}&page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Last</a></li>
+                                    {% else %}
+                                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                                        <li class="page-item disabled"><span class="page-link">Last</span></li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    </div>
+                {% elif not company_links and query %}
+                    <div class="text-center w-100">
+                        <div class="alert alert-danger alert-no-results mt-4">No matching companies or components found for "{{ query }}".</div>
+                    </div>
+                {% endif %}
+            {% elif query %}
+                <div class="text-center w-100">
+                    <div class="alert alert-danger alert-no-results mt-4">
+                        No matching companies or components found for "{{ query }}".
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Right panel: Map -->
+        <div class="map-panel">
+            <div id="map"></div>
+            <!-- Custom Map Type Toggle -->
+            <div class="custom-map-type-control" id="customMapTypeControl">
+                <button class="map-type-btn active" data-type="roadmap">Map</button>
+                <button class="map-type-btn" data-type="satellite">Satellite</button>
+            </div>
+            <div class="map-status">
+                <small id="map-status-text">Loading map...</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Map variables
+let map;
+let markers = [];
+let currentPage = {{ page_obj.number|default:1 }};
+
+// Initialize Google Map
+async function initMap() {
+    console.log('Initializing map...');
+    
+    // Import necessary libraries for Advanced Markers
+    const { Map } = await google.maps.importLibrary("maps");
+    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+    
+    const mapElement = document.getElementById("map");
+    if (!mapElement) {
+        console.error('Map element not found!');
+        return;
+    }
+    
+    map = new google.maps.Map(mapElement, {
+        zoom: 6,
+        center: { lat: 54.5, lng: -3.5 }, // UK center
+        disableDefaultUI: false, // Ensure UI is enabled
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU, // Try dropdown instead of horizontal bar
+            position: google.maps.ControlPosition.TOP_RIGHT,
+            mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain'] // Explicitly specify available types
+        },
+        streetViewControl: false,
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_TOP
+        },
+        zoomControl: true,
+        zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_CENTER
+        },
+        gestureHandling: 'greedy', // Allow easier mobile interaction
+    });
+    
+    console.log('Map initialized:', map);
+    
+    // Force map controls to be visible on mobile
+    setTimeout(() => {
+        const style = document.createElement('style');
+        style.textContent = `
+            /* Force Google Maps controls to be visible on mobile */
+            .gmnoprint[style*="display: none"] {
+                display: block !important;
+            }
+            .gm-style .gmnoprint {
+                display: block !important;
+            }
+            .gm-style-mtc {
+                display: block !important;
+            }
+            /* Custom map type control styles */
+            .custom-map-control {
+                background-color: #fff;
+                border: 2px solid #fff;
+                border-radius: 3px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                cursor: pointer;
+                margin-bottom: 22px;
+                text-align: center;
+            }
+            .custom-map-control select {
+                color: rgb(25,25,25);
+                font-family: Roboto,Arial,sans-serif;
+                font-size: 15px;
+                line-height: 25px;
+                padding: 5px 10px;
+                border: none;
+                background: transparent;
+            }
+            /* Make controls more visible on mobile */
+            @media (max-width: 768px) {
+                .gm-style .gm-style-mtc {
+                    display: block !important;
+                    visibility: visible !important;
+                }
+                .gm-style .gmnoprint {
+                    display: block !important;
+                    visibility: visible !important;
+                }
+                .custom-map-control {
+                    margin-bottom: 10px;
+                    margin-right: 10px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Create custom map type control as fallback
+        const customMapTypeControl = document.createElement('div');
+        customMapTypeControl.className = 'custom-map-control';
+        customMapTypeControl.innerHTML = `
+            <select id="map-type-selector">
+                <option value="roadmap">Map</option>
+                <option value="satellite">Satellite</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="terrain">Terrain</option>
+            </select>
+        `;
+        
+        // Add change listener
+        customMapTypeControl.querySelector('#map-type-selector').addEventListener('change', function() {
+            map.setMapTypeId(this.value);
+        });
+        
+        // Add to map
+        map.controls[google.maps.ControlPosition.TOP_RIGHT].push(customMapTypeControl);
+        
+    }, 1000);
+    
+    // Load markers for current page if there's a query
+    if ("{{ query }}") {
+        loadMarkersFromGeoJSON();
+    }
+}
+
+// Load markers from GeoJSON API for current page
+function loadMarkersFromGeoJSON() {
+    const statusEl = document.getElementById('map-status-text');
+    const query = "{{ query|escapejs }}";
+    const page = {{ page_obj.number|default:1 }};
+    
+    if (!query) return;
+    
+    statusEl.textContent = 'Loading locations...';
+    
+    // Clear existing markers
+    markers.forEach(marker => marker.map = null);
+    markers = [];
+    
+    // Fetch only for current page locations
+    const apiUrl = `/api/search-geojson/?q=${encodeURIComponent(query)}&page=${page}&per_page={{ per_page|default:25 }}`;
+    
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.features && data.features.length > 0) {
+                const bounds = new google.maps.LatLngBounds();
+                
+                data.features.forEach(feature => {
+                    if (feature.geometry && feature.geometry.coordinates) {
+                        const [lng, lat] = feature.geometry.coordinates;
+                        const props = feature.properties;
+                        
+                        // Create a custom marker element for Advanced Markers
+                        const markerElement = document.createElement('div');
+                        markerElement.style.width = '20px';
+                        markerElement.style.height = '20px';
+                        markerElement.style.borderRadius = '50%';
+                        markerElement.style.backgroundColor = getMarkerColor(props.technology);
+                        markerElement.style.border = '2px solid white';
+                        markerElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+                        markerElement.style.cursor = 'pointer';
+                        
+                        const marker = new google.maps.marker.AdvancedMarkerElement({
+                            position: { lat: lat, lng: lng },
+                            map: map,
+                            title: props.location || props.title,
+                            content: markerElement
+                        });
+                        
+                        const infoWindow = new google.maps.InfoWindow({
+                            content: `
+                                <div style="padding: 10px;">
+                                    <h6>${props.location || props.title}</h6>
+                                    ${props.capacity_display ? `<p><strong>${props.capacity_display}</strong></p>` : ''}
+                                    ${props.technology ? `<p>${props.technology}</p>` : ''}
+                                    ${props.company ? `<p>${props.company}</p>` : ''}
+                                </div>
+                            `
+                        });
+                        
+                        marker.addListener('gmp-click', () => {
+                            infoWindow.open({
+                                anchor: marker,
+                                map: map
+                            });
+                            highlightLocation(props.location);
+                        });
+                        
+                        // Add double-click listener for zoom functionality
+                        marker.addListener('gmp-dblclick', () => {
+                            map.setCenter(marker.position);
+                            map.setZoom(20); // Maximum zoom for very close inspection
+                        });
+                        
+                        markers.push(marker);
+                        bounds.extend(marker.position);
+                    }
+                });
+                
+                // Fit map to markers
+                if (markers.length > 0) {
+                    map.fitBounds(bounds);
+                    statusEl.textContent = `Showing ${markers.length} locations on map`;
+                }
+            } else {
+                statusEl.textContent = 'No locations with coordinates found';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading map data:', error);
+            statusEl.textContent = 'Error loading map data';
+        });
+}
+
+// Get marker color based on technology
+function getMarkerColor(technology) {
+    if (!technology) return '#757575';
+    const tech = technology.toLowerCase();
+    if (tech.includes('battery')) return '#4caf50';
+    if (tech.includes('gas')) return '#ff9800';
+    if (tech.includes('wind')) return '#2196f3';
+    if (tech.includes('solar')) return '#ffeb3b';
+    if (tech.includes('dsr')) return '#9c27b0';
+    if (tech.includes('nuclear')) return '#f44336';
+    if (tech.includes('biomass')) return '#795548';
+    if (tech.includes('hydro')) return '#00bcd4';
+    return '#757575';
+}
+
+// Highlight location in results list
+function highlightLocation(location) {
+    document.querySelectorAll('.location-group-item').forEach(item => {
+        if (item.dataset.location === location) {
+            item.style.backgroundColor = '#e3f2fd';
+            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                item.style.backgroundColor = '';
+            }, 2000);
+        }
+    });
+}
+
+// Handle company links show more
+document.addEventListener('DOMContentLoaded', function() {
+    const showMoreBtn = document.getElementById('show-more-companies-btn');
+    const companyList = document.getElementById('company-links-list');
+
+    if (showMoreBtn && companyList) {
+        showMoreBtn.addEventListener('click', function() {
+            const hiddenItems = companyList.querySelectorAll('.company-link-item[style*="display: none"]');
+            hiddenItems.forEach(item => { item.style.display = ''; });
+            showMoreBtn.style.display = 'none';
+        });
+    }
+    
+    // Handle custom map type control
+    const mapTypeButtons = document.querySelectorAll('.map-type-btn');
+    mapTypeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const mapType = this.getAttribute('data-type');
+            
+            // Update map type
+            if (map) {
+                map.setMapTypeId(mapType);
+            }
+            
+            // Update button states
+            mapTypeButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    
+    // Initialize tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+});
+</script>
+
+<!-- Load Google Maps -->
+<script>
+// Add debugging
+console.log('Google Maps API Key:', '{{ google_maps_api_key }}' ? 'Present' : 'Missing');
+console.log('Query:', '{{ query }}');
+console.log('Page number:', {{ page_obj.number|default:1 }});
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap" async defer></script>
+{% endblock %}

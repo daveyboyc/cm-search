@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Timer Behavior Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { border: 1px solid #ccc; margin: 10px 0; padding: 15px; }
+        .status { font-weight: bold; }
+        .passed { color: green; }
+        .failed { color: red; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Timer Behavior Test Suite</h1>
+    
+    <div class="test-section">
+        <h3>Current Timer Status</h3>
+        <p id="timer-status">Checking...</p>
+        <p id="lockout-status">Checking...</p>
+        <p id="current-time">Current time: <span id="time-display"></span></p>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Controls</h3>
+        <button onclick="startNewTimer()">Start New Timer (30s)</button>
+        <button onclick="simulateExpiredTimer()">Simulate Expired Timer</button>
+        <button onclick="setLockout()">Set 24h Lockout</button>
+        <button onclick="clearAllTimers()">Clear All Timers</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Results</h3>
+        <div id="test-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Simulation Links</h3>
+        <p><strong>Test Scenario 1:</strong> <a href="javascript:testNavigationAfterExpiry()">Test navigation after timer expiry</a></p>
+        <p><strong>Test Scenario 2:</strong> <a href="javascript:testLockoutPersistence()">Test 24h lockout persistence</a></p>
+        <p><strong>Test Scenario 3:</strong> <a href="javascript:testWarningTiming()">Test 25s warning popup timing</a></p>
+    </div>
+
+    <script>
+        function updateCurrentStatus() {
+            const startTime = sessionStorage.getItem('timerStartTime');
+            const lockoutTime = sessionStorage.getItem('timerLockout');
+            const now = Date.now();
+            
+            // Timer status
+            if (startTime) {
+                const elapsed = Math.floor((now - parseInt(startTime)) / 1000);
+                const remaining = Math.max(0, 30 - elapsed);
+                document.getElementById('timer-status').innerHTML = 
+                    `<span class="status ${remaining > 0 ? 'passed' : 'failed'}">Timer: ${elapsed}s elapsed, ${remaining}s remaining</span>`;
+            } else {
+                document.getElementById('timer-status').innerHTML = '<span class="status">No active timer</span>';
+            }
+            
+            // Lockout status
+            if (lockoutTime) {
+                const lockoutHours = (now - parseInt(lockoutTime)) / (1000 * 60 * 60);
+                const remaining = Math.max(0, 24 - lockoutHours);
+                document.getElementById('lockout-status').innerHTML = 
+                    `<span class="status ${remaining > 0 ? 'failed' : 'passed'}">Lockout: ${lockoutHours.toFixed(1)}h elapsed, ${remaining.toFixed(1)}h remaining</span>`;
+            } else {
+                document.getElementById('lockout-status').innerHTML = '<span class="status">No lockout active</span>';
+            }
+            
+            // Current time
+            document.getElementById('time-display').textContent = new Date().toLocaleTimeString();
+        }
+        
+        function startNewTimer() {
+            sessionStorage.removeItem('timerLockout');
+            sessionStorage.setItem('timerStartTime', Date.now().toString());
+            logTest('✅ Started new 30-second timer');
+            updateCurrentStatus();
+        }
+        
+        function simulateExpiredTimer() {
+            const expiredTime = Date.now() - (35 * 1000); // 35 seconds ago
+            sessionStorage.setItem('timerStartTime', expiredTime.toString());
+            logTest('⚠️ Simulated expired timer (35s ago)');
+            updateCurrentStatus();
+        }
+        
+        function setLockout() {
+            sessionStorage.setItem('timerLockout', Date.now().toString());
+            logTest('🔒 Set 24-hour lockout');
+            updateCurrentStatus();
+        }
+        
+        function clearAllTimers() {
+            sessionStorage.removeItem('timerStartTime');
+            sessionStorage.removeItem('timerLockout');
+            logTest('🧹 Cleared all timers and lockouts');
+            updateCurrentStatus();
+        }
+        
+        function testNavigationAfterExpiry() {
+            simulateExpiredTimer();
+            setTimeout(() => {
+                logTest('🧪 Test: Simulating navigation to homepage after expiry...');
+                logTest('Expected: Should immediately redirect to must-register');
+                // In real app, this would redirect
+                logTest('📝 Result: Check console and navigation behavior');
+            }, 1000);
+        }
+        
+        function testLockoutPersistence() {
+            setLockout();
+            logTest('🧪 Test: 24h lockout set. Try refreshing page...');
+            logTest('Expected: Should maintain lockout until 24h passes');
+            logTest('📝 Result: Refresh this page to test persistence');
+        }
+        
+        function testWarningTiming() {
+            const warningTime = Date.now() - (26 * 1000); // 26 seconds ago (4s remaining)
+            sessionStorage.setItem('timerStartTime', warningTime.toString());
+            logTest('🧪 Test: Timer set to 26s elapsed (4s remaining)');
+            logTest('Expected: Warning popup should show since > 25s elapsed');
+            updateCurrentStatus();
+        }
+        
+        function logTest(message) {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        // Update status every second
+        setInterval(updateCurrentStatus, 1000);
+        updateCurrentStatus();
+        
+        // Log initial state
+        logTest('🏁 Timer test suite loaded');
+    </script>
+</body>
+</html>

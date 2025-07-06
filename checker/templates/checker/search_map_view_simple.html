@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ query }} - Search Results with Map</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .search-header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 20px;
+        }
+        
+        .search-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 10px 16px;
+            font-size: 16px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            outline: none;
+        }
+        
+        .search-input:focus {
+            border-color: #4285f4;
+            box-shadow: 0 1px 6px rgba(32,33,36,.28);
+        }
+        
+        .search-button {
+            padding: 9px 23px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .search-button:hover {
+            background-color: #357ae8;
+        }
+        
+        .results-count {
+            color: #70757a;
+            font-size: 14px;
+            margin: 0 20px 10px;
+        }
+        
+        .main-container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+        
+        .results-panel {
+            width: 600px;
+            background-color: white;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .map-panel {
+            flex: 1;
+            position: relative;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .result-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-title {
+            color: #1a0dab;
+            font-size: 18px;
+            font-weight: normal;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .result-title:hover {
+            text-decoration: underline;
+        }
+        
+        .result-meta {
+            color: #70757a;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .result-description {
+            color: #4d5156;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .company-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .company-section h4 {
+            color: #1a0dab;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .company-link {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 5px;
+            color: #1a0dab;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .company-link:hover {
+            text-decoration: underline;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: normal;
+            border-radius: 3px;
+            margin-right: 5px;
+        }
+        
+        .badge-primary {
+            background-color: #1a73e8;
+            color: white;
+        }
+        
+        .badge-success {
+            background-color: #188038;
+            color: white;
+        }
+        
+        .badge-info {
+            background-color: #098591;
+            color: white;
+        }
+        
+        .badge-secondary {
+            background-color: #70757a;
+            color: white;
+        }
+        
+        .location-link {
+            color: #1a0dab;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .location-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Loading indicator */
+        .map-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #70757a;
+        }
+        
+        /* Pagination */
+        .pagination {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .page-link {
+            padding: 6px 12px;
+            color: #4285f4;
+            text-decoration: none;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        
+        .page-link:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .page-link.active {
+            background-color: #4285f4;
+            color: white;
+            border-color: #4285f4;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-header">
+        <form method="get" action="{% url 'search_map_view' %}" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Search company name, component, post code or CMU ID" value="{{ query }}" autofocus>
+            <button type="submit" class="search-button">Search</button>
+        </form>
+    </div>
+    
+    {% if query %}
+    <div class="main-container">
+        <div class="results-panel">
+            <div class="results-count">
+                {% if location_groups %}
+                    About {{ location_groups|length }} results ({{ total_components|default:component_count }} components)
+                {% else %}
+                    About {{ component_count|default:"0" }} results
+                {% endif %}
+            </div>
+            
+            {% if company_links %}
+            <div class="company-section">
+                <h4>Related companies</h4>
+                {% for link_html in company_links %}
+                    {{ link_html|safe }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if location_groups %}
+                {% for group in location_groups %}
+                <div class="result-item">
+                    <a href="/location/{{ group.location_group_id }}/" class="result-title">{{ group.location }}</a>
+                    <div class="result-meta">
+                        {% if group.primary_company %}
+                            <span class="badge badge-success">{{ group.primary_company }}</span>
+                        {% endif %}
+                        {% if group.primary_technology %}
+                            <span class="badge badge-primary">{{ group.primary_technology }}</span>
+                        {% endif %}
+                        <span class="badge badge-secondary">{{ group.component_count }} components</span>
+                        {% if group.normalized_capacity_mw %}
+                            <span class="badge badge-info">{{ group.normalized_capacity_mw|floatformat:2 }} MW</span>
+                        {% endif %}
+                    </div>
+                    {% if group.descriptions %}
+                        <div class="result-description">
+                            {% for desc, count in group.descriptions.items|slice:":2" %}
+                                {{ desc }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% elif page_obj %}
+                {% for group in page_obj.object_list %}
+                <div class="result-item">
+                    {% if group.is_location_group %}
+                        <a href="/location/{{ group.location_group_id }}/" class="result-title">{{ group.location }}</a>
+                    {% else %}
+                        <span class="result-title">{{ group.location }}</span>
+                    {% endif %}
+                    <div class="result-meta">
+                        {% if group.primary_company %}
+                            <span class="badge badge-success">{{ group.primary_company }}</span>
+                        {% endif %}
+                        {% if group.primary_technology %}
+                            <span class="badge badge-primary">{{ group.primary_technology }}</span>
+                        {% endif %}
+                        <span class="badge badge-secondary">{{ group.component_count }} components</span>
+                        {% if group.normalized_capacity_mw %}
+                            <span class="badge badge-info">{{ group.normalized_capacity_mw|floatformat:2 }} MW</span>
+                        {% endif %}
+                    </div>
+                    {% if group.descriptions %}
+                        <div class="result-description">
+                            {% for desc, count in group.descriptions.items|slice:":2" %}
+                                {{ desc }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No results found for "{{ query }}"</p>
+            {% endif %}
+            
+            <!-- Pagination -->
+            {% if page_obj and page_obj.paginator.num_pages > 1 %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if num == page_obj.number %}
+                        <span class="page-link active">{{ num }}</span>
+                    {% else %}
+                        <a href="?q={{ query|urlencode }}&page={{ num }}" class="page-link">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <a href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}" class="page-link">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="map-panel">
+            <div id="map"></div>
+            <div class="map-loading">Loading map...</div>
+        </div>
+    </div>
+    
+    <script>
+    let map;
+    let markers = [];
+    let infoWindow;
+    
+    async function initMap() {
+        const mapElement = document.getElementById("map");
+        if (!mapElement) {
+            console.error('Map element not found!');
+            return;
+        }
+        
+        // Hide loading indicator
+        document.querySelector('.map-loading').style.display = 'none';
+        
+        try {
+            const { Map } = await google.maps.importLibrary("maps");
+            
+            map = new Map(mapElement, {
+                zoom: 6,
+                center: { lat: 54.5, lng: -3.5 }, // UK center
+                mapId: 'b922aa76eabe8b6c',
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                    position: google.maps.ControlPosition.TOP_LEFT,
+                    mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain']
+                },
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+        } catch (error) {
+            console.error("Error initializing map:", error);
+            return;
+        }
+        
+        // When user switches to satellite view, automatically enable labels (hybrid mode)
+        google.maps.event.addListener(map, 'maptypeid_changed', function() {
+            setTimeout(function() {
+                if (map.getMapTypeId() === google.maps.MapTypeId.SATELLITE) {
+                    // Switch to hybrid (satellite with labels) after a brief delay
+                    map.setMapTypeId(google.maps.MapTypeId.HYBRID);
+                }
+            }, 100);
+        });
+        
+        infoWindow = new google.maps.InfoWindow();
+        
+        // Load markers
+        loadMarkersFromGeoJSON();
+    }
+    
+    function loadMarkersFromGeoJSON() {
+        const query = "{{ query }}";
+        const page = {{ page_obj.number|default:1 }};
+        
+        if (!query) return;
+        
+        // Fetch GeoJSON data for current results
+        const apiUrl = `/api/search-geojson/?q=${encodeURIComponent(query)}&page=${page}&per_page=25`;
+        
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data.features && data.features.length > 0) {
+                    const bounds = new google.maps.LatLngBounds();
+                    
+                    data.features.forEach(feature => {
+                        if (feature.geometry && feature.geometry.coordinates) {
+                            const [lng, lat] = feature.geometry.coordinates;
+                            const props = feature.properties;
+                            
+                            const marker = new google.maps.Marker({
+                                position: { lat: lat, lng: lng },
+                                map: map,
+                                title: props.title || props.location,
+                            });
+                            
+                            // Create info window content
+                            const content = `
+                                <div style="max-width: 300px;">
+                                    <h6>${props.title || props.location}</h6>
+                                    <p style="margin: 5px 0;">
+                                        <strong>Technology:</strong> ${props.technology}<br>
+                                        <strong>Company:</strong> ${props.company}<br>
+                                        <strong>Components:</strong> ${props.component_count}<br>
+                                        ${props.capacity_display ? `<strong>Capacity:</strong> ${props.capacity_display}<br>` : ''}
+                                    </p>
+                                    <a href="${props.detailUrl}" target="_blank">View details</a>
+                                </div>
+                            `;
+                            
+                            marker.addListener('click', () => {
+                                infoWindow.setContent(content);
+                                infoWindow.open(map, marker);
+                            });
+                            
+                            markers.push(marker);
+                            bounds.extend(marker.getPosition());
+                        }
+                    });
+                    
+                    // Fit map to show all markers
+                    if (markers.length > 0) {
+                        map.fitBounds(bounds);
+                        // Don't zoom in too much for single markers
+                        if (markers.length === 1) {
+                            map.setZoom(12);
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading map data:', error);
+            });
+    }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap&libraries=places,marker&v=weekly"></script>
+    {% endif %}
+</body>
+</html>

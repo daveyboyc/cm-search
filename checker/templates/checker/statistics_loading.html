@@ -1,0 +1,48 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Loading Statistics - Capacity Market Search{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <h2 class="mb-4">Loading Statistics...</h2>
+            
+            <div class="spinner-border text-primary mb-4" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            
+            <p class="lead mb-4">We're calculating the latest statistics from our database.</p>
+            <p class="text-muted">This may take a few moments for the first load. Future loads will be much faster!</p>
+            
+            <div class="progress mt-4" style="height: 25px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                     role="progressbar" 
+                     style="width: 100%">
+                    Analyzing data...
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'search_companies' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Return to Search
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+{# REMOVED: Statistics page (caused excessive database costs)
+// Auto-refresh after 3 seconds
+setTimeout(function() {
+    window.location.href = "{% url 'search_components' %}";
+}, 3000);
+#}
+// Redirect to search instead
+setTimeout(function() {
+    window.location.href = "{% url 'search_components' %}";
+}, 3000);
+</script>
+{% endblock %}

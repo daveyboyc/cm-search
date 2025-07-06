@@ -1,0 +1,30 @@
+<!-- Temporary debug template - add this to account.html temporarily -->
+<div style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace;">
+    <h4>Debug User Data (testuser3)</h4>
+    <ul>
+        <li>Username: {{ user.username }}</li>
+        <li>Is Authenticated: {{ user.is_authenticated }}</li>
+        <li>Is Staff: {{ user.is_staff }}</li>
+        <li>Is Superuser: {{ user.is_superuser }}</li>
+        <li>Has Profile: {{ user.profile|yesno:"Yes,No" }}</li>
+        {% if user.profile %}
+        <li>Has Paid Access: {{ user.profile.has_paid_access|yesno:"Yes,No" }}</li>
+        <li>Payment Amount: £{{ user.profile.payment_amount|default:"0.00" }}</li>
+        <li>Free Access Start: {{ user.profile.free_access_start_time|default:"None" }}</li>
+        <li>Access Level: {{ user|user_access_level }}</li>
+        <li>Can Access Maps: {{ user|can_access_maps|yesno:"Yes,No" }}</li>
+        <li>Can Access Lists: {{ user|can_access_list_view|yesno:"Yes,No" }}</li>
+        {% endif %}
+        <li>Template has_paid_access var: {{ has_paid_access|yesno:"Yes,No" }}</li>
+    </ul>
+</div>
+
+<!-- JavaScript to check browser storage -->
+<script>
+console.log('=== DEBUG USER DATA ===');
+console.log('User Access Level:', '{{ user|user_access_level }}');
+console.log('Browser sessionStorage keys:', Object.keys(sessionStorage));
+console.log('freeAccessStartTime:', sessionStorage.getItem('freeAccessStartTime'));
+console.log('Template has_paid_access:', {{ has_paid_access|yesno:"true,false" }});
+console.log('=======================');
+</script>

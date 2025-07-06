@@ -1,0 +1,517 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-GB" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - Ad Preview | Capacity Market Search</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base styles */
+        html[data-bs-theme="light"] {
+            --bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-opacity='0.03'%3E%3Cpolygon fill='%23000' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-image: var(--bg-image);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Navigation */
+        .navbar {
+            background-color: rgba(66, 133, 244, 0.95) !important;
+            backdrop-filter: blur(10px);
+            padding: 10px 0;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: white !important;
+        }
+
+        .search-bar {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            background-color: rgba(var(--bs-body-bg-rgb), 0.92);
+            padding: 30px;
+            border-radius: 8px;
+            min-height: calc(100vh - 120px);
+        }
+
+        /* Ad Styles */
+        .ad-container {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+        }
+
+        .ad-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .ad-sidebar {
+            position: sticky;
+            top: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            height: fit-content;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .ad-inline {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .ad-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        /* Search results */
+        .search-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .result-company {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .result-details {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .badge-container {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .capacity-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .tech-badge {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .auction-badge {
+            background: #ffc107;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        /* User status */
+        .user-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px auto;
+                padding: 15px;
+                width: 98%;
+            }
+            
+            .ad-sidebar {
+                position: static;
+                margin-bottom: 20px;
+                min-height: 200px;
+            }
+            
+            .ad-banner {
+                height: 60px;
+                font-size: 14px;
+            }
+            
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Pagination */
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- User Status Indicator -->
+    <div class="user-status">
+        NON-SUBSCRIBER - Ads Visible
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">⚡ CMR Search</a>
+            <div class="search-bar">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search..." value="battery">
+                    <button class="btn btn-light" type="button">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+            <button class="btn btn-light btn-sm">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- TOP BANNER AD -->
+    <div class="ad-container ad-banner">
+        <div>
+            <div class="ad-label">Advertisement</div>
+            <div style="font-size: 18px; font-weight: bold;">🔋 Battery Energy Storage Systems</div>
+            <div style="font-size: 14px; margin-top: 5px;">Complete grid-scale solutions • Free consultation available</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Search Header -->
+                <div class="search-header">
+                    <h2>Search Results for "battery"</h2>
+                    <p class="text-muted">Found 47 components • Showing results 1-10</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge bg-primary">Active only</span>
+                        <span class="badge bg-secondary">All technologies</span>
+                        <span class="badge bg-info">Sort: Relevance</span>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div class="result-card">
+                    <div class="result-header">
+                        <div>
+                            <div class="result-title">Drax Battery Storage Facility</div>
+                            <div class="result-company">Drax Group plc</div>
+                            <div class="result-details">
+                                Location: Selby, North Yorkshire<br>
+                                CMU ID: T_DRAX-BAT-1<br>
+                                Technology: Battery Energy Storage System
+                            </div>
+                        </div>
+                        <div class="capacity-badge">40 MW</div>
+                    </div>
+                    <div class="badge-container">
+                        <span class="tech-badge">Battery</span>
+                        <span class="auction-badge">T-4 2025-26</span>
+                        <span class="auction-badge">T-1 2024-25</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <div>
+                            <div class="result-title">Cottam Battery Storage</div>
+                            <div class="result-company">EDF Energy Renewables</div>
+                            <div class="result-details">
+                                Location: Nottinghamshire<br>
+                                CMU ID: T_COTTAM-BAT-1<br>
+                                Technology: Lithium-Ion Battery Storage
+                            </div>
+                        </div>
+                        <div class="capacity-badge">49.5 MW</div>
+                    </div>
+                    <div class="badge-container">
+                        <span class="tech-badge">Battery</span>
+                        <span class="auction-badge">T-4 2026-27</span>
+                    </div>
+                </div>
+
+                <!-- INLINE AD BETWEEN RESULTS -->
+                <div class="ad-container ad-inline">
+                    <div class="ad-label">Sponsored</div>
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center">
+                            <div style="font-size: 30px;">⚡</div>
+                        </div>
+                        <div class="col-md-7">
+                            <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">
+                                Smart Grid Analytics Platform
+                            </div>
+                            <div style="font-size: 13px; color: #666;">
+                                Real-time monitoring and optimization for energy storage systems. Professional tools for capacity market analysis.
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button class="btn btn-primary btn-sm">Start Free Trial</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <div>
+                            <div class="result-title">Minety Battery Storage</div>
+                            <div class="result-company">Next Energy Technologies</div>
+                            <div class="result-details">
+                                Location: Wiltshire<br>
+                                CMU ID: T_MINETY-BAT-1<br>
+                                Technology: Grid-Scale Battery Storage
+                            </div>
+                        </div>
+                        <div class="capacity-badge">100 MW</div>
+                    </div>
+                    <div class="badge-container">
+                        <span class="tech-badge">Battery</span>
+                        <span class="auction-badge">T-4 2025-26</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <div>
+                            <div class="result-title">Hartlepool Battery Project</div>
+                            <div class="result-company">Hartlepool Power Limited</div>
+                            <div class="result-details">
+                                Location: Hartlepool, County Durham<br>
+                                CMU ID: T_HART-BAT-2<br>
+                                Technology: Battery Energy Storage
+                            </div>
+                        </div>
+                        <div class="capacity-badge">50 MW</div>
+                    </div>
+                    <div class="badge-container">
+                        <span class="tech-badge">Battery</span>
+                        <span class="auction-badge">T-1 2024-25</span>
+                    </div>
+                </div>
+
+                <!-- ANOTHER INLINE AD -->
+                <div class="ad-container ad-inline">
+                    <div class="ad-label">Advertisement</div>
+                    <div class="text-center">
+                        <div style="font-size: 24px; margin-bottom: 10px;">🏭</div>
+                        <div style="font-weight: bold; font-size: 18px; margin-bottom: 8px; color: #333;">
+                            Industrial Energy Solutions
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                            Reduce energy costs with our comprehensive battery storage and demand response programs
+                        </div>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button class="btn btn-outline-primary btn-sm">Learn More</button>
+                            <button class="btn btn-primary btn-sm">Get Quote</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <div>
+                            <div class="result-title">Capenhurst Battery Storage</div>
+                            <div class="result-company">Zenobe Energy</div>
+                            <div class="result-details">
+                                Location: Cheshire<br>
+                                CMU ID: T_CAP-BAT-1<br>
+                                Technology: Lithium Battery Storage
+                            </div>
+                        </div>
+                        <div class="capacity-badge">30 MW</div>
+                    </div>
+                    <div class="badge-container">
+                        <span class="tech-badge">Battery</span>
+                        <span class="auction-badge">T-4 2027-28</span>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-wrapper">
+                    <nav>
+                        <ul class="pagination">
+                            <li class="page-item disabled">
+                                <span class="page-link">Previous</span>
+                            </li>
+                            <li class="page-item active">
+                                <span class="page-link">1</span>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">2</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">3</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- SIDEBAR (Desktop) -->
+            <div class="col-lg-4">
+                <div class="ad-container ad-sidebar">
+                    <div class="ad-label">Sponsored Content</div>
+                    <div style="font-size: 36px; margin-bottom: 15px; text-align: center;">🔋</div>
+                    <h4 style="margin-bottom: 15px; text-align: center;">Battery Storage Financing</h4>
+                    <p style="text-align: center; margin-bottom: 20px; font-size: 14px; line-height: 1.5;">
+                        Flexible financing options for utility-scale battery projects. Competitive rates and fast approval.
+                    </p>
+                    <div class="text-center">
+                        <button class="btn btn-light btn-sm mb-2">Calculate Savings</button><br>
+                        <button class="btn btn-outline-light btn-sm">Contact Expert</button>
+                    </div>
+                </div>
+
+                <!-- Additional sidebar content -->
+                <div class="mt-3 p-3" style="background: rgba(var(--bs-light-rgb), 0.5); border-radius: 8px;">
+                    <h6>Quick Filters</h6>
+                    <div class="d-flex flex-column gap-2">
+                        <button class="btn btn-outline-primary btn-sm">Active Only</button>
+                        <button class="btn btn-outline-secondary btn-sm">By Technology</button>
+                        <button class="btn btn-outline-info btn-sm">By Region</button>
+                        <button class="btn btn-outline-success btn-sm">By Capacity</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Theme switcher
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+        }
+        
+        // Add click handlers to results
+        document.querySelectorAll('.result-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const title = this.querySelector('.result-title').textContent;
+                alert(`Clicked on: ${title}\n\nThis would open detailed component information.`);
+            });
+            card.style.cursor = 'pointer';
+        });
+        
+        // Add click handlers to badges
+        document.querySelectorAll('.badge').forEach(badge => {
+            badge.addEventListener('click', function(e) {
+                e.stopPropagation();
+                alert(`Filter by: ${this.textContent}\n\nThis would refine search results.`);
+            });
+            badge.style.cursor = 'pointer';
+        });
+        
+        // Pagination handlers
+        document.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (this.textContent !== 'Previous' && !this.parentElement.classList.contains('disabled')) {
+                    alert(`Navigate to page: ${this.textContent}`);
+                }
+            });
+        });
+        
+        // Theme toggle shortcut
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 't' || e.key === 'T') {
+                toggleTheme();
+            }
+        });
+        
+        console.log('Search Results Ad Preview Loaded');
+        console.log('Press "T" to toggle dark/light theme');
+        console.log('Ads shown: Top banner, Sidebar, 2x Inline ads between results');
+    </script>
+    
+    <div style="position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 11px; z-index: 1000;">
+        Press "T" to toggle theme • SEARCH RESULTS AD PREVIEW
+    </div>
+</body>
+</html>

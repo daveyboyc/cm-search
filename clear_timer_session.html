@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Timer Session</title>
+</head>
+<body>
+    <h1>Clearing Timer Session...</h1>
+    <script>
+        // Clear any existing timer sessions
+        sessionStorage.removeItem('timerStartTime');
+        localStorage.removeItem('welcomeNoticeShown');
+        console.log('Timer session cleared');
+        document.write('<p>✅ Timer session cleared successfully!</p>');
+        document.write('<p>You can now close this tab and refresh your main browser window.</p>');
+    </script>
+</body>
+</html>

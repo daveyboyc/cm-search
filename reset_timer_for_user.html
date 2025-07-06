@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reset Timer for Current User</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+        button { font-size: 18px; padding: 15px 30px; margin: 10px; }
+        .success { color: green; font-weight: bold; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🔄 Reset Map Timer</h1>
+    
+    <p class="info">This will clear the map trial timer for the current browser session.</p>
+    
+    <button onclick="resetTimer()" style="background: #007bff; color: white; border: none; border-radius: 5px;">
+        🔄 Reset 10-Minute Map Trial
+    </button>
+    
+    <button onclick="checkStatus()" style="background: #6c757d; color: white; border: none; border-radius: 5px;">
+        📊 Check Current Status
+    </button>
+    
+    <div id="status" style="margin-top: 20px;"></div>
+    
+    <script>
+        function resetTimer() {
+            // Clear all timer-related session storage
+            sessionStorage.removeItem('timerStartTime');
+            sessionStorage.removeItem('mapTrialExpired');
+            sessionStorage.removeItem('timerLockout'); // Old key
+            
+            document.getElementById('status').innerHTML = `
+                <p class="success">✅ Timer Reset Successfully!</p>
+                <p>You now have a fresh 10-minute trial for map features.</p>
+                <p><strong>Close this tab and refresh your main window to start the new trial.</strong></p>
+            `;
+        }
+        
+        function checkStatus() {
+            const startTime = sessionStorage.getItem('timerStartTime');
+            const trialExpired = sessionStorage.getItem('mapTrialExpired');
+            const oldLockout = sessionStorage.getItem('timerLockout');
+            
+            let status = '<h3>📊 Current Timer Status:</h3>';
+            
+            if (trialExpired) {
+                status += '<p style="color: red;">❌ Map trial has expired</p>';
+            } else if (startTime) {
+                const elapsed = Math.floor((Date.now() - parseInt(startTime)) / 1000);
+                const remaining = Math.max(0, 600 - elapsed);
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                status += `<p style="color: orange;">⏱️ Timer active: ${minutes}m ${seconds}s remaining</p>`;
+            } else {
+                status += '<p style="color: green;">✅ No active timer - fresh trial available</p>';
+            }
+            
+            if (oldLockout) {
+                status += '<p style="color: red;">⚠️ Old lockout detected (should be cleared)</p>';
+            }
+            
+            document.getElementById('status').innerHTML = status;
+        }
+        
+        // Check status on page load
+        checkStatus();
+    </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+{% extends "checker/base.html" %}
+{% load humanize %}
+{% load checker_tags %}
+
+{% block title %}{{ page_title|default:"Companies by Component Count" }}{% endblock %}
+
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 page-header">
+        <h1>{{ header_title|default:"Companies Ranked by Component Count" }}</h1>
+        {# REMOVED: Statistics page (caused excessive database costs)
+        <a href="{% url 'company_list_optimized' %}?sort_by=components&sort_order=desc" class="btn btn-outline-primary btn-sm">
+             <i class="bi bi-arrow-return-left"></i> Back to Statistics
+        </a>
+        #}
+        <a href="{% url 'company_list_optimized' %}" class="btn btn-outline-primary btn-sm">
+             <i class="bi bi-arrow-return-left"></i> Back to Companies
+        </a>
+    </div>
+
+    <!-- Sort Toggle Buttons -->
+    <div class="d-flex justify-content-end mb-3">
+        <a href="?sort={{ new_sort_order }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-{% if new_sort_order == 'desc' %}down{% else %}up{% endif %}-short"></i> Sort: {{ current_sort_label }}
+        </a>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <p class="text-muted">Displaying {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ total_companies|intcomma }} companies.</p>
+
+    <ul class="list-group list-group-flush mb-4">
+        {% for company_data in page_obj %}
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    {# Link directly to company detail page #}
+                    {% load checker_tags %}
+                    <a href="{% url 'company_detail' company_id=company_data.company_name|normalize %}" class="fw-bold text-decoration-none" title="View company details">
+                        {{ company_data.company_name|truncatechars:80 }}
+                    </a>
+                    <span class="badge bg-info rounded-pill">{{ company_data.component_count|intcomma }} {{ metric_name|default:"Components" }}</span>
+                </div>
+            </li>
+        {% empty %}
+            <li class="list-group-item">No companies found.</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+        <nav aria-label="Company navigation" class="pagination-nav">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1&sort={{ request.GET.sort|default:'desc' }}">First</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ request.GET.sort|default:'desc' }}">Previous</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">First</span></li>
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                {% endif %}
+
+                {% for i in page_obj.paginator.get_elided_page_range %}
+                    {% if i == page_obj.number %}
+                        <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                    {% elif i == page_obj.paginator.ELLIPSIS %}
+                         <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}&sort={{ request.GET.sort|default:'desc' }}">{{ i }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ request.GET.sort|default:'desc' }}">Next</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&sort={{ request.GET.sort|default:'desc' }}">Last</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    <li class="page-item disabled"><span class="page-link">Last</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+</div>
+{% endblock %} 

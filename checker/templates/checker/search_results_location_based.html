@@ -1,0 +1,135 @@
+{% extends "checker/base.html" %}
+{% load checker_tags %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Search form -->
+    <form method="get" action="{% url 'search_map_view' %}" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search components..." value="{{ query }}">
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </form>
+
+    <!-- Results header -->
+    <h2>Search Results for "{{ query }}"</h2>
+    <p class="text-muted">
+        Found {{ total_components }} components across {{ total_locations }} locations
+        {% if debug_info %}
+        <small>({{ debug_info.query_time|floatformat:2 }}s)</small>
+        {% endif %}
+    </p>
+
+    {% if location_groups %}
+    <!-- Results list - styled exactly like current component results -->
+    <div class="row">
+        {% for lg in location_groups %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{% url 'location_detail' lg.id %}">{{ lg.location }}</a>
+                    </h5>
+                    
+                    <!-- Component count and capacity -->
+                    <p class="text-muted mb-2">
+                        <small>
+                            {{ lg.component_count }} component{{ lg.component_count|pluralize }}
+                            {% if lg.get_display_capacity != "No capacity data" %}
+                            | {{ lg.get_display_capacity }}
+                            {% endif %}
+                        </small>
+                    </p>
+                    
+                    <!-- Descriptions (max 2, then "and X more") -->
+                    {% if lg.descriptions %}
+                    <div class="mb-2">
+                        <strong>Description{{ lg.descriptions|length|pluralize }}:</strong><br>
+                        {% for desc in lg.descriptions|slice:":2" %}
+                        {{ desc }}<br>
+                        {% endfor %}
+                        {% if lg.descriptions|length > 2 %}
+                        <small class="text-muted">(and {{ lg.descriptions|length|add:"-2" }} more)</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Technology -->
+                    <p class="mb-2">
+                        <strong>Technology:</strong> {{ lg.get_primary_technology }}
+                    </p>
+                    
+                    <!-- Company -->
+                    <p class="mb-2">
+                        <strong>Company:</strong> {{ lg.get_primary_company }}
+                    </p>
+                    
+                    <!-- CMU IDs (max 3, then "and X more") -->
+                    {% if lg.cmu_ids %}
+                    <p class="mb-2">
+                        <strong>CMU ID{{ lg.cmu_ids|length|pluralize }}:</strong>
+                        {% for cmu in lg.cmu_ids|slice:":3" %}
+                        <a href="{% url 'cmu_detail' cmu %}">{{ cmu }}</a>{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                        {% if lg.cmu_ids|length > 3 %}
+                        <small class="text-muted">(and {{ lg.cmu_ids|length|add:"-3" }} more)</small>
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                    
+                    <!-- Auction Years (max 3, newest first) -->
+                    {% if lg.auction_years %}
+                    <p class="mb-0">
+                        <strong>Auction{{ lg.auction_years|length|pluralize }}:</strong>
+                        {% for year in lg.auction_years|slice:":3" %}
+                        {{ year }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                        {% if lg.auction_years|length > 3 %}
+                        <small class="text-muted">(and {{ lg.auction_years|length|add:"-3" }} more)</small>
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Search results pages">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ query|urlencode }}&page={{ num }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <div class="alert alert-info">
+        No results found for "{{ query }}". Try a different search term.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

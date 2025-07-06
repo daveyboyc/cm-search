@@ -1,0 +1,785 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+{% load humanize %}
+
+{% block title %}Search Results - Unified View{% endblock %}
+
+{% block body_class %}unified-search-map{% endblock %}
+
+{% block container_class %}container-fluid p-0{% endblock %}
+
+{% block extra_head %}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<!-- Leaflet MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<style>
+    /* Override body/html for full height layout */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: none !important;
+        background-image: none !important;
+    }
+    
+    /* Remove background from unified search map page */
+    body.unified-search-map {
+        background: white !important;
+        background-image: none !important;
+    }
+
+    /* Override Bootstrap container to be full width */
+    .container-fluid {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    /* Fixed navbar styling - dark theme */
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1030;
+        height: 56px;
+        width: 100vw !important;
+        background-color: #212529 !important;
+    }
+    
+    /* Ensure navbar container is full width */
+    .navbar .container,
+    .navbar .container-fluid {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    
+    /* Make navbar items light colored */
+    .navbar-brand, 
+    .navbar-nav .nav-link {
+        color: #f8f9fa !important;
+    }
+    
+    .navbar-nav .nav-link:hover {
+        color: #adb5bd !important;
+    }
+
+    /* Main layout container - 3 sections fitting screen */
+    .unified-container {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+        position: relative;
+        padding-top: 56px; /* Account for fixed navbar */
+    }
+
+    /* Left sidebar for search results - wider and dark grey */
+    .results-sidebar {
+        width: 550px;
+        min-width: 500px;
+        max-width: 650px;
+        background-color: #343a40;
+        overflow-y: auto;
+        border-right: 2px solid #212529;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 56px);
+    }
+
+    /* Search header in sidebar - dark theme */
+    .search-header {
+        padding: 20px;
+        background-color: #495057;
+        border-bottom: 1px solid #212529;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        color: #f8f9fa;
+    }
+    
+    .search-header h2 {
+        color: #f8f9fa;
+    }
+    
+    .search-stats {
+        color: #adb5bd;
+    }
+    
+    .search-stats strong {
+        color: #f8f9fa;
+    }
+
+    .search-header h2 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    .search-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .filter-controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .filter-controls select {
+        padding: 5px 10px;
+        border: 1px solid #495057;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        background-color: #212529;
+        color: #f8f9fa;
+    }
+    
+    .filter-controls select:focus {
+        border-color: #6c757d;
+        outline: none;
+    }
+
+    /* Results list */
+    .results-list {
+        flex: 1;
+        padding: 0;
+        background-color: #343a40;
+    }
+
+    .result-item {
+        background-color: #495057;
+        border-bottom: 1px solid #343a40;
+        padding: 15px 20px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-bottom: 2px;
+    }
+
+    .result-item:hover {
+        background-color: #5a6268;
+    }
+
+    .result-item.active {
+        background-color: #6c757d;
+        border-left: 4px solid #0d6efd;
+    }
+
+    .result-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 8px;
+    }
+
+    .result-item-title {
+        font-weight: 600;
+        color: #f8f9fa;
+        font-size: 1rem;
+        flex: 1;
+        margin-right: 10px;
+    }
+
+    .result-item-capacity {
+        font-size: 0.9rem;
+        color: #adb5bd;
+        white-space: nowrap;
+    }
+
+    .result-item-details {
+        display: flex;
+        gap: 15px;
+        font-size: 0.85rem;
+        color: #adb5bd;
+    }
+
+    .result-item-detail {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #adb5bd;
+    }
+    
+    .result-item-detail i {
+        color: #8b939a;
+    }
+
+    .tech-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-right: 5px;
+    }
+
+    .tech-battery { background-color: #4caf50; color: white; }
+    .tech-gas { background-color: #ff9800; color: white; }
+    .tech-wind { background-color: #2196f3; color: white; }
+    .tech-solar { background-color: #ffeb3b; color: #333; }
+    .tech-dsr { background-color: #9c27b0; color: white; }
+    .tech-nuclear { background-color: #f44336; color: white; }
+    .tech-biomass { background-color: #795548; color: white; }
+    .tech-hydro { background-color: #00bcd4; color: white; }
+
+    /* Pagination */
+    .pagination-container {
+        padding: 15px 20px;
+        background-color: #495057;
+        border-top: 1px solid #212529;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .pagination {
+        margin: 0;
+    }
+    
+    /* Dark theme for pagination */
+    .pagination .page-link {
+        background-color: #343a40;
+        border-color: #495057;
+        color: #f8f9fa;
+    }
+    
+    .pagination .page-link:hover {
+        background-color: #495057;
+        border-color: #6c757d;
+        color: #f8f9fa;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .pagination .page-item.disabled .page-link {
+        background-color: #343a40;
+        border-color: #343a40;
+        color: #6c757d;
+    }
+
+    /* Map container - takes remaining space */
+    .map-container {
+        flex: 1;
+        position: relative;
+        height: calc(100vh - 56px);
+        overflow: hidden;
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Map controls overlay */
+    .map-overlay-controls {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    /* Ensure proper layout hierarchy */
+    body > .container-fluid {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        width: 100vw;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .results-sidebar {
+            width: 100%;
+            position: absolute;
+            z-index: 1001;
+            height: 50%;
+            bottom: 0;
+        }
+        
+        .map-container {
+            height: 50%;
+        }
+        
+        .unified-container {
+            flex-direction: column;
+        }
+    }
+
+    /* Loading spinner */
+    .loading-spinner {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2000;
+    }
+
+    .loading-spinner.active {
+        display: block;
+    }
+
+    /* Custom scrollbar for results - dark theme */
+    .results-sidebar::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .results-sidebar::-webkit-scrollbar-track {
+        background: #212529;
+    }
+
+    .results-sidebar::-webkit-scrollbar-thumb {
+        background: #6c757d;
+        border-radius: 4px;
+    }
+
+    .results-sidebar::-webkit-scrollbar-thumb:hover {
+        background: #8b939a;
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="unified-container">
+    <!-- Left Sidebar: Search Results -->
+    <div class="results-sidebar">
+        <div class="search-header">
+            <h2>Search Results</h2>
+            <div class="search-stats">
+                <span>Showing <strong id="results-count">25</strong> of <strong id="total-count">100</strong> results</span>
+                <button class="btn btn-sm btn-outline-light" id="view-all-btn">
+                    <i class="fas fa-expand"></i> View All
+                </button>
+            </div>
+            <div class="filter-controls">
+                <select id="tech-filter" class="form-select form-select-sm">
+                    <option value="">All Technologies</option>
+                    <option value="battery">Battery</option>
+                    <option value="gas">Gas</option>
+                    <option value="wind">Wind</option>
+                    <option value="solar">Solar</option>
+                    <option value="dsr">DSR</option>
+                    <option value="nuclear">Nuclear</option>
+                    <option value="biomass">Biomass</option>
+                    <option value="hydro">Hydro</option>
+                </select>
+                <select id="sort-filter" class="form-select form-select-sm">
+                    <option value="relevance">Sort by Relevance</option>
+                    <option value="capacity">Capacity (High to Low)</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="year">Year (Newest First)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="results-list" id="results-list">
+            <!-- Results will be populated here -->
+        </div>
+
+        <div class="pagination-container">
+            <nav aria-label="Search results pagination">
+                <ul class="pagination pagination-sm">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#">4</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Right Side: Map -->
+    <div class="map-container">
+        <div id="map"></div>
+        
+        <!-- Map Controls Overlay -->
+        <div class="map-overlay-controls">
+            <div class="toggle-container">
+                <label class="form-check-label" for="active-toggle">
+                    <i class="fas fa-power-off"></i> Active Only
+                </label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="active-toggle" checked>
+                </div>
+            </div>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Map type">
+                <button type="button" class="btn btn-outline-secondary active" id="map-btn" data-map-type="streets">
+                    <i class="fas fa-map"></i> Map
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="satellite-btn" data-map-type="satellite">
+                    <i class="fas fa-satellite"></i> Satellite
+                </button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" id="reset-view">
+                <i class="fas fa-compress"></i> Reset View
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+// Mock data generator with realistic UK coordinates
+function generateMockData() {
+    // Real UK city coordinates
+    const locationCoords = {
+        'London': { lat: 51.5074, lng: -0.1278 },
+        'Manchester': { lat: 53.4808, lng: -2.2426 },
+        'Birmingham': { lat: 52.4862, lng: -1.8904 },
+        'Leeds': { lat: 53.8008, lng: -1.5491 },
+        'Glasgow': { lat: 55.8642, lng: -4.2518 },
+        'Liverpool': { lat: 53.4084, lng: -2.9916 },
+        'Bristol': { lat: 51.4545, lng: -2.5879 },
+        'Sheffield': { lat: 53.3811, lng: -1.4701 },
+        'Edinburgh': { lat: 55.9533, lng: -3.1883 },
+        'Leicester': { lat: 52.6369, lng: -1.1398 },
+        'Coventry': { lat: 52.4068, lng: -1.5197 },
+        'Nottingham': { lat: 52.9548, lng: -1.1581 },
+        'Newcastle': { lat: 54.9783, lng: -1.6178 },
+        'Cardiff': { lat: 51.4816, lng: -3.1791 },
+        'Belfast': { lat: 54.5973, lng: -5.9301 },
+        'Southampton': { lat: 50.9097, lng: -1.4044 },
+        'Portsmouth': { lat: 50.8198, lng: -1.0880 },
+        'York': { lat: 53.9600, lng: -1.0873 },
+        'Oxford': { lat: 51.7520, lng: -1.2577 },
+        'Cambridge': { lat: 52.2053, lng: 0.1218 }
+    };
+    
+    const locations = Object.keys(locationCoords);
+    const technologies = ['battery', 'gas', 'wind', 'solar', 'dsr', 'nuclear', 'biomass', 'hydro'];
+    const companies = ['EnergyUK Ltd', 'PowerGen Solutions', 'Green Energy Co', 'National Grid Services', 
+                      'Renewable Power Ltd', 'Energy Storage Inc', 'Clean Power Systems'];
+    
+    const mockData = [];
+    
+    for (let i = 0; i < 100; i++) {
+        const tech = technologies[Math.floor(Math.random() * technologies.length)];
+        const location = locations[Math.floor(Math.random() * locations.length)];
+        const company = companies[Math.floor(Math.random() * companies.length)];
+        const coords = locationCoords[location];
+        
+        // Add some random offset to create multiple facilities per city
+        const latOffset = (Math.random() - 0.5) * 0.2;
+        const lngOffset = (Math.random() - 0.5) * 0.2;
+        
+        mockData.push({
+            id: i + 1,
+            name: `${location} ${tech.charAt(0).toUpperCase() + tech.slice(1)} Facility ${i + 1}`,
+            location: location,
+            technology: tech,
+            capacity: Math.floor(Math.random() * 500) + 10,
+            company: company,
+            year: 2020 + Math.floor(Math.random() * 5),
+            cmu_id: `CMU_${String(i + 1).padStart(5, '0')}`,
+            lat: coords.lat + latOffset,
+            lng: coords.lng + lngOffset,
+            active: Math.random() > 0.3 // 70% active
+        });
+    }
+    
+    return mockData;
+}
+
+// Initialize mock data
+const allResults = generateMockData();
+let currentPage = 1;
+const resultsPerPage = 25;
+let filteredResults = [...allResults];
+let map;
+let markers = [];
+let markerClusterGroup;
+
+// Initialize map
+let streetLayer, satelliteLayer;
+
+function initMap() {
+    map = L.map('map').setView([54.5, -3.5], 6); // Center on UK
+    
+    // Street layer
+    streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    });
+    
+    // Satellite layer (using ESRI World Imagery)
+    satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+    
+    // Add street layer by default
+    streetLayer.addTo(map);
+    
+    markerClusterGroup = L.markerClusterGroup();
+    map.addLayer(markerClusterGroup);
+    
+    updateMapMarkers();
+}
+
+// Update map markers based on current filtered results
+function updateMapMarkers() {
+    // Clear existing markers
+    markerClusterGroup.clearLayers();
+    markers = [];
+    
+    // Add markers for filtered results
+    filteredResults.forEach((result, index) => {
+        const icon = getMarkerIcon(result.technology);
+        const marker = L.marker([result.lat, result.lng], { icon: icon });
+        
+        marker.bindPopup(`
+            <div style="min-width: 200px;">
+                <h6>${result.name}</h6>
+                <p class="mb-1"><strong>Capacity:</strong> ${result.capacity} MW</p>
+                <p class="mb-1"><strong>Technology:</strong> ${result.technology}</p>
+                <p class="mb-1"><strong>Company:</strong> ${result.company}</p>
+                <p class="mb-0"><strong>CMU ID:</strong> ${result.cmu_id}</p>
+            </div>
+        `);
+        
+        marker.resultId = result.id;
+        markers.push(marker);
+        markerClusterGroup.addLayer(marker);
+    });
+}
+
+// Get marker icon based on technology
+function getMarkerIcon(technology) {
+    const colors = {
+        battery: '#4caf50',
+        gas: '#ff9800',
+        wind: '#2196f3',
+        solar: '#ffeb3b',
+        dsr: '#9c27b0',
+        nuclear: '#f44336',
+        biomass: '#795548',
+        hydro: '#00bcd4'
+    };
+    
+    return L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="background-color: ${colors[technology]}; width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
+}
+
+// Render results list
+function renderResults() {
+    const startIndex = (currentPage - 1) * resultsPerPage;
+    const endIndex = startIndex + resultsPerPage;
+    const pageResults = filteredResults.slice(startIndex, endIndex);
+    
+    const resultsHtml = pageResults.map(result => `
+        <div class="result-item" data-id="${result.id}" data-lat="${result.lat}" data-lng="${result.lng}">
+            <div class="result-item-header">
+                <div class="result-item-title">${result.name}</div>
+                <div class="result-item-capacity">${result.capacity} MW</div>
+            </div>
+            <div class="result-item-details">
+                <span class="tech-badge tech-${result.technology}">${result.technology.toUpperCase()}</span>
+                <div class="result-item-detail">
+                    <i class="fas fa-building"></i> ${result.company}
+                </div>
+                <div class="result-item-detail">
+                    <i class="fas fa-calendar"></i> ${result.year}
+                </div>
+                <div class="result-item-detail">
+                    <i class="fas fa-tag"></i> ${result.cmu_id}
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('results-list').innerHTML = resultsHtml;
+    document.getElementById('results-count').textContent = Math.min(filteredResults.length, resultsPerPage);
+    document.getElementById('total-count').textContent = filteredResults.length;
+    
+    updatePagination();
+}
+
+// Update pagination
+function updatePagination() {
+    const totalPages = Math.ceil(filteredResults.length / resultsPerPage);
+    const paginationContainer = document.querySelector('.pagination');
+    
+    let paginationHtml = `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
+        </li>
+    `;
+    
+    for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+        paginationHtml += `
+            <li class="page-item ${currentPage === i ? 'active' : ''}">
+                <a class="page-link" href="#" data-page="${i}">${i}</a>
+            </li>
+        `;
+    }
+    
+    paginationHtml += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
+        </li>
+    `;
+    
+    paginationContainer.innerHTML = paginationHtml;
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    renderResults();
+    
+    // Filter by technology
+    document.getElementById('tech-filter').addEventListener('change', function(e) {
+        const tech = e.target.value;
+        if (tech) {
+            filteredResults = allResults.filter(r => r.technology === tech);
+        } else {
+            filteredResults = [...allResults];
+        }
+        currentPage = 1;
+        renderResults();
+        updateMapMarkers();
+    });
+    
+    // Sort results
+    document.getElementById('sort-filter').addEventListener('change', function(e) {
+        const sortBy = e.target.value;
+        switch(sortBy) {
+            case 'capacity':
+                filteredResults.sort((a, b) => b.capacity - a.capacity);
+                break;
+            case 'name':
+                filteredResults.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'year':
+                filteredResults.sort((a, b) => b.year - a.year);
+                break;
+        }
+        renderResults();
+    });
+    
+    // Pagination clicks
+    document.querySelector('.pagination').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (e.target.classList.contains('page-link')) {
+            const page = parseInt(e.target.dataset.page);
+            if (page && page !== currentPage) {
+                currentPage = page;
+                renderResults();
+            }
+        }
+    });
+    
+    // Result item clicks - zoom to location on map
+    document.getElementById('results-list').addEventListener('click', function(e) {
+        const resultItem = e.target.closest('.result-item');
+        if (resultItem) {
+            const lat = parseFloat(resultItem.dataset.lat);
+            const lng = parseFloat(resultItem.dataset.lng);
+            const id = parseInt(resultItem.dataset.id);
+            
+            // Highlight selected item
+            document.querySelectorAll('.result-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            resultItem.classList.add('active');
+            
+            // Zoom to location on map
+            map.setView([lat, lng], 12);
+            
+            // Open popup for the marker
+            const marker = markers.find(m => m.resultId === id);
+            if (marker) {
+                marker.openPopup();
+            }
+        }
+    });
+    
+    // Active toggle
+    document.getElementById('active-toggle').addEventListener('change', function(e) {
+        if (e.target.checked) {
+            filteredResults = allResults.filter(r => r.active);
+        } else {
+            filteredResults = [...allResults];
+        }
+        currentPage = 1;
+        renderResults();
+        updateMapMarkers();
+    });
+    
+    // Map type switching
+    document.getElementById('map-btn').addEventListener('click', function() {
+        if (!this.classList.contains('active')) {
+            map.removeLayer(satelliteLayer);
+            map.addLayer(streetLayer);
+            this.classList.add('active');
+            document.getElementById('satellite-btn').classList.remove('active');
+        }
+    });
+    
+    document.getElementById('satellite-btn').addEventListener('click', function() {
+        if (!this.classList.contains('active')) {
+            map.removeLayer(streetLayer);
+            map.addLayer(satelliteLayer);
+            this.classList.add('active');
+            document.getElementById('map-btn').classList.remove('active');
+        }
+    });
+    
+    // Reset view button
+    document.getElementById('reset-view').addEventListener('click', function() {
+        map.setView([54.5, -3.5], 6);
+    });
+    
+    // View all button
+    document.getElementById('view-all-btn').addEventListener('click', function() {
+        // In real implementation, this would load all results
+        alert('View all functionality would load complete results without pagination');
+    });
+});
+</script>
+{% endblock %}

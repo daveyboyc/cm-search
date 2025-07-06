@@ -1,0 +1,385 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}SW11 Search Map Test (Improved) - Capacity Market Search{% endblock %}
+
+{% block container_class %}container-fluid{% endblock %}
+
+{% block extra_head %}
+<style>
+    #map-container {
+        width: 100%;
+        height: 600px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        position: relative;
+    }
+    
+    #map {
+        height: 100%;
+        width: 100%;
+    }
+    
+    #map-status {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 5px 10px;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 4px;
+        z-index: 500;
+    }
+    
+    .search-info {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background-color: rgba(255,255,255,0.8);
+        padding: 10px;
+        border-radius: 5px;
+    }
+    
+    .map-controls {
+        margin-top: 10px;
+    }
+    
+    #debug-output {
+        max-height: 200px;
+        overflow-y: auto;
+        font-size: 12px;
+        font-family: monospace;
+    }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<header class="py-3 text-center">
+    <h1>SW11 Search Results Map (Improved)</h1>
+    <p class="text-muted">Testing improved postcode search with outward_code filtering</p>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                Search Test Tools
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="search-input" class="form-label">Search Query:</label>
+                    <div class="input-group">
+                        <input type="text" id="search-input" class="form-control" value="SW11">
+                        <button id="test-search-btn" class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="outward-toggle" checked>
+                    <label class="form-check-label" for="outward-toggle">
+                        Use outward_code filtering
+                    </label>
+                </div>
+                <div>
+                    <a href="/" class="btn btn-sm btn-outline-secondary me-2">Home</a>
+                    <a href="/?q=sw11" class="btn btn-sm btn-outline-secondary me-2">SW11 Search</a>
+                    <a href="/map/" class="btn btn-sm btn-outline-secondary">Full Map</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="position-relative mb-3">
+    <div id="map-container">
+        <div id="map"></div>
+        <div id="map-status">Loading map...</div>
+        <div class="search-info">
+            <h5>Search Results</h5>
+            <div id="search-stats">
+                SW11 - <span id="result-count">0</span> results
+            </div>
+            <div class="mt-2 d-flex">
+                <a href="/?q=sw11" class="btn btn-sm btn-outline-secondary list-view-btn"><i class="bi bi-list me-2"></i><span class="btn-text">List View</span></a>
+                <button id="clear-markers-btn" class="btn btn-sm btn-outline-secondary ms-2">Clear Markers</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="map-controls d-flex justify-content-between">
+        <div>
+            <span id="marker-count">0</span> markers displayed
+            (<span id="geocoded-count">0</span> geocoded, <span id="non-geocoded-count">0</span> non-geocoded)
+        </div>
+        <div>
+            <button id="center-map-btn" class="btn btn-sm btn-outline-secondary">Center Map</button>
+        </div>
+    </div>
+</div>
+
+<!-- Debug output card -->
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+        Debug Output
+        <button id="clear-log-btn" class="btn btn-sm btn-light">Clear</button>
+    </div>
+    <div class="card-body p-2">
+        <pre id="debug-output" class="bg-light p-2 mb-0"></pre>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Global variables
+    let map, infoWindow, markers = [];
+    const SW11_CENTER = { lat: 51.47, lng: -0.165 }; // Centered on SW11
+    const API_URL = "/api/map-data/";
+    
+    // Debug logging helper
+    function log(message) {
+        console.log(message);
+        const debugOutput = document.getElementById('debug-output');
+        if (debugOutput) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            debugOutput.innerHTML = `[${timeStr}] ${message}\n` + debugOutput.innerHTML;
+            
+            // Trim log if too long
+            if (debugOutput.innerHTML.length > 10000) {
+                debugOutput.innerHTML = debugOutput.innerHTML.substring(0, 10000) + '...';
+            }
+        }
+    }
+    
+    // Show status message
+    function showStatus(message, duration = 0) {
+        const statusEl = document.getElementById('map-status');
+        if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+            
+            if (duration > 0) {
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, duration);
+            }
+        }
+    }
+    
+    // Clear existing markers
+    function clearMarkers() {
+        markers.forEach(marker => {
+            if (marker) marker.setMap(null);
+        });
+        markers = [];
+        document.getElementById('marker-count').textContent = '0';
+        document.getElementById('geocoded-count').textContent = '0';
+        document.getElementById('non-geocoded-count').textContent = '0';
+    }
+    
+    // Perform search using the improved API
+    function performSearch() {
+        // Get search query from input
+        const searchQuery = document.getElementById('search-input').value.trim();
+        const useOutwardCode = document.getElementById('outward-toggle').checked;
+        
+        if (!searchQuery) {
+            log("Please enter a search query");
+            return;
+        }
+        
+        // Clear existing markers
+        clearMarkers();
+        
+        // Show loading status
+        showStatus("Searching...");
+        
+        // Build URL parameters
+        const params = new URLSearchParams();
+        params.append('q', searchQuery);
+        
+        // Add parameter to toggle outward_code filtering
+        if (useOutwardCode) {
+            params.append('use_outward_code', 'true');
+        }
+        
+        // Build the API URL
+        const url = `${API_URL}?${params.toString()}`;
+        log(`Searching for '${searchQuery}' with URL: ${url}`);
+        
+        // Make the request
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                log(`Received ${data.features.length} features out of ${data.metadata.total} total matches`);
+                
+                // Log additional metadata
+                const metadata = data.metadata || {};
+                log(`Metadata: ${JSON.stringify(metadata)}`);
+                
+                // Update the UI with result counts
+                document.getElementById('search-stats').innerHTML = 
+                    `${searchQuery} - <span id="result-count">${data.features.length}</span> results`;
+                document.getElementById('marker-count').textContent = data.features.length;
+                document.getElementById('geocoded-count').textContent = metadata.geocoded_count || 0;
+                document.getElementById('non-geocoded-count').textContent = metadata.non_geocoded_count || 0;
+                
+                // Display the markers
+                displayMarkers(data);
+                
+                // Hide status
+                showStatus("Search complete", 1500);
+            })
+            .catch(error => {
+                log(`ERROR: ${error.message}`);
+                showStatus(`Error: ${error.message}`, 3000);
+            });
+    }
+    
+    // Display markers for search results
+    function displayMarkers(data) {
+        if (!data.features || data.features.length === 0) {
+            log("No features to display");
+            return;
+        }
+        
+        // Process each feature
+        data.features.forEach(feature => {
+            try {
+                if (!feature.geometry || !feature.geometry.coordinates) {
+                    log(`Invalid feature: ${JSON.stringify(feature).substring(0, 100)}...`);
+                    return;
+                }
+                
+                const coords = feature.geometry.coordinates;
+                const position = {
+                    lat: coords[1],
+                    lng: coords[0]
+                };
+                
+                // Create marker options
+                const markerOptions = {
+                    position: position,
+                    map: map,
+                    title: feature.properties.title || 'Component'
+                };
+                
+                // Check if this is a fallback marker
+                if (feature.properties.is_fallback) {
+                    markerOptions.icon = {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 12,
+                        fillColor: '#FFC107',
+                        fillOpacity: 0.7,
+                        strokeColor: '#FF6F00',
+                        strokeWeight: 2
+                    };
+                }
+                
+                // Create the marker
+                const marker = new google.maps.Marker(markerOptions);
+                
+                // Create info window content
+                const props = feature.properties;
+                const content = `
+                    <div style="max-width: 300px;">
+                        <h5>${props.title || 'Component'}</h5>
+                        ${props.company ? `<p><strong>Company:</strong> ${props.company}</p>` : ''}
+                        ${props.technology ? `<p><strong>Technology:</strong> ${props.technology}</p>` : ''}
+                        ${props.description ? `<p><strong>Description:</strong> ${props.description}</p>` : ''}
+                        ${props.cmu_id ? `<p><strong>CMU ID:</strong> ${props.cmu_id}</p>` : ''}
+                        ${props.delivery_year ? `<p><strong>Year:</strong> ${props.delivery_year}</p>` : ''}
+                        ${props.id && !props.is_fallback ? 
+                            `<a href="/component/${props.id}/" class="btn btn-sm btn-primary" target="_blank">View Details</a>` : ''}
+                    </div>
+                `;
+                
+                // Add click handler
+                marker.addListener('click', () => {
+                    infoWindow.setContent(content);
+                    infoWindow.open(map, marker);
+                });
+                
+                // Store the marker
+                markers.push(marker);
+            } catch (error) {
+                log(`Error creating marker: ${error.message}`);
+            }
+        });
+        
+        // If we have markers, make sure they're visible on the map
+        if (markers.length > 0) {
+            // Try to fit bounds if multiple markers
+            if (markers.length > 1) {
+                const bounds = new google.maps.LatLngBounds();
+                markers.forEach(marker => {
+                    bounds.extend(marker.getPosition());
+                });
+                map.fitBounds(bounds);
+            } else {
+                // Just center on the single marker
+                map.setCenter(markers[0].getPosition());
+                map.setZoom(15);
+            }
+        }
+        
+        log(`Successfully created ${markers.length} markers`);
+    }
+    
+    // Initialize the map
+    function initMap() {
+        log("Map initialization started");
+        
+        // Create the map
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: SW11_CENTER,
+            zoom: 14,
+            mapTypeControl: true,
+            streetViewControl: false
+        });
+        
+        // Create info window
+        infoWindow = new google.maps.InfoWindow();
+        
+        // Set up event handlers
+        document.getElementById('test-search-btn').addEventListener('click', performSearch);
+        document.getElementById('clear-markers-btn').addEventListener('click', clearMarkers);
+        document.getElementById('clear-log-btn').addEventListener('click', () => {
+            document.getElementById('debug-output').innerHTML = '';
+        });
+        document.getElementById('center-map-btn').addEventListener('click', () => {
+            map.setCenter(SW11_CENTER);
+            map.setZoom(14);
+        });
+        
+        // Add listener for search input - press Enter to submit
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Wait for map to be ready
+        google.maps.event.addListenerOnce(map, 'idle', () => {
+            log("Map loaded and ready");
+            showStatus("Map ready");
+            
+            // Automatically search for SW11
+            performSearch();
+        });
+    }
+    
+    // Set up global initialization function
+    window.initMap = initMap;
+</script>
+<!-- Load Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap" defer></script>
+{% endblock %}

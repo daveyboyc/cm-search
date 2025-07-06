@@ -1,0 +1,99 @@
+{% load checker_tags %}
+<div class="result-item mb-3 border-bottom pb-3">
+    <h5>
+        <a href="{% url 'location_detail' location_id=location_group.location_group_id %}" class="text-decoration-none">
+            <i class="bi bi-geo-alt-fill me-1"></i>
+            <span title="Click to view details for this location">{{ location_group.location|default:"Location N/A" }}</span>
+        </a>
+        
+        {# Show active status based on newest auction year #}
+        {% if location_group.auction_years.0 and "2024-25" in location_group.auction_years.0 or "2025-26" in location_group.auction_years.0 or "2026-27" in location_group.auction_years.0 or "2027-28" in location_group.auction_years.0 %}
+            <span class="badge bg-success ms-2" title="This location has components in 2024-25 or later auctions">Active</span>
+        {% else %}
+            <span class="badge bg-secondary ms-2" title="This location only has components in auctions before 2024-25">In-Active</span>
+        {% endif %}
+
+    </h5>
+    
+    {# Show first 2 descriptions with "and X more" #}
+    <p class="mb-1">
+        {% if location_group.descriptions %}
+            {% for desc in location_group.descriptions|slice:":2" %}
+                {{ desc|truncatewords:30 }}{% if not forloop.last %}<br>{% endif %}
+            {% endfor %}
+            {% if location_group.descriptions|length > 2 %}
+                <br><small class="text-muted">(and {{ location_group.descriptions|length|add:"-2" }} more)</small>
+            {% endif %}
+        {% else %}
+            No description available.
+        {% endif %}
+    </p>
+    
+    <div>
+        {# Company badge - show primary company #}
+        {% if location_group.primary_company %}
+            <a href="{% url 'company_detail' company_id=location_group.primary_company %}" class="text-decoration-none">
+                <span class="badge bg-success me-1" 
+                      data-bs-toggle="tooltip" data-bs-placement="top" 
+                      title="Company: {{ location_group.primary_company }}{% if location_group.company_count > 1 %} (and {{ location_group.company_count|add:'-1' }} other{{ location_group.company_count|add:'-1'|pluralize }}){% endif %}. Click to view all components for this company.">
+                    {{ location_group.primary_company }}
+                </span>
+            </a>
+        {% endif %}
+
+        {# Technology badge #}
+        {% if location_group.primary_technology %}
+            <a href="{% url 'search_components' %}?q={{ location_group.primary_technology|urlencode }}" class="text-decoration-none">
+                <span class="badge bg-primary me-1" 
+                      data-bs-toggle="tooltip" data-bs-placement="top" 
+                      title="Technology: {{ location_group.primary_technology }}{% if location_group.technology_count > 1 %} (and {{ location_group.technology_count|add:'-1' }} other{{ location_group.technology_count|add:'-1'|pluralize }}){% endif %}. Click to search for all {{ location_group.primary_technology }} components.">
+                    {{ location_group.primary_technology }}
+                </span>
+            </a>
+        {% endif %}
+        
+        {# Capacity badge #}
+        {% if location_group.normalized_capacity_mw > 0 %}
+            <span class="badge bg-info me-1" 
+                  data-bs-toggle="tooltip" data-bs-placement="top" 
+                  title="Total De-Rated Capacity: {{ location_group.normalized_capacity_mw|floatformat:2 }} MW across {{ location_group.component_count }} component{{ location_group.component_count|pluralize }}">
+                {{ location_group.normalized_capacity_mw|floatformat:2 }} MW
+            </span>
+        {% else %}
+            <span class="badge bg-light text-dark me-1" title="De-Rated Capacity">Capacity N/A</span>
+        {% endif %}
+    </div>
+
+    {# CMU count - just show the count, no links #}
+    {% if location_group.cmu_ids %}
+        <div class="mt-2">
+            <span class="text-muted" 
+                  data-bs-toggle="tooltip" data-bs-placement="top" 
+                  title="Capacity Market Units (CMUs): Unique identifiers for each component in the Capacity Market registry">
+                {{ location_group.cmu_ids|cmu_count }} CMU{{ location_group.cmu_ids|cmu_count|pluralize }}
+            </span>
+        </div>
+    {% endif %}
+
+    {# Auction years - show first 3 newest with "and X more" #}
+    {% if location_group.auction_years %}
+        <div class="auction-badges-container d-flex flex-column gap-2 mt-2">
+            {% for auction_name in location_group.auction_years|slice:":3" %}
+                <span class="badge bg-warning text-dark" 
+                      data-bs-toggle="tooltip" data-bs-placement="top" 
+                      title="Auction Year: {{ auction_name }} - Components at this location participated in this Capacity Market auction"
+                      style="width: fit-content;">
+                    {{ auction_name }}
+                </span>
+            {% endfor %}
+            {% if location_group.auction_years|length > 3 %}
+                <span class="badge bg-light text-dark" 
+                      data-bs-toggle="tooltip" data-bs-placement="top" 
+                      title="This location has components in {{ location_group.auction_years|length|add:'-3' }} additional auction year{{ location_group.auction_years|length|add:'-3'|pluralize }}"
+                      style="width: fit-content;">
+                    (and {{ location_group.auction_years|length|add:"-3" }} more)
+                </span>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>

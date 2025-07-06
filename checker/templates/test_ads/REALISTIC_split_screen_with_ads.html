@@ -1,0 +1,647 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-GB" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - Map View with Ads | Capacity Market Search</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        /* Base styles */
+        html[data-bs-theme="light"] {
+            --bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-opacity='0.03'%3E%3Cpolygon fill='%23000' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        body, html {
+            height: 100vh;
+            margin: 0;
+            background-image: var(--bg-image);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Roboto', sans-serif;
+            overflow: hidden;
+        }
+
+        /* ========== AD CONTROL SYSTEM ========== */
+        
+        /* Master ad toggle - easy on/off switch */
+        .ads-enabled {
+            /* Ads are shown when this class is present */
+        }
+        
+        .ads-disabled .ad-container {
+            display: none !important;
+        }
+        
+        /* Admin toggle button for testing */
+        .ad-toggle-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 2000;
+            cursor: pointer;
+        }
+        
+        .ad-toggle-btn.disabled {
+            background: #dc3545;
+        }
+
+        /* User status indicator */
+        .user-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 2000;
+        }
+
+        /* Search header */
+        .search-header {
+            background: transparent;
+            padding: 20px 0;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .search-header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+        
+        .logo-section h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .search-form-container {
+            flex: 1;
+            max-width: 800px;
+        }
+        
+        .search-form-container .input-group {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border-radius: 25px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .search-form-container .form-control {
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            height: 48px;
+            background: white;
+        }
+        
+        .search-form-container .btn-primary {
+            border: none;
+            padding: 0 30px;
+            font-weight: 500;
+            height: 48px;
+            background-color: #4285f4;
+        }
+
+        /* Main content area */
+        .main-content {
+            width: 100%;
+            height: calc(100vh - 88px);
+            display: flex;
+            background: transparent;
+        }
+        
+        /* Results panel */
+        .results-panel {
+            width: 50%;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 8px 0 0 8px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        /* Map panel */
+        .map-panel {
+            width: 50%;
+            position: relative;
+            background: #f0f0f0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Resizable divider */
+        .divider {
+            width: 5px;
+            background: rgba(0,0,0,0.1);
+            cursor: col-resize;
+            position: relative;
+            user-select: none;
+        }
+        
+        .divider:hover {
+            background: rgba(0,0,0,0.2);
+        }
+
+        /* Results styling */
+        .results-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            background: rgba(255,255,255,0.8);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .result-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .result-item:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+        
+        .result-item.highlighted {
+            background-color: rgba(66, 133, 244, 0.1);
+            border-left: 4px solid #4285f4;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .result-company {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .result-location {
+            color: #4285f4;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+
+        .result-badges {
+            margin-top: 8px;
+        }
+
+        .result-badges .badge {
+            font-size: 0.75rem;
+            margin-right: 5px;
+        }
+
+        /* ========== AD STYLES ========== */
+        
+        /* AD OVERLAY ON MAP SECTION */
+        .map-ad-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 280px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            border: 1px solid #ddd;
+        }
+
+        .map-ad-overlay .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .map-ad-overlay h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .map-ad-overlay p {
+            margin: 0 0 15px 0;
+            color: #666;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        /* AD RESULTS IN LIST */
+        .ad-result-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            background: #fff5e6; /* Subtle yellow tint */
+            border-left: 4px solid #ff9500; /* Orange indicator */
+            position: relative;
+            cursor: pointer;
+        }
+
+        .ad-result-item::before {
+            content: "Sponsored";
+            position: absolute;
+            top: 8px;
+            right: 15px;
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+
+        .ad-result-title {
+            font-weight: 600;
+            color: #1a73e8;
+            margin-bottom: 5px;
+            text-decoration: none;
+        }
+
+        .ad-result-title:hover {
+            text-decoration: underline;
+        }
+
+        .ad-result-company {
+            color: #1a73e8;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .ad-result-description {
+            color: #333;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .ad-cta-button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .ad-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                height: calc(100vh - 120px);
+            }
+            
+            .results-panel {
+                width: 100%;
+                height: 50%;
+                border-radius: 8px 8px 0 0;
+            }
+            
+            .map-panel {
+                width: 100%;
+                height: 50%;
+                border-radius: 0 0 8px 8px;
+            }
+            
+            .divider {
+                height: 5px;
+                width: 100%;
+                cursor: row-resize;
+            }
+            
+            .map-ad-overlay {
+                width: 250px;
+                right: 10px;
+                top: 10px;
+            }
+        }
+    </style>
+</head>
+<body class="ads-enabled"> <!-- Add/remove this class to control ads -->
+    
+    <!-- AD TOGGLE BUTTON (for testing - remove in production) -->
+    <button class="ad-toggle-btn" onclick="toggleAds()">
+        ADS: <span id="ad-status">ON</span>
+    </button>
+    
+    <!-- User Status Indicator -->
+    <div class="user-status">
+        NON-SUBSCRIBER - Ads Visible
+    </div>
+
+    <!-- Search Header -->
+    <div class="search-header">
+        <div class="search-header-content">
+            <div class="logo-section">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='20' fill='%234285f4'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-family='Arial' font-size='16' font-weight='bold'%3E⚡%3C/text%3E%3C/svg%3E" alt="Logo">
+                <h1>Search Results</h1>
+            </div>
+            <div class="search-form-container">
+                <form method="get" action="#">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="Search company name, location, CMU ID..." value="battery">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Results Panel -->
+        <div class="results-panel">
+            <div class="results-header">
+                <h4>Search Results for "battery"</h4>
+                <p class="text-muted mb-0">47 components found • Showing results with map locations</p>
+            </div>
+            
+            <div class="results-list">
+                <!-- Regular Result #1 -->
+                <div class="result-item" onclick="highlightOnMap(1)">
+                    <div class="result-title">T_DRAX-BAT-1</div>
+                    <div class="result-company">Drax Group plc</div>
+                    <div class="result-location">
+                        <i class="bi bi-geo-alt-fill me-1"></i>Selby, North Yorkshire
+                    </div>
+                    <div class="result-badges">
+                        <span class="badge bg-success">40 MW</span>
+                        <span class="badge bg-primary">Battery</span>
+                        <span class="badge bg-warning text-dark">T-4 2025-26</span>
+                    </div>
+                </div>
+
+                <!-- Regular Result #2 -->
+                <div class="result-item" onclick="highlightOnMap(2)">
+                    <div class="result-title">T_COTTAM-BAT-1</div>
+                    <div class="result-company">EDF Energy Renewables</div>
+                    <div class="result-location">
+                        <i class="bi bi-geo-alt-fill me-1"></i>Nottinghamshire
+                    </div>
+                    <div class="result-badges">
+                        <span class="badge bg-success">49.5 MW</span>
+                        <span class="badge bg-primary">Battery</span>
+                        <span class="badge bg-warning text-dark">T-4 2026-27</span>
+                    </div>
+                </div>
+
+                <!-- ========== SPONSORED AD RESULT ========== -->
+                <div class="ad-container ad-result-item" onclick="trackAdClick('tesla-megapack')">
+                    <div class="ad-result-title">Tesla Megapack - Utility-Scale Battery Storage</div>
+                    <div class="ad-result-company">tesla.com/megapack</div>
+                    <div class="ad-result-description">
+                        <i class="bi bi-geo-alt-fill me-1" style="color: #666;"></i>
+                        Scalable battery storage for grid stability. 3MWh+ capacity, 99.5% round-trip efficiency. Trusted by utilities worldwide.
+                    </div>
+                    <a href="#" class="ad-cta-button">Request Quote</a>
+                    <span style="margin-left: 10px; color: #1a73e8; font-size: 0.85rem;">From £2M</span>
+                </div>
+
+                <!-- Regular Result #3 -->
+                <div class="result-item" onclick="highlightOnMap(3)">
+                    <div class="result-title">T_MINETY-BAT-1</div>
+                    <div class="result-company">Next Energy Technologies</div>
+                    <div class="result-location">
+                        <i class="bi bi-geo-alt-fill me-1"></i>Wiltshire
+                    </div>
+                    <div class="result-badges">
+                        <span class="badge bg-success">100 MW</span>
+                        <span class="badge bg-primary">Battery</span>
+                        <span class="badge bg-warning text-dark">T-4 2025-26</span>
+                    </div>
+                </div>
+
+                <!-- Regular Result #4 -->
+                <div class="result-item" onclick="highlightOnMap(4)">
+                    <div class="result-title">T_HART-BAT-2</div>
+                    <div class="result-company">Hartlepool Power Limited</div>
+                    <div class="result-location">
+                        <i class="bi bi-geo-alt-fill me-1"></i>Hartlepool, County Durham
+                    </div>
+                    <div class="result-badges">
+                        <span class="badge bg-success">50 MW</span>
+                        <span class="badge bg-primary">Battery</span>
+                        <span class="badge bg-warning text-dark">T-1 2024-25</span>
+                    </div>
+                </div>
+
+                <!-- ========== SECOND SPONSORED AD RESULT ========== -->
+                <div class="ad-container ad-result-item" onclick="trackAdClick('green-finance')">
+                    <div class="ad-result-title">Battery Storage Financing - Green Investment Bank</div>
+                    <div class="ad-result-company">greeninvestment.co.uk</div>
+                    <div class="ad-result-description">
+                        <i class="bi bi-geo-alt-fill me-1" style="color: #666;"></i>
+                        Flexible financing for battery projects. 5-20 year terms, competitive rates. Fast approval for proven technologies.
+                    </div>
+                    <a href="#" class="ad-cta-button">Apply Now</a>
+                    <span style="margin-left: 10px; color: #1a73e8; font-size: 0.85rem;">2.5% APR</span>
+                </div>
+
+                <!-- Regular Result #5 -->
+                <div class="result-item" onclick="highlightOnMap(5)">
+                    <div class="result-title">T_CAP-BAT-1</div>
+                    <div class="result-company">Zenobe Energy</div>
+                    <div class="result-location">
+                        <i class="bi bi-geo-alt-fill me-1"></i>Cheshire
+                    </div>
+                    <div class="result-badges">
+                        <span class="badge bg-success">30 MW</span>
+                        <span class="badge bg-primary">Battery</span>
+                        <span class="badge bg-warning text-dark">T-4 2027-28</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resizable Divider -->
+        <div class="divider"></div>
+
+        <!-- Map Panel -->
+        <div class="map-panel">
+            <div id="map"></div>
+            
+            <!-- ========== AD OVERLAY ON MAP ========== -->
+            <div class="ad-container map-ad-overlay" id="mapAdOverlay">
+                <button class="close-btn" onclick="closeMapAd()">&times;</button>
+                <div class="ad-label">Sponsored</div>
+                <h4>🌱 Land for Renewable Projects</h4>
+                <p>Find available sites for battery storage, solar, and wind projects across the UK. Streamlined planning and grid connection support.</p>
+                <button class="btn btn-success btn-sm" onclick="trackAdClick('land-finder')">Browse Locations</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // ========== AD CONTROL SYSTEM ==========
+        
+        function toggleAds() {
+            const body = document.body;
+            const isEnabled = body.classList.contains('ads-enabled');
+            
+            if (isEnabled) {
+                body.classList.remove('ads-enabled');
+                body.classList.add('ads-disabled');
+                document.getElementById('ad-status').textContent = 'OFF';
+                document.querySelector('.ad-toggle-btn').classList.add('disabled');
+                console.log('🚫 Ads DISABLED - All ad containers hidden');
+            } else {
+                body.classList.remove('ads-disabled');
+                body.classList.add('ads-enabled');
+                document.getElementById('ad-status').textContent = 'ON';
+                document.querySelector('.ad-toggle-btn').classList.remove('disabled');
+                console.log('✅ Ads ENABLED - Ad containers visible to non-subscribers');
+            }
+        }
+        
+        function closeMapAd() {
+            document.getElementById('mapAdOverlay').style.display = 'none';
+        }
+        
+        function trackAdClick(adId) {
+            console.log(`Ad clicked: ${adId}`);
+            alert(`Ad clicked: ${adId}\n\nThis would:\n1. Track the click for billing\n2. Open advertiser's landing page\n3. Generate revenue per click`);
+        }
+
+        // ========== MAP FUNCTIONALITY ==========
+        
+        // Initialize the map
+        const map = L.map('map').setView([54.5, -2.5], 6);
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Sample locations with markers
+        const locations = [
+            {id: 1, lat: 53.7749, lng: -1.0823, name: "Drax Battery", company: "Drax Group plc"},
+            {id: 2, lat: 52.9548, lng: -1.1581, name: "Cottam Battery", company: "EDF Energy"},
+            {id: 3, lat: 51.3781, lng: -2.3597, name: "Minety Battery", company: "Next Energy"},
+            {id: 4, lat: 54.6369, lng: -1.2301, name: "Hartlepool Battery", company: "Hartlepool Power"},
+            {id: 5, lat: 53.0907, lng: -2.7324, name: "Capenhurst Battery", company: "Zenobe Energy"}
+        ];
+
+        const markers = {};
+
+        // Add markers to map
+        locations.forEach(location => {
+            const marker = L.circleMarker([location.lat, location.lng], {
+                color: '#4caf50',
+                fillColor: '#4caf50',
+                fillOpacity: 0.7,
+                radius: 8
+            }).addTo(map);
+
+            marker.bindPopup(`<b>${location.name}</b><br>${location.company}`);
+            markers[location.id] = marker;
+        });
+
+        // ========== RESULT INTERACTION ==========
+        
+        function highlightOnMap(resultId) {
+            // Remove previous highlights
+            document.querySelectorAll('.result-item').forEach(item => {
+                item.classList.remove('highlighted');
+            });
+            
+            // Highlight clicked result
+            event.currentTarget.classList.add('highlighted');
+            
+            // Zoom to marker on map
+            if (markers[resultId]) {
+                map.setView([markers[resultId].getLatLng().lat, markers[resultId].getLatLng().lng], 10);
+                markers[resultId].openPopup();
+            }
+        }
+
+        // Search form handler
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const searchValue = document.querySelector('input[name="q"]').value;
+            alert(`Search: "${searchValue}"\n\nResults would reload with new ads mixed in.`);
+        });
+
+        // Theme toggle shortcut
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'a' || e.key === 'A') {
+                toggleAds();
+            }
+        });
+
+        console.log('🎯 REALISTIC Split-Screen with Ads Loaded');
+        console.log('💡 Press "A" to toggle ads on/off');
+        console.log('✅ Easy implementation: Add/remove "ads-enabled" class from body');
+        console.log('📊 Ads: Mixed in search results + overlay on map');
+    </script>
+    
+    <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 11px; z-index: 1000; text-align: center;">
+        REALISTIC SPLIT-SCREEN ADS • Press "A" to toggle • Click results to highlight on map
+    </div>
+</body>
+</html>

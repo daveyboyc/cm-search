@@ -1,0 +1,893 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+{% load humanize %}
+
+{% block title %}Search Results - Map View{% endblock %}
+
+{% block extra_head %}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<!-- Leaflet MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<style>
+    /* Keep the background from base template */
+    
+    /* Google-like header with logo and search */
+    .search-header {
+        background: transparent;
+        padding: 20px 0;
+        width: 100%;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .search-header-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+    
+    .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-shrink: 0;
+    }
+    
+    .logo-section h1 {
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .search-form-container {
+        flex: 1;
+        max-width: 800px;
+    }
+    
+    .search-form-container .input-group {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        border-radius: 25px;
+        overflow: hidden;
+        background: white;
+    }
+    
+    .search-form-container .form-control {
+        border: none;
+        padding: 12px 20px;
+        font-size: 16px;
+        height: 48px;
+        background: white;
+    }
+    
+    .search-form-container .btn-primary {
+        border: none;
+        padding: 0 30px;
+        font-weight: 500;
+        height: 48px;
+        background-color: #4285f4;
+    }
+    
+    .search-form-container .btn-primary:hover {
+        background-color: #3367d6;
+    }
+    
+    /* Main content area */
+    .main-content {
+        width: 100%;
+        height: calc(100vh - 88px); /* Adjusted for smaller header */
+        display: flex;
+        background: transparent;
+    }
+    
+    /* Results panel - semi-transparent like original */
+    .results-panel {
+        width: 50%;
+        min-width: 300px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        overflow-y: auto;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+    
+    .results-content {
+        padding: 20px;
+    }
+    
+    /* Divider between panels */
+    .divider {
+        width: 4px;
+        background: #dee2e6;
+        cursor: col-resize;
+        position: relative;
+        flex-shrink: 0;
+        transition: background-color 0.2s;
+    }
+    
+    .divider:hover {
+        background: #adb5bd;
+    }
+    
+    .divider::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 30px;
+        background: #6c757d;
+        border-radius: 1px;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    
+    .divider:hover::after {
+        opacity: 1;
+    }
+    
+    /* Map panel */
+    .map-panel {
+        flex: 1;
+        position: relative;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        min-width: 300px;
+    }
+    
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* Results styling - match search_results.html */
+    .results-meta {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .location-group-item {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(222, 226, 230, 0.8);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .location-group-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+    }
+    
+    .location-group-item.active {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 2px rgba(13,110,253,0.25);
+    }
+    
+    /* Sort controls */
+    .sort-controls {
+        margin-bottom: 15px;
+        padding: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 5px;
+        font-size: 0.9rem;
+        border: 1px solid rgba(222, 226, 230, 0.8);
+    }
+    
+    .sort-controls a {
+        margin-right: 10px;
+        text-decoration: none;
+        color: #0d6efd;
+    }
+    
+    .sort-controls .active-sort {
+        font-weight: bold;
+        color: #000;
+    }
+    
+    /* Map controls */
+    .map-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    /* Technology badges */
+    .badge-tech {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        margin-left: 8px;
+    }
+    
+    .badge-battery { background-color: #4caf50; }
+    .badge-gas { background-color: #ff9800; }
+    .badge-wind { background-color: #2196f3; }
+    .badge-solar { background-color: #ffeb3b; color: #333; }
+    .badge-dsr { background-color: #9c27b0; }
+    .badge-nuclear { background-color: #f44336; }
+    .badge-biomass { background-color: #795548; }
+    .badge-hydro { background-color: #00bcd4; }
+    .badge-interconnector { background-color: #9c27b0 !important; }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .search-header-content {
+            flex-wrap: wrap;
+        }
+        
+        .logo-section h1 {
+            font-size: 1.5rem;
+        }
+        
+        .search-form-container {
+            width: 100%;
+        }
+        
+        .main-content {
+            flex-direction: column;
+        }
+        
+        .results-panel {
+            width: 100% !important;
+            height: 50%;
+            border-right: none;
+            border-bottom: 1px solid #dee2e6;
+            min-width: auto;
+        }
+        
+        .divider {
+            display: none; /* Hide divider on mobile */
+        }
+        
+        .map-panel {
+            width: 100% !important;
+            height: 50%;
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+<!-- Skip default navbar for custom header -->
+{% endblock %}
+
+{% block container_class %}p-0{% endblock %}
+
+{% block content %}
+<!-- Custom Search Header -->
+<div class="search-header">
+    <div class="search-header-content">
+        <div class="logo-section">
+            <img src="{% static 'images/favicon.png' %}" alt="Logo" height="40">
+            <h1>CMR Search</h1>
+        </div>
+        <div class="search-form-container">
+            <form method="get" action="{% url 'search_results_with_map_real' %}" class="search-form">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" 
+                           placeholder="Search by company name, location, CMU ID..." 
+                           value="{{ query }}" required>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="main-content">
+    <!-- Results Panel -->
+    <div class="results-panel">
+        <div class="results-content">
+            {% if query %}
+                <!-- Results Meta -->
+                <div class="results-meta">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-1">Search Results for "{{ query }}"</h4>
+                            <p class="text-muted mb-0">
+                                {% if component_count %}
+                                    Found {{ component_count|intcomma }} components
+                                    {% if api_time %}in {{ api_time|floatformat:2 }}s{% endif %}
+                                {% else %}
+                                    No results found
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% if from_cache %}
+                            <span class="badge bg-info text-dark">Cached Results</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+                
+                {% if page_obj %}
+                    <!-- Sort Controls -->
+                    <div class="sort-controls">
+                        Sort by:
+                        <a href="?q={{ query }}&sort_by=relevance&per_page={{ per_page }}" 
+                           class="{% if sort_by == 'relevance' %}active-sort{% endif %}">
+                            Relevance
+                        </a>
+                        <a href="?q={{ query }}&sort_by=mw&sort_order=desc&per_page={{ per_page }}" 
+                           class="{% if sort_by == 'mw' %}active-sort{% endif %}">
+                            Capacity <i class="fas fa-sort-down"></i>
+                        </a>
+                        <a href="?q={{ query }}&sort_by=location&per_page={{ per_page }}" 
+                           class="{% if sort_by == 'location' %}active-sort{% endif %}">
+                            Location <i class="fas fa-sort-alpha-down"></i>
+                        </a>
+                        <a href="?q={{ query }}&sort_by=date&sort_order=desc&per_page={{ per_page }}" 
+                           class="{% if sort_by == 'date' %}active-sort{% endif %}">
+                            Year <i class="fas fa-sort-numeric-down"></i>
+                        </a>
+                    </div>
+                    
+                    <!-- Results List -->
+                    <div id="results-list">
+                        {% for group in page_obj %}
+                            {% if group.is_location_group %}
+                                <!-- LocationGroup item -->
+                                <div class="location-group-item" 
+                                     data-id="{{ group.location_group_id }}"
+                                     data-lat="{{ group.latitude|default:'0' }}"
+                                     data-lng="{{ group.longitude|default:'0' }}"
+                                     data-location="{{ group.location }}"
+                                     data-capacity="{{ group.normalized_capacity_mw|default:'0' }}"
+                                     data-tech="{{ group.primary_technology|default:'Unknown' }}"
+                                     data-has-coords="{% if group.latitude and group.longitude %}true{% else %}false{% endif %}">
+                                    {% include 'checker/components/_location_group_item.html' with location_group=group %}
+                                </div>
+                            {% else %}
+                                <!-- Legacy grouped component -->
+                                <div class="location-group-item"
+                                     data-id="{{ forloop.counter }}"
+                                     data-location="{{ group.location|default:'Unknown' }}">
+                                    <h5>
+                                        <i class="bi bi-geo-alt-fill me-1"></i>
+                                        {{ group.location|default:"Location N/A" }}
+                                        {% if group.active_status %}
+                                            <span class="badge bg-success ms-2">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary ms-2">In-Active</span>
+                                        {% endif %}
+                                    </h5>
+                                    <!-- Add more group details as needed -->
+                                </div>
+                            {% endif %}
+                        {% empty %}
+                            <div class="alert alert-warning">No components found matching your criteria.</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if page_obj.paginator.num_pages > 1 %}
+                        <nav aria-label="Search results pagination" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Previous</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for i in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == i %}
+                                        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                        <li class="page-item"><a class="page-link" href="?q={{ query }}&page={{ i }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">{{ i }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Next</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <!-- No query entered -->
+                <div class="text-center py-5">
+                    <h4>Enter a search term to see results</h4>
+                    <p class="text-muted">Try searching for a company name, location, or CMU ID</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Divider between panels -->
+    <div class="divider"></div>
+    
+    <!-- Map Panel -->
+    <div class="map-panel">
+        <div id="map"></div>
+        
+        <!-- Map Controls -->
+        <div class="map-controls">
+            <div class="btn-group btn-group-sm mb-2" role="group">
+                <button type="button" class="btn btn-outline-secondary active" id="map-btn">
+                    <i class="fas fa-map"></i> Map
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="satellite-btn">
+                    <i class="fas fa-satellite"></i> Satellite
+                </button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary w-100" id="reset-view">
+                <i class="fas fa-compress"></i> Reset View
+            </button>
+            <div class="mt-2 text-center">
+                <small id="geocode-status" class="text-muted"></small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alternative: Load markers from GeoJSON API -->
+<script>
+    // Store the search query for API calls
+    const searchQuery = "{{ query|escapejs }}";
+</script>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+let map;
+let markers = [];
+let markerClusterGroup;
+let streetLayer, satelliteLayer;
+
+// Technology colors mapping
+const techColors = {
+    'battery': '#4caf50',
+    'gas': '#ff9800',
+    'wind': '#2196f3',
+    'solar': '#ffeb3b',
+    'dsr': '#9c27b0',
+    'nuclear': '#f44336',
+    'biomass': '#795548',
+    'hydro': '#00bcd4',
+    'unknown': '#757575'
+};
+
+// Get technology color
+function getTechColor(tech) {
+    if (!tech) return techColors.unknown;
+    const techLower = tech.toLowerCase();
+    for (const [key, color] of Object.entries(techColors)) {
+        if (techLower.includes(key)) {
+            return color;
+        }
+    }
+    return techColors.unknown;
+}
+
+// Initialize map
+function initMap() {
+    map = L.map('map').setView([54.5, -3.5], 6); // Center on UK
+    
+    // Street layer
+    streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    });
+    
+    // Satellite layer
+    satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+    });
+    
+    streetLayer.addTo(map);
+    
+    markerClusterGroup = L.markerClusterGroup();
+    map.addLayer(markerClusterGroup);
+    
+    // Use GeoJSON API for better geocoding coverage
+    if (searchQuery) {
+        loadMarkersFromGeoJSON();
+    } else {
+        addMarkersFromResults();
+    }
+}
+
+// Load markers from GeoJSON API
+function loadMarkersFromGeoJSON() {
+    console.log('Loading markers from GeoJSON API for query:', searchQuery);
+    
+    // Show loading state
+    const statusEl = document.getElementById('geocode-status');
+    if (statusEl) {
+        statusEl.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Loading map data...';
+    }
+    
+    // Fetch from the GeoJSON API
+    fetch(`/api/search-geojson/?q=${encodeURIComponent(searchQuery)}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('GeoJSON API response:', data);
+            
+            if (data.features && data.features.length > 0) {
+                addMarkersFromGeoJSON(data.features);
+                
+                // Update status
+                if (statusEl) {
+                    const total = data.metadata.total || data.features.length;
+                    const shown = data.features.length;
+                    statusEl.textContent = `${shown} of ${total} locations mapped`;
+                    if (shown < total) {
+                        statusEl.innerHTML += `<br><small>Limited to ${shown} for performance</small>`;
+                    }
+                }
+            } else {
+                if (statusEl) {
+                    statusEl.innerHTML = '<span class="text-warning">No locations with coordinates found</span>';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading GeoJSON:', error);
+            if (statusEl) {
+                statusEl.innerHTML = '<span class="text-danger">Error loading map data</span>';
+            }
+            // Fallback to DOM-based markers
+            addMarkersFromResults();
+        });
+}
+
+// Add markers from GeoJSON features
+function addMarkersFromGeoJSON(features) {
+    markerClusterGroup.clearLayers();
+    markers = [];
+    
+    const bounds = L.latLngBounds();
+    let addedCount = 0;
+    
+    features.forEach((feature) => {
+        if (feature.geometry && feature.geometry.coordinates) {
+            const [lng, lat] = feature.geometry.coordinates;
+            const props = feature.properties;
+            
+            const color = getTechColor(props.technology);
+            
+            const icon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+            
+            const marker = L.marker([lat, lng], { icon: icon });
+            
+            // Create popup content
+            let popupContent = `<div style="min-width: 200px;">`;
+            popupContent += `<h6>${props.title || props.location || 'Unknown Location'}</h6>`;
+            if (props.capacity_display) {
+                popupContent += `<p class="mb-1"><strong>${props.capacity_display}</strong></p>`;
+            }
+            if (props.technology) {
+                popupContent += `<p class="mb-1">${props.technology}</p>`;
+            }
+            if (props.company) {
+                popupContent += `<p class="mb-1">${props.company}</p>`;
+            }
+            popupContent += `</div>`;
+            
+            marker.bindPopup(popupContent);
+            
+            // Store reference for syncing with list
+            marker.locationName = props.location;
+            
+            // Add click handler to sync with list
+            marker.on('click', function() {
+                // Find and highlight the corresponding list item
+                const listItems = document.querySelectorAll('.location-group-item');
+                listItems.forEach(item => {
+                    const itemLocation = item.dataset.location;
+                    if (itemLocation && itemLocation.toLowerCase() === props.location.toLowerCase()) {
+                        // Highlight this item
+                        listItems.forEach(r => r.classList.remove('active'));
+                        item.classList.add('active');
+                        // Scroll into view
+                        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            });
+            
+            markers.push(marker);
+            markerClusterGroup.addLayer(marker);
+            bounds.extend([lat, lng]);
+            addedCount++;
+        }
+    });
+    
+    // Fit map to bounds
+    if (addedCount > 0) {
+        console.log(`Added ${addedCount} markers to map from GeoJSON`);
+        map.fitBounds(bounds, { padding: [50, 50] });
+    }
+}
+
+// Add markers from search results
+function addMarkersFromResults() {
+    markerClusterGroup.clearLayers();
+    markers = [];
+    
+    const bounds = L.latLngBounds();
+    let hasValidLocations = false;
+    
+    console.log('Adding markers from results...');
+    
+    document.querySelectorAll('.location-group-item').forEach((item, index) => {
+        const lat = parseFloat(item.dataset.lat);
+        const lng = parseFloat(item.dataset.lng);
+        const id = item.dataset.id;
+        const location = item.dataset.location;
+        const capacity = parseFloat(item.dataset.capacity || 0);
+        const tech = item.dataset.tech;
+        
+        console.log(`Item ${index}:`, {
+            id: id,
+            lat: lat,
+            lng: lng,
+            location: location,
+            hasValidCoords: !isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0)
+        });
+        
+        // Skip if no valid coordinates
+        if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) {
+            return;
+        }
+        
+        hasValidLocations = true;
+        
+        const color = getTechColor(tech);
+        
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+        
+        const marker = L.marker([lat, lng], { icon: icon });
+        marker.recordId = id;
+        
+        // Get details from the DOM element
+        const titleElem = item.querySelector('h5 a');
+        const title = titleElem ? titleElem.textContent.trim() : location;
+        
+        marker.bindPopup(`
+            <div style="min-width: 200px;">
+                <h6>${title}</h6>
+                <p class="mb-1"><strong>${capacity.toFixed(2)} MW</strong></p>
+                <p class="mb-0"><small>${location}</small></p>
+            </div>
+        `);
+        
+        // Add click handler to sync with list
+        marker.on('click', function() {
+            // Highlight the corresponding item in the list
+            document.querySelectorAll('.location-group-item').forEach(el => el.classList.remove('active'));
+            item.classList.add('active');
+            // Scroll the item into view
+            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        
+        markers.push(marker);
+        markerClusterGroup.addLayer(marker);
+        bounds.extend([lat, lng]);
+    });
+    
+    // Update geocoding status
+    const totalItems = document.querySelectorAll('.location-group-item').length;
+    const geocodedItems = markers.length;
+    const statusEl = document.getElementById('geocode-status');
+    if (statusEl) {
+        if (totalItems > 0) {
+            statusEl.textContent = `${geocodedItems} of ${totalItems} locations mapped`;
+            if (geocodedItems === 0) {
+                statusEl.innerHTML += '<br><span class="text-warning">No coordinates available</span>';
+            }
+        }
+    }
+    
+    // Fit map to bounds if we have valid locations
+    if (hasValidLocations && markers.length > 0) {
+        console.log(`Added ${markers.length} markers to map`);
+        map.fitBounds(bounds, { padding: [50, 50] });
+    } else {
+        console.log('No valid locations found to display on map');
+    }
+}
+
+// Draggable divider functionality
+function initDraggableDivider() {
+    const divider = document.querySelector('.divider');
+    const resultsPanel = document.querySelector('.results-panel');
+    const mapPanel = document.querySelector('.map-panel');
+    const mainContent = document.querySelector('.main-content');
+    
+    if (!divider || !resultsPanel || !mapPanel || !mainContent) return;
+    
+    let isDragging = false;
+    let startX = 0;
+    let startWidth = 0;
+    
+    // Load saved position if available
+    const savedWidth = localStorage.getItem('resultsWidth');
+    if (savedWidth) {
+        resultsPanel.style.width = savedWidth + 'px';
+        resultsPanel.style.flex = 'none';
+        mapPanel.style.flex = '1';
+    }
+    
+    divider.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startWidth = resultsPanel.offsetWidth;
+        
+        // Add dragging styles
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        
+        // Prevent text selection
+        e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        const deltaX = e.clientX - startX;
+        const newWidth = startWidth + deltaX;
+        const containerWidth = mainContent.offsetWidth;
+        
+        // Constrain width to min/max values
+        const minWidth = 300;
+        const maxWidth = containerWidth - 300 - divider.offsetWidth;
+        
+        if (newWidth >= minWidth && newWidth <= maxWidth) {
+            resultsPanel.style.width = newWidth + 'px';
+            resultsPanel.style.flex = 'none';
+            mapPanel.style.flex = '1';
+            
+            // Save position
+            localStorage.setItem('resultsWidth', newWidth);
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            
+            // Trigger map resize event
+            if (map) {
+                setTimeout(() => map.invalidateSize(), 300);
+            }
+        }
+    });
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    initDraggableDivider();
+    
+    // Click on result to zoom map
+    document.querySelectorAll('.location-group-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Don't trigger if clicking on a link
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+            }
+            
+            const id = this.dataset.id;
+            const lat = parseFloat(this.dataset.lat);
+            const lng = parseFloat(this.dataset.lng);
+            
+            console.log('Clicked item:', {
+                id: id,
+                lat: lat,
+                lng: lng,
+                location: this.dataset.location
+            });
+            
+            // Highlight selected
+            document.querySelectorAll('.location-group-item').forEach(r => r.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Try to find marker by location name
+            const locationName = this.dataset.location;
+            let foundMarker = null;
+            
+            // First try to find by ID (for DOM-based markers)
+            foundMarker = markers.find(m => m.recordId === id);
+            
+            // If not found, try by location name (for GeoJSON markers)
+            if (!foundMarker && locationName) {
+                foundMarker = markers.find(m => 
+                    m.locationName && m.locationName.toLowerCase() === locationName.toLowerCase()
+                );
+            }
+            
+            if (foundMarker) {
+                console.log('Found marker, zooming to location');
+                map.setView(foundMarker.getLatLng(), 12);
+                foundMarker.openPopup();
+            } else if (!isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0)) {
+                // If no marker but valid coordinates, zoom to location
+                console.log('No marker found, but zooming to coordinates');
+                map.setView([lat, lng], 12);
+            } else {
+                console.log('No marker found for location:', locationName);
+            }
+        });
+    });
+    
+    // Map type switching
+    document.getElementById('map-btn').addEventListener('click', function() {
+        if (!this.classList.contains('active')) {
+            map.removeLayer(satelliteLayer);
+            map.addLayer(streetLayer);
+            this.classList.add('active');
+            document.getElementById('satellite-btn').classList.remove('active');
+        }
+    });
+    
+    document.getElementById('satellite-btn').addEventListener('click', function() {
+        if (!this.classList.contains('active')) {
+            map.removeLayer(streetLayer);
+            map.addLayer(satelliteLayer);
+            this.classList.add('active');
+            document.getElementById('map-btn').classList.remove('active');
+        }
+    });
+    
+    // Reset view
+    document.getElementById('reset-view').addEventListener('click', function() {
+        if (markers.length > 0) {
+            addMarkersFromResults(); // This will refit to bounds
+        } else {
+            map.setView([54.5, -3.5], 6);
+        }
+    });
+});
+</script>
+{% endblock %}

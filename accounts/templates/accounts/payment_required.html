@@ -1,0 +1,62 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Access Expired{% endblock %}
+
+{% block container_class %}custom-payment-required-container{% endblock %}
+
+{% block extra_head %}
+<style>
+.custom-payment-required-container {
+    background-color: rgba(255, 255, 255, 0.92);
+    margin: 20px auto;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 1100px;
+    margin-right: 100px !important;
+    flex-grow: 1;
+    width: 95%;
+    color: var(--bs-body-color);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <div class="card shadow-sm border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h2 class="card-title mb-0"><i class="bi bi-clock-history me-2"></i>Free Access Expired</h2>
+            </div>
+            <div class="card-body">
+                <p class="lead">
+                    Thank you for using Capacity Market Search!
+                </p>
+                <p>
+                    Your 1-week monthly trial has expired.
+                </p>
+                <p>
+                    You can either <strong>wait until your trial resets</strong> (check your account page for timer) or <strong>pay £5/year for unlimited access</strong>.
+                </p>
+                <hr class="my-4">
+                <div class="d-grid gap-2">
+                    <div class="alert alert-info">
+                        <strong>Option 1:</strong> Wait for monthly trial reset<br>
+                        <strong>Option 2:</strong> Get unlimited access for £5/year
+                    </div>
+                    <a href="{% url 'accounts:account' %}" class="btn btn-outline-primary btn-lg mb-2">
+                         <i class="bi bi-clock-history me-2"></i>Check Trial Reset Timer
+                    </a>
+                    <a href="{% url 'accounts:payment_selection' %}" class="btn btn-warning btn-lg">
+                         <i class="bi bi-credit-card-2-front-fill me-2"></i>Pay £5/Year for Unlimited Access
+                    </a>
+                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-secondary btn-sm mt-2">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

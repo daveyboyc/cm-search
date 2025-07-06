@@ -1,0 +1,228 @@
+# UK Capacity Market Registry - Comprehensive SEO robots.txt
+# Last updated: 2025-06-20
+
+# Allow search engines to index key content pages
+User-agent: Googlebot
+Crawl-delay: 3
+Request-rate: 1/3s
+Allow: /
+Allow: /guides/
+Allow: /companies/
+Allow: /technologies/
+Allow: /locations/
+Allow: /components/
+Allow: /cmus/
+# Prioritize important content for Google
+Sitemap: https://www.capacitymarket.co.uk/sitemap.xml
+
+User-agent: Bingbot
+Crawl-delay: 5
+Request-rate: 1/5s
+Allow: /
+Allow: /guides/
+Allow: /companies/
+Allow: /technologies/
+Allow: /locations/
+Allow: /components/
+Allow: /cmus/
+
+User-agent: DuckDuckBot
+Crawl-delay: 8
+Allow: /
+Allow: /guides/
+Allow: /companies/
+Allow: /technologies/
+
+# Social media crawlers for rich link previews
+User-agent: facebookexternalhit
+Crawl-delay: 3
+Allow: /
+Allow: /guides/
+
+User-agent: Twitterbot
+Crawl-delay: 3
+Allow: /
+Allow: /guides/
+
+User-agent: LinkedInBot
+Crawl-delay: 5
+Allow: /
+Allow: /guides/
+
+User-agent: WhatsApp
+Crawl-delay: 3
+Allow: /
+Allow: /guides/
+
+# AI crawlers - redirected to API subdomain for programmatic access
+User-agent: ClaudeBot
+Crawl-delay: 20
+Request-rate: 1/20s
+Allow: /
+Allow: /guides/
+Allow: /companies/
+Allow: /technologies/
+Allow: /locations/
+Allow: /components/
+Allow: /.well-known/
+# Use API subdomain for programmatic access: https://api.capacitymarket.co.uk/
+Disallow: /search-json/
+Disallow: /search-map-json/
+Disallow: /api/gpt-search/
+Disallow: /search-map/
+Disallow: /map-explorer/
+Disallow: /api/
+
+User-agent: Claude-Web
+Crawl-delay: 20
+Request-rate: 1/20s
+Allow: /
+Allow: /guides/
+Allow: /companies/
+Allow: /technologies/
+Allow: /locations/
+Allow: /components/
+Allow: /.well-known/
+# Use API subdomain for programmatic access: https://api.capacitymarket.co.uk/
+Disallow: /search-json/
+Disallow: /search-map-json/
+Disallow: /api/gpt-search/
+Disallow: /search-map/
+Disallow: /map-explorer/
+Disallow: /api/
+
+User-agent: ChatGPT-Desktop
+Crawl-delay: 20
+Request-rate: 1/20s
+Allow: /
+Allow: /guides/
+Allow: /companies/
+Allow: /technologies/
+Allow: /locations/
+Allow: /components/
+Allow: /.well-known/
+# Use API subdomain for programmatic access: https://api.capacitymarket.co.uk/
+Disallow: /search-json/
+Disallow: /search-map-json/
+Disallow: /api/gpt-search/
+Disallow: /search-map/
+Disallow: /map-explorer/
+Disallow: /api/
+
+User-agent: GPTBot
+Crawl-delay: 20
+Request-rate: 1/20s
+Allow: /
+Allow: /guides/
+Allow: /companies/
+Allow: /technologies/
+Allow: /locations/
+Allow: /components/
+Allow: /.well-known/
+# Use API subdomain for programmatic access: https://api.capacitymarket.co.uk/
+Disallow: /search-json/
+Disallow: /search-map-json/
+Disallow: /api/gpt-search/
+Disallow: /search-map/
+Disallow: /map-explorer/
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Crawl-delay: 20
+Request-rate: 1/20s
+Allow: /
+Allow: /guides/
+Allow: /companies/
+Allow: /technologies/
+Allow: /locations/
+Allow: /components/
+Allow: /.well-known/
+# Use API subdomain for programmatic access: https://api.capacitymarket.co.uk/
+Disallow: /search-json/
+Disallow: /search-map-json/
+Disallow: /api/gpt-search/
+Disallow: /search-map/
+Disallow: /map-explorer/
+Disallow: /api/
+
+User-agent: CCBot
+Crawl-delay: 30
+Allow: /
+Allow: /guides/
+Disallow: /search-map/
+Disallow: /map-explorer/
+Disallow: /api/
+
+User-agent: Bytespider
+Crawl-delay: 30
+Allow: /
+Allow: /guides/
+Disallow: /search-map/
+Disallow: /map-explorer/
+Disallow: /api/
+
+# Block heavy interactive pages that consume resources
+User-agent: *
+Crawl-delay: 15
+
+# Allow important content directories
+Allow: /
+Allow: /guides/
+Allow: /companies/
+Allow: /technologies/
+Allow: /locations/
+Allow: /components/
+Allow: /cmus/
+
+# Block resource-intensive interactive features
+Disallow: /search-map/
+Disallow: /map-explorer/
+Disallow: /map/
+Disallow: /map_search/
+Disallow: /map_results/
+
+# Block API endpoints
+Disallow: /api/
+Disallow: /admin/
+Disallow: /accounts/
+
+# Block debug and development endpoints
+Disallow: /debug/
+Disallow: /test/
+Disallow: /monitoring/
+
+# Block search result pagination beyond page 3 to avoid crawl traps
+Disallow: /*?*page=4*
+Disallow: /*?*page=5*
+Disallow: /*?*page=6*
+Disallow: /*?*page=7*
+Disallow: /*?*page=8*
+Disallow: /*?*page=9*
+Disallow: /*?*page=1*
+Disallow: /*?*page=2*
+
+# Block empty search results
+Disallow: /search/*?q=&*
+Disallow: /search/?q=*
+Disallow: /*?q=&*
+
+# Block donation and payment pages from indexing
+Disallow: /donate/
+Disallow: /create-checkout-session/
+Disallow: /donation-success/
+Disallow: /donation-cancel/
+Disallow: /test-access-donation/
+
+# Block legacy redirects and deprecated paths
+Disallow: /company-list/
+Disallow: /technology-optimized/
+Disallow: /company-optimized/
+Disallow: /cmu-optimized/
+Disallow: /search-optimized/
+Disallow: /search-legacy/
+
+# Site structure information
+Sitemap: https://www.capacitymarket.co.uk/sitemap.xml
+
+# Contact information for webmaster
+# Host: capacitymarket.co.uk

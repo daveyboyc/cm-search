@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Egress Monitor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .metric-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .warning { color: #ffc107; }
+        .danger { color: #dc3545; }
+        .success { color: #198754; }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Egress Monitoring Dashboard</h1>
+        
+        <div class="row" id="metrics">
+            <div class="col-md-2">
+                <div class="metric-card">
+                    <div class="metric-value" id="total-calls">-</div>
+                    <div>Total API Calls</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metric-card">
+                    <div class="metric-value" id="total-mb">-</div>
+                    <div>Total MB Transferred</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metric-card">
+                    <div class="metric-value" id="monthly-estimate">-</div>
+                    <div>Monthly GB Estimate</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metric-card">
+                    <div class="metric-value" id="limit-percent">-</div>
+                    <div>% of 5GB Limit</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metric-card">
+                    <div class="metric-value" id="current-memory">-</div>
+                    <div>Current Memory (MB)</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metric-card">
+                    <div class="metric-value" id="max-memory">-</div>
+                    <div>Peak Memory (MB)</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <h3>Top Endpoints by Data Transfer</h3>
+                <div id="top-endpoints" class="list-group"></div>
+            </div>
+            <div class="col-md-4">
+                <h3>Large Response Alerts</h3>
+                <div id="large-responses" class="list-group"></div>
+            </div>
+            <div class="col-md-4">
+                <h3>Memory Alerts</h3>
+                <div id="memory-alerts" class="list-group"></div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h3>Recent API Calls</h3>
+            <div id="recent-calls" style="max-height: 300px; overflow-y: auto;"></div>
+        </div>
+    </div>
+    
+    <script>
+        function updateDashboard() {
+            fetch('/monitoring/simple-api/')
+                .then(r => r.json())
+                .then(data => {
+                    // Update metrics
+                    document.getElementById('total-calls').textContent = data.total_api_calls;
+                    document.getElementById('total-mb').textContent = data.total_mb;
+                    document.getElementById('monthly-estimate').textContent = data.monthly_gb_estimate;
+                    
+                    // Update limit percentage with color
+                    const limitEl = document.getElementById('limit-percent');
+                    limitEl.textContent = data.supabase_limit_percent + '%';
+                    limitEl.className = 'metric-value ' + 
+                        (data.supabase_limit_percent > 100 ? 'danger' : 
+                         data.supabase_limit_percent > 80 ? 'warning' : 'success');
+                    
+                    // Update memory metrics
+                    if (data.memory_stats) {
+                        document.getElementById('current-memory').textContent = data.memory_stats.current_memory_mb;
+                        document.getElementById('max-memory').textContent = data.memory_stats.max_memory_mb;
+                    } else {
+                        document.getElementById('current-memory').textContent = 'N/A';
+                        document.getElementById('max-memory').textContent = 'N/A';
+                    }
+                    
+                    // Update top endpoints
+                    const endpointsHtml = data.top_endpoints.map(e => `
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span>${e.endpoint}</span>
+                                <span class="badge bg-primary">${e.total_mb} MB</span>
+                            </div>
+                            <small class="text-muted">${e.calls} calls</small>
+                        </div>
+                    `).join('');
+                    document.getElementById('top-endpoints').innerHTML = endpointsHtml || '<p class="text-muted">No data yet</p>';
+                    
+                    // Update large responses
+                    const largeHtml = data.large_responses.map(r => `
+                        <div class="list-group-item list-group-item-warning">
+                            <strong>${r.endpoint}</strong>
+                            <span class="badge bg-danger float-end">${r.size_mb} MB</span>
+                        </div>
+                    `).join('');
+                    document.getElementById('large-responses').innerHTML = largeHtml || '<p class="text-muted">No large responses</p>';
+                    
+                    // Update memory alerts
+                    const memoryHtml = (data.memory_alerts || []).map(m => `
+                        <div class="list-group-item list-group-item-warning">
+                            <strong>${m.endpoint}</strong>
+                            <span class="badge bg-warning float-end">+${m.memory_delta_mb} MB</span>
+                            <br><small class="text-muted">RSS: ${m.memory_rss_mb} MB</small>
+                        </div>
+                    `).join('');
+                    document.getElementById('memory-alerts').innerHTML = memoryHtml || '<p class="text-muted">No memory alerts</p>';
+                    
+                    // Update recent calls
+                    const recentHtml = data.recent_calls.reverse().map(c => `
+                        <div class="p-2 border-bottom">
+                            <strong>${c.method}</strong> ${c.endpoint}
+                            <span class="badge bg-secondary float-end">${(c.size/1024).toFixed(2)} KB</span>
+                            ${c.memory_delta_mb ? `<br><small class="text-muted">Memory: ${c.memory_delta_mb >= 0 ? '+' : ''}${c.memory_delta_mb} MB</small>` : ''}
+                        </div>
+                    `).join('');
+                    document.getElementById('recent-calls').innerHTML = recentHtml || '<p class="text-muted">No recent calls</p>';
+                });
+        }
+        
+        // Update every 5 seconds
+        updateDashboard();
+        setInterval(updateDashboard, 5000);
+    </script>
+</body>
+</html>

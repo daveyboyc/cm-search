@@ -1,0 +1,103 @@
+{% comment %}
+OLD TIMER SYSTEM DISABLED - Now using welcome_notice.html system
+{% endcomment %}
+{% if False %}
+<!-- Registration Timer Modal -->
+<div class="modal fade" id="registrationModal" tabindex="-1" aria-labelledby="registrationModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="registrationModalLabel">
+                    <i class="bi bi-clock-fill me-2"></i>Registration Required
+                </h5>
+            </div>
+            <div class="modal-body text-center">
+                <h2 class="text-danger mb-3">
+                    <span id="countdown">30</span> seconds remaining
+                </h2>
+                <p class="lead">
+                    {% if user.is_authenticated %}
+                        To continue using this premium map feature, please upgrade to unlimited access.
+                    {% else %}
+                        To continue using this premium map feature, please register and make a one-time payment.
+                    {% endif %}
+                </p>
+                <div class="alert alert-info">
+                    <strong>Choose your contribution amount</strong> for unlimited access to all premium features
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'accounts:payment_selection' %}" class="btn btn-warning btn-lg">
+                        <i class="bi bi-credit-card-2-front-fill me-2"></i>Support & Get Access
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-person-plus-fill me-2"></i>Register & Support
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Override any existing timer from base.html
+    if (window.redirectTimer) {
+        clearTimeout(window.redirectTimer);
+        console.log('Premium Map Timer: Cleared existing redirect timer');
+    }
+    
+    // Clear session storage timer data
+    const timerKeys = ['redirectTimerStage', 'redirectTimerStartTime', 'redirectTimerLastPage'];
+    timerKeys.forEach(key => sessionStorage.removeItem(key));
+    
+    // TESTING: 10-second timer for everything
+    let timeRemaining = 10;
+    
+    // TODO: Restore complex timer logic after testing
+    // const startTime = sessionStorage.getItem('accessTimerStart');
+    // if (startTime) {
+    //     const elapsed = Math.floor((Date.now() - parseInt(startTime)) / 1000);
+    //     timeRemaining = Math.max(0, 10 - elapsed);
+    //     console.log('Registration Timer: Coordinating with visible timer, ${timeRemaining} seconds remaining');
+    // }
+    const countdownElement = document.getElementById('countdown');
+    const modal = new bootstrap.Modal(document.getElementById('registrationModal'));
+    let timerInterval;
+    
+    // Start the timer
+    function startTimer() {
+        timerInterval = setInterval(function() {
+            timeRemaining--;
+            if (countdownElement) {
+                countdownElement.textContent = timeRemaining;
+            }
+            
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                // Mark that modal was shown
+                sessionStorage.setItem('registrationModalShown', 'true');
+                // Show the modal
+                modal.show();
+                
+                // Prevent closing the modal
+                document.getElementById('registrationModal').addEventListener('hide.bs.modal', function(e) {
+                    e.preventDefault();
+                    return false;
+                });
+                
+                // Disable page interaction
+                document.body.style.pointerEvents = 'none';
+                document.querySelector('.modal').style.pointerEvents = 'auto';
+            }
+        }, 1000);
+    }
+    
+    // Start the timer when page loads
+    console.log('Premium Map Timer: Starting 30-second registration timer');
+    startTimer();
+});
+</script>
+{% endif %}

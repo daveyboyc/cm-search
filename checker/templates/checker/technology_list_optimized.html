@@ -1,0 +1,263 @@
+{% extends "checker/base.html" %}
+{% load humanize %}
+{% load checker_tags %}
+
+{% block title %}Technologies - Capacity Market Search{% endblock %}
+
+{% block body_class %}has-universal-navbar{% endblock %}
+
+{% block page_header %}
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3 page-header">
+        <h1>All Technologies</h1>
+        <div>
+            <a href="{% url 'homepage' %}" class="btn btn-outline-primary btn-sm">
+                 <i class="bi bi-arrow-return-left"></i> Back to Search
+            </a>
+        </div>
+    </div>
+
+    <!-- Technology Distribution Pie Chart -->
+    <div class="row mb-5">
+        <div class="col-md-10 offset-md-1">
+            <h4 class="mb-3 text-center text-primary" style="cursor: pointer; user-select: none;" data-bs-toggle="collapse" data-bs-target="#techDistributionChart" aria-expanded="false" aria-controls="techDistributionChart">
+                <i class="bi bi-chevron-right me-2" id="chartToggleIcon"></i>Technology Distribution
+            </h4>
+            <div class="collapse" id="techDistributionChart">
+                <div class="chart-container" style="position: relative; height:60vh; max-width: 600px; margin: auto; margin-bottom: 3rem;">
+                    <div class="btn-group btn-group-sm mb-3 d-flex justify-content-center" role="group">
+                        <button type="button" class="btn btn-outline-primary active chart-toggle-btn" data-chart="techPieChart" data-type="count">By Count</button>
+                        <button type="button" class="btn btn-outline-primary chart-toggle-btn" data-chart="techPieChart" data-type="capacity">By Capacity</button>
+                    </div>
+                    <canvas id="techPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sort Options -->
+    <div class="d-flex gap-3 mb-3" role="group">
+        <a href="?sort_by=technology&sort_order={% if sort_by == 'technology' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" 
+           class="text-decoration-none small {% if sort_by == 'technology' %}fw-bold text-primary{% else %}text-primary{% endif %}">
+            A-Z{% if sort_by == 'technology' %}{% if sort_order == 'desc' %} ↓{% else %} ↑{% endif %}{% endif %}
+        </a>
+        <a href="?sort_by=components&sort_order={% if sort_by == 'components' and sort_order == 'asc' %}desc{% else %}desc{% endif %}" 
+           class="text-decoration-none small {% if sort_by == 'components' %}fw-bold text-primary{% else %}text-primary{% endif %}">
+            Components{% if sort_by == 'components' %}{% if sort_order == 'desc' %} ↓{% else %} ↑{% endif %}{% endif %}
+        </a>
+        <a href="?sort_by=capacity&sort_order={% if sort_by == 'capacity' and sort_order == 'asc' %}desc{% else %}desc{% endif %}" 
+           class="text-decoration-none small {% if sort_by == 'capacity' %}fw-bold text-primary{% else %}text-primary{% endif %}">
+            MW{% if sort_by == 'capacity' %}{% if sort_order == 'desc' %} ↓{% else %} ↑{% endif %}{% endif %}
+        </a>
+    </div>
+
+    <p class="text-muted">
+        Displaying {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ total_technologies|intcomma }} technologies.
+        <small class="text-success">(Loaded in {{ load_time|floatformat:2 }}s)</small>
+    </p>
+
+    <ul class="list-group list-group-flush mb-4">
+        {% for tech in page_obj %}
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <a href="{% url 'technology_detail_map' technology_name=tech.technology %}" 
+                       class="fw-bold text-decoration-none"
+                       style="color: {{ tech.technology|technology_color }};">
+                        {{ tech.technology }}
+                    </a>
+                    <div class="text-end">
+                        {% if sort_by == 'capacity' %}
+                            <span class="badge bg-primary">{{ tech.total_capacity|floatformat:2|intcomma }} MW</span>
+                        {% elif sort_by == 'components' %}
+                            <span class="badge bg-info">{{ tech.component_count|intcomma }} components</span>
+                        {% else %}
+                            <span class="badge bg-success">{{ tech.location_count|intcomma }} locations</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="small text-muted">
+                    <span class="me-3"><i class="bi bi-lightning"></i> {{ tech.total_capacity|floatformat:2|intcomma }} MW</span>
+                    <span class="me-3"><i class="bi bi-box-seam"></i> {{ tech.component_count|intcomma }} components</span>
+                    <span><i class="bi bi-geo-alt"></i> {{ tech.location_count|intcomma }} locations</span>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?sort_by={{ sort_by }}&sort_order={{ sort_order }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?sort_by={{ sort_by }}&sort_order={{ sort_order }}&page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+{# Embed chart data using json_script #}
+{{ tech_chart_labels|json_script:"tech-labels" }}
+{{ tech_chart_values|json_script:"tech-values" }}
+{{ tech_capacity_chart_labels|json_script:"tech-capacity-labels" }}
+{{ tech_capacity_chart_values|json_script:"tech-capacity-values" }}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    // Helper function to get data from json_script tags
+    const getJsonData = (id) => JSON.parse(document.getElementById(id).textContent);
+
+    // Get the data using the helper function
+    const techCountLabels = getJsonData("tech-labels");
+    const techCountValues = getJsonData("tech-values");
+    const techCapacityLabels = getJsonData("tech-capacity-labels");
+    const techCapacityValues = getJsonData("tech-capacity-values");
+
+    // Chart configuration
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+            padding: {
+                bottom: 50
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    boxWidth: 12,
+                    padding: 20
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed !== null) {
+                            let value = context.parsed;
+                            let suffix = '';
+                            // Read from the customData location
+                            const dataType = context.chart.config.options.plugins.customData.dataType;
+                            if (dataType === 'capacity') {
+                                suffix = ' MW';
+                                value = value.toLocaleString(undefined, { maximumFractionDigits: 0 });
+                            } else {
+                                value = value.toLocaleString();
+                            }
+                            label += value + suffix;
+                        }
+                        return label;
+                    }
+                }
+            }
+        }
+    };
+
+    // Initial chart data
+    const initialTechData = {
+        labels: techCountLabels,
+        datasets: [{
+            label: 'Component Count',
+            data: techCountValues,
+            borderWidth: 1
+        }]
+    };
+
+    // Create chart
+    const techCtx = document.getElementById('techPieChart').getContext('2d');
+    const techPieChart = new Chart(techCtx, {
+        type: 'pie',
+        data: initialTechData,
+        options: { 
+            ...commonOptions, 
+            plugins: {
+                ...(commonOptions.plugins || {}), 
+                customData: { 
+                    dataType: 'count' 
+                }
+            }
+        }
+    });
+
+    // Toggle button logic
+    document.querySelectorAll('.chart-toggle-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const type = this.dataset.type; // 'count' or 'capacity'
+            let newData;
+            let newLabel;
+            let newLabels;
+
+            if (type === 'count') {
+                newLabels = techCountLabels;
+                newData = techCountValues;
+                newLabel = 'Component Count';
+            } else { // capacity
+                newLabels = techCapacityLabels;
+                newData = techCapacityValues;
+                newLabel = 'Total Capacity (MW)';
+            }
+
+            // Update chart data and label
+            techPieChart.data.datasets[0].data = newData;
+            techPieChart.data.datasets[0].label = newLabel;
+            // Update labels 
+            techPieChart.data.labels = newLabels;
+            
+            // Update the stored type for tooltip formatting
+            techPieChart.config.options.plugins.customData.dataType = type;
+
+            techPieChart.update();
+                
+            // Update button active state
+            this.closest('.btn-group').querySelectorAll('.chart-toggle-btn').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Handle chart collapse/expand icon rotation
+    const chartCollapse = document.getElementById('techDistributionChart');
+    const toggleIcon = document.getElementById('chartToggleIcon');
+    
+    chartCollapse.addEventListener('show.bs.collapse', function () {
+        toggleIcon.className = 'bi bi-chevron-down me-2';
+    });
+    
+    chartCollapse.addEventListener('hide.bs.collapse', function () {
+        toggleIcon.className = 'bi bi-chevron-right me-2';
+    });
+});
+</script>
+{% endblock %}

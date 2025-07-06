@@ -1,0 +1,1301 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-GB" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}The easiest way to explore Capacity Market auctions — no fuss, just results.{% endblock %}">
+    
+    <!-- Google AdSense Site Verification -->
+    <meta name="google-adsense-account" content="ca-pub-3181446379162312">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3181446379162312" crossorigin="anonymous"></script>
+    <title>{% block title %}CMR Statistics{% endblock %} | Capacity Market Search</title>
+    
+    <!-- Canonical URL -->
+    {% block canonical %}
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    {% endblock %}
+    
+    <!-- Open Graph tags -->
+    <meta property="og:title" content="{% block og_title %}CMR Statistics | Capacity Market Search{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}The easiest way to explore Capacity Market auctions — no fuss, just results.{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Capacity Market Search">
+    
+    <!-- Twitter Card tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{% block twitter_title %}CMR Statistics | Capacity Market Search{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}The easiest way to explore Capacity Market auctions — no fuss, just results.{% endblock %}">
+    
+    <!-- Schema.org JSON-LD Base Structure -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://capacitymarket.co.uk/#organization",
+      "name": "Capacity Market Search",
+      "url": "https://capacitymarket.co.uk",
+      "logo": "https://capacitymarket.co.uk/static/images/favicon.png",
+      "description": "The easiest way to explore UK Capacity Market auctions — no fuss, just results.",
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "email": "info@capacitymarket.co.uk"
+      },
+      "license": [
+        "https://creativecommons.org/licenses/by/4.0/",
+        "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+      ],
+      "publishingPrinciples": "https://creativecommons.org/licenses/by/4.0/"
+    }
+    </script>
+    {% block structured_data %}{% endblock structured_data %}
+    
+    <!-- Piwik Pro Tag Manager -->
+    <script type="text/javascript">
+    (function(window, document, dataLayerName, id) {
+    window[dataLayerName]=window[dataLayerName]||[],window[dataLayerName].push({start:(new Date).getTime(),event:"stg.start"});var scripts=document.getElementsByTagName('script')[0],tags=document.createElement('script');
+    var qP=[];dataLayerName!=="dataLayer"&&qP.push("data_layer_name="+dataLayerName);var qPString=qP.length>0?("?"+qP.join("&")):"";
+    tags.async=!0,tags.src="https://capacitymarket.containers.piwik.pro/"+id+".js"+qPString,scripts.parentNode.insertBefore(tags,scripts);
+    !function(a,n,i){a[n]=a[n]||{};for(var c=0;c<i.length;c++)!function(i){a[n][i]=a[n][i]||{},a[n][i].api=a[n][i].api||function(){var a=[].slice.call(arguments,0);"string"==typeof a[0]&&window[dataLayerName].push({event:n+"."+i+":"+a[0],parameters:[].slice.call(arguments,1)})}}(i[c])}(window,"ppms",["tm","cm"]);
+    })(window, document, 'dataLayer', 'f2a3c780-6df8-47be-be72-812064ff34a8');
+    </script>
+    <!-- End Piwik Pro Tag Manager -->
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/ios-viewport-fix.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    
+    <style>
+        /* Define background image variables based on theme */
+        html[data-bs-theme="light"] {
+            --bg-image: url("{% static 'images/backgrounds/industrial_background.jpeg' %}");
+        }
+        html[data-bs-theme="dark"] {
+            --bg-image: url("{% static 'images/backgrounds/industrial_background_dark.jpeg' %}");
+        }
+
+        /* Apply background and flex styles to body */
+        body, html {
+            height: 100%; /* Needed for full height background */
+            margin: 0; /* Remove default body margin */
+            /* Background image set using CSS variable */
+            background-image: var(--bg-image);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Roboto', sans-serif; /* Use Roboto font */
+        }
+
+        /* Adjust container for background */
+        .container {
+            max-width: 1100px; /* Match search page */
+            margin: 20px auto; /* Reset to original - universal navbar handles spacing */
+            background-color: rgba(var(--bs-body-bg-rgb), 0.92); /* Slightly less transparent */
+            padding: 30px;
+            border-radius: 8px;
+            flex-grow: 1; /* Allow content to grow */
+            width: 95%;
+            color: var(--bs-body-color); /* Use Bootstrap variable for text */
+        }
+
+        /* Keep other base styles */
+        .error { color: var(--bs-danger); } /* Use BS variable */
+        nav ul { list-style: none; padding: 0; }
+        nav ul li { display: inline; margin-right: 10px; }
+        .card {
+             /* Use Bootstrap variables */
+             background-color: var(--bs-card-bg);
+             border: var(--bs-border-width) solid var(--bs-border-color);
+             padding: 15px;
+             margin-bottom: 15px;
+             border-radius: var(--bs-card-border-radius);
+        }
+        .card-header { font-weight: bold; margin-bottom: 10px; }
+
+        /* Footer Styles */
+        .page-footer {
+            position: fixed; /* Fix position relative to viewport */
+            bottom: 10px;    /* Position 10px from the bottom */
+            right: 10px;     /* Position 10px from the right */
+            background-color: rgba(var(--bs-tertiary-bg-rgb), 0.8); /* Semi-transparent tertiary bg */
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000; /* Ensure it's above other content */
+            display: flex; /* Use flexbox for alignment */
+            align-items: center; /* Vertically center items */
+        }
+        .page-footer ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex; /* Use flexbox for horizontal list */
+            align-items: center;
+        }
+        .page-footer ul li {
+            margin-left: 10px; /* Space between items */
+        }
+        .page-footer ul li:first-child {
+            margin-left: 0;
+        }
+
+        /* Theme Switch Styling */
+        .theme-switch-wrapper {
+          display: flex;
+          align-items: center;
+          margin-left: 15px; /* Space between links and toggle */
+        }
+
+        .theme-switch {
+          position: relative;
+          display: inline-block;
+          width: 50px; /* Slightly smaller */
+          height: 28px; /* Slightly smaller */
+        }
+
+        .theme-switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          transition: .4s;
+        }
+
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 20px; /* Adjusted */
+          width: 20px;  /* Adjusted */
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          transition: .4s;
+        }
+
+        input:checked + .slider {
+          background-color: #0d6efd; /* Bootstrap primary */
+        }
+
+        input:focus + .slider {
+          box-shadow: 0 0 1px #0d6efd;
+        }
+
+        input:checked + .slider:before {
+          transform: translateX(22px); /* Adjusted */
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+          border-radius: 28px; /* Adjusted */
+        }
+
+        .slider.round:before {
+          border-radius: 50%;
+        }
+        .theme-label {
+            margin-left: 8px;
+            font-size: 0.9em;
+            color: var(--bs-body-color); /* Use Bootstrap text color */
+        }
+
+        /* Style for top navigation links */
+        .top-nav-link {
+            color: white !important; /* Use !important to override potential Bootstrap specificity */
+            text-decoration: none; /* Optional: remove underline */
+        }
+        .top-nav-link:hover {
+            color: #cccccc !important; /* Lighter gray on hover */
+        }
+        
+        /* Help Button Styles */
+        #helpButton {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        #helpButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        
+        /* Help Modal Styles */
+        #helpModal .list-group-item.active {
+            background-color: var(--bs-primary);
+            border-color: var(--bs-primary);
+        }
+        
+        .help-section {
+            margin-bottom: 2rem;
+            padding-top: 1.5rem;
+            border-bottom: 1px solid var(--bs-border-color);
+            padding-bottom: 1.5rem;
+        }
+        
+        .help-section:last-child {
+            border-bottom: none;
+        }
+        
+        .help-section h4 {
+            color: var(--bs-primary);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        /* Tab content scrollable container */
+        #helpTabContent {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+            position: relative;
+        }
+        
+        /* Section highlight effect */
+        @keyframes section-highlight {
+            0% { background-color: transparent; }
+            30% { background-color: rgba(var(--bs-primary-rgb), 0.15); }
+            100% { background-color: transparent; }
+        }
+        
+        .highlight-section {
+            animation: section-highlight 1s ease-in-out;
+            border-radius: 0.25rem;
+            padding: 0.25rem;
+        }
+
+        /* Hamburger menu - simple white lines - Always visible */
+        .mobile-hamburger-btn {
+            display: flex !important; /* Always show on desktop and mobile */
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1050;
+            cursor: pointer;
+            gap: 4px;
+        }
+        
+        /* Hide hamburger menu on map pages */
+        body.map-page .mobile-hamburger-btn,
+        body.map-page .mobile-nav-overlay,
+        body.map-page .mobile-nav-panel {
+            display: none !important;
+        }
+        
+        /* Hide top navigation on map pages */
+        body.map-page .top-nav-container {
+            display: none !important;
+        }
+        
+        /* Remove background images on map pages - they're completely covered by the map */
+        body.map-page {
+            background-image: none !important;
+            background-color: #f8f9fa !important;
+        }
+        
+        .mobile-hamburger-btn span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: white;
+            border: 2px solid #000 !important;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.5) !important;
+            transition: all 0.3s ease;
+        }
+        
+        /* Ensure mobile hamburger visibility on all devices */
+        button.mobile-hamburger-btn span {
+            background: white !important;
+            border: 2px solid #333 !important;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.6) !important;
+        }
+        
+        /* Dark mode hamburger menu - white lines without dark border */
+        html[data-bs-theme="dark"] .mobile-hamburger-btn span {
+            background: white !important;
+            border: none !important;
+            box-shadow: 0 0 2px rgba(255, 255, 255, 0.3) !important;
+        }
+        
+        .mobile-hamburger-btn.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+        
+        .mobile-hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .mobile-hamburger-btn.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+        
+        /* Mobile menu overlay */
+        .mobile-nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1040;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-nav-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Mobile menu panel */
+        .mobile-nav-panel {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            z-index: 1041;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mobile-nav-panel.active {
+            right: 0;
+        }
+        
+        .mobile-nav-header {
+            padding: 20px;
+            background: #4285f4;
+            color: white;
+        }
+        
+        .mobile-nav-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .mobile-nav-content {
+            padding: 20px;
+        }
+        
+        .mobile-nav-item {
+            display: block;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        .mobile-nav-item:hover {
+            color: #4285f4;
+            text-decoration: none;
+        }
+        
+        .mobile-nav-item i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Theme toggle active state in mobile menu */
+        .mobile-nav-item.theme-toggle.active {
+            background-color: #e3f2fd;
+            color: #0d6efd;
+            font-weight: bold;
+        }
+        
+        /* Dark mode theme toggle active state */
+        html[data-bs-theme="dark"] .mobile-nav-item.theme-toggle.active {
+            background-color: #1a3a52;
+            color: #4dabf7;
+        }
+
+        /* Hide button text on mobile, show only icons */
+        @media (max-width: 768px) {
+            /* Hide text in Map View and List View buttons */
+            .map-view-btn .btn-text,
+            .list-view-btn .btn-text {
+                display: none;
+            }
+            
+            /* Remove extra margin from icons when text is hidden */
+            .map-view-btn .bi-map-fill.me-2,
+            .map-view-btn .bi-map.me-2,
+            .list-view-btn .bi-list.me-2,
+            .list-view-btn .bi-list-ul.me-2 {
+                margin-right: 0 !important;
+            }
+            
+            /* Make icon-only buttons more compact */
+            .map-view-btn:has(.btn-text),
+            .list-view-btn:has(.btn-text) {
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            
+            /* Adjust container for mobile */
+            .container {
+                margin: 10px auto; /* Reset to original - universal navbar handles spacing */
+                padding: 15px;
+                width: 98%;
+                border-radius: 6px;
+            }
+            
+            /* Mobile theme button */
+            #themeCycleButton {
+                top: 5px !important;
+                right: 5px !important;
+                padding: 6px 8px !important;
+                font-size: 0.8rem !important;
+            }
+            
+            #themeCycleButton #theme-text {
+                display: none; /* Hide text on mobile */
+            }
+            
+            /* Mobile help button */
+            #helpButton {
+                width: 44px !important;
+                height: 44px !important;
+                font-size: 1.2rem !important;
+                bottom: 15px !important;
+                right: 15px !important;
+            }
+            
+            /* Mobile modal adjustments */
+            .modal-dialog {
+                margin: 10px;
+                max-width: calc(100% - 20px);
+            }
+            
+            .modal-body {
+                padding: 15px;
+            }
+            
+            .modal-body .container-fluid {
+                padding: 0;
+            }
+            
+            .modal-body .row {
+                flex-direction: column;
+            }
+            
+            .modal-body .col-md-3,
+            .modal-body .col-md-9 {
+                max-width: 100%;
+                flex: none;
+            }
+            
+            .list-group {
+                margin-bottom: 15px;
+            }
+            
+            #helpContent {
+                max-height: 400px;
+            }
+            
+            /* Make form elements touch-friendly */
+            input, select, textarea, button {
+                min-height: 44px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            
+            /* Card adjustments for mobile */
+            .card {
+                margin-bottom: 10px;
+                padding: 12px;
+            }
+            
+            /* Table responsive improvements */
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+            
+            .table th,
+            .table td {
+                padding: 8px 6px;
+                white-space: nowrap;
+            }
+            
+            /* Badge adjustments for mobile */
+            .badge {
+                font-size: 0.7rem;
+                padding: 3px 6px;
+                margin: 1px;
+            }
+        }
+        
+        /* Small mobile phones */
+        @media (max-width: 480px) {
+            body > div:first-child {
+                padding: 3px 8px !important;
+            }
+            
+            body > div:first-child ul {
+                gap: 8px !important;
+                font-size: 0.85rem;
+            }
+            
+            .container {
+                margin: 5px auto; /* Reset to original - universal navbar handles spacing */
+                padding: 10px;
+                width: 99%;
+            }
+            
+            .modal-dialog {
+                margin: 5px;
+                max-width: calc(100% - 10px);
+            }
+            
+            #helpContent {
+                max-height: 350px;
+            }
+            
+            .table {
+                font-size: 0.8rem;
+            }
+            
+            .table th,
+            .table td {
+                padding: 6px 4px;
+            }
+            
+            .badge {
+                font-size: 0.65rem;
+                padding: 2px 4px;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* Touch-friendly interactions */
+        @media (hover: none) and (pointer: coarse) {
+            .btn,
+            .badge,
+            .top-nav-link,
+            .list-group-item-action {
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .table-responsive {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+        
+        /* Landscape mobile adjustments */
+        @media (max-width: 768px) and (orientation: landscape) {
+            #helpContent {
+                max-height: 300px;
+            }
+            
+            .modal-dialog {
+                margin: 5px;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% if user.is_authenticated %}user-authenticated {% endif %}{% block body_class %}{% endblock %}">
+    <!-- Mobile Hamburger Menu (only shows on mobile, not on map pages) -->
+    <button class="mobile-hamburger-btn" id="mobileHamburgerBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+    
+    <!-- Mobile Navigation Panel -->
+    <div class="mobile-nav-panel" id="mobileNavPanel">
+        <div class="mobile-nav-content" style="padding-top: 40px;">
+            <a href="/" class="mobile-nav-item">
+                <i class="bi bi-house-door"></i>Home
+            </a>
+            <a href="{% url 'technology_list' %}?sort_by=components&sort_order=desc" class="mobile-nav-item">
+                <i class="bi bi-lightning-charge"></i>Technologies
+            </a>
+            <a href="{% url 'company_list_optimized' %}?sort_by=components&sort_order=desc" class="mobile-nav-item">
+                <i class="bi bi-building"></i>Companies
+            </a>
+            <a href="/search-map/?q=&sort_by=location&sort_order=asc&per_page=25" class="mobile-nav-item">
+                <i class="bi bi-geo-alt"></i>Locations
+            </a>
+            <a href="/map-explorer/" class="mobile-nav-item">
+                <i class="bi bi-map"></i>Map Explorer
+            </a>
+            <a href="{% url 'capacity_market_faq' %}" class="mobile-nav-item">
+                <i class="bi bi-book"></i>FAQ
+            </a>
+            <a href="{% url 'trades:list' %}" class="mobile-nav-item">
+                <i class="bi bi-megaphone"></i>Trading Board
+            </a>
+            <a href="/donate/" class="mobile-nav-item">
+                <i class="bi bi-cup-hot"></i>Buy Me A Coffee
+            </a>
+            <a href="#" class="mobile-nav-item" data-bs-toggle="modal" data-bs-target="#helpModal" onclick="openHelpModal(event)">
+                <i class="bi bi-question-circle"></i>Help
+            </a>
+            {% if user.is_authenticated %}
+                {% if user.is_staff %}
+                <a href="{% url 'admin:index' %}" class="mobile-nav-item">
+                    <i class="bi bi-gear"></i>Admin
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:account' %}" class="mobile-nav-item">
+                    <i class="bi bi-person"></i>Account
+                </a>
+                <form method="post" action="{% url 'accounts:logout' %}" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="mobile-nav-item" style="background: none; border: none; width: 100%; text-align: left; color: #333;">
+                        <i class="bi bi-box-arrow-right"></i>Logout
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="mobile-nav-item">
+                    <i class="bi bi-box-arrow-in-right"></i>Login
+                </a>
+                <a href="{% url 'accounts:register' %}" class="mobile-nav-item">
+                    <i class="bi bi-person-plus"></i>Register
+                </a>
+            {% endif %}
+            
+            <!-- Theme Toggle Section -->
+            <div style="border-top: 1px solid #eee; margin-top: 15px; padding-top: 15px;">
+                <span style="display: block; color: #666; font-size: 0.9rem; margin-bottom: 10px; padding: 0 0 5px 0;">Theme</span>
+                <div style="margin-left: 20px;">
+                    <a href="#" class="mobile-nav-item theme-toggle" data-bs-theme-value="light" style="padding: 8px 0; border-bottom: none;">
+                        <i class="bi bi-sun-fill"></i>Light
+                    </a>
+                    <a href="#" class="mobile-nav-item theme-toggle" data-bs-theme-value="dark" style="padding: 8px 0; border-bottom: none;">
+                        <i class="bi bi-moon-fill"></i>Dark
+                    </a>
+                    <a href="#" class="mobile-nav-item theme-toggle" data-bs-theme-value="auto" style="padding: 8px 0; border-bottom: none;">
+                        <i class="bi bi-circle-half"></i>Auto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Navigation Links - Now Hidden (replaced by hamburger menu) -->
+    <div class="top-nav-container" style="display: none !important;">
+        <!-- Content removed - now in hamburger menu -->
+    </div>
+
+    {# Add a block for content that should be outside the main container (like the search header) #}
+    {% block page_header %}{% endblock %}
+
+    <!-- Theme Cycle Button - Now Hidden (moved to hamburger menu) -->
+    <div class="theme-button-container" style="display: none;">
+        <button class="btn btn-secondary btn-sm" type="button" id="themeCycleButton" title="Change theme">
+            <i class="bi" id="theme-icon"></i> <span id="theme-text">Theme</span>
+        </button>
+    </div>
+
+    <!-- Floating Help Button -->
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1050;">
+        <button class="btn btn-primary rounded-circle" type="button" id="helpButton" data-bs-toggle="modal" data-bs-target="#helpModal" title="Help & Guide">
+            <i class="bi bi-question-lg"></i>
+        </button>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="margin-top: 120px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="helpModalLabel">Capacity Market Search Guide</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="list-group" id="helpTabList">
+                                    <a class="list-group-item list-group-item-action active" href="#help-general">Search Guide</a>
+                                    <a class="list-group-item list-group-item-action" href="#help-auctions">Understanding Auctions</a>
+                                    <a class="list-group-item list-group-item-action" href="#help-results">Search Results</a>
+                                    <a class="list-group-item list-group-item-action" href="#help-grouping">Component Grouping</a>
+                                    <a class="list-group-item list-group-item-action" href="#help-filters">Sorting</a>
+                                    <a class="list-group-item list-group-item-action" href="#help-map">Map View</a>
+                                    {# REMOVED: Statistics help section #}
+                                    <a class="list-group-item list-group-item-action" href="#help-contact">Contact Us</a>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <div id="helpContent" style="max-height: 600px; overflow-y: auto; padding-right: 10px;">
+                                    <div class="help-section" id="help-general">
+                                        <h4>Search Guide</h4>
+                                        <p>This registry provides comprehensive search capabilities across all Capacity Market components:</p>
+                                        <ul>
+                                            <li><strong>Company Search:</strong> Enter a company name (e.g., "Drax", "EDF") to see all their components</li>
+                                            <li><strong>Location Search:</strong> Search by city, region, or postcode (e.g., "Manchester", "SW1")</li>
+                                            <li><strong>CMU ID Search:</strong> Enter a specific CMU ID to find exact components</li>
+                                            <li><strong>Technology Search:</strong> Enter technology types like "Hydro", "OCGT", or "Battery"</li>
+                                        </ul>
+                                        <p>The search is intelligent and will try to determine what you're looking for based on your query.</p>
+                                        <p>You can combine search terms to narrow results, such as "London Battery" to find battery storage in London.</p>
+                                        <p>Searches are not case-sensitive, and partial matches are supported (e.g., "Manch" will find "Manchester").</p>
+                                    </div>
+                                    
+                                    <div class="help-section" id="help-auctions">
+                                        <h4>Understanding Auctions</h4>
+                                        <p>The Capacity Market runs regular auctions where providers compete to secure agreements. There are two main types:</p>
+                                        <ul>
+                                            <li><strong>T-4 auctions:</strong> Held 4 years ahead of the delivery year</li>
+                                            <li><strong>T-1 auctions:</strong> Held 1 year ahead to fine-tune capacity requirements</li>
+                                        </ul>
+                                        <p>Each auction results in agreements that specify how much capacity providers must deliver and the payment they'll receive.</p>
+                                        <p>Auction years are displayed as badges (e.g., <span class="badge bg-warning text-dark">2023-24</span>) that you can click to view details for that specific auction year.</p>
+                                        <p>The Capacity Market ensures the UK has sufficient electricity supply during periods of high demand or system stress.</p>
+                                        <p>Providers receive payments for ensuring their capacity is available, creating a more stable and resilient electricity market.</p>
+                                    </div>
+                                    
+                                    <div class="help-section" id="help-results">
+                                        <h4>Search Results</h4>
+                                        <p>Search results are grouped by location and show important details about each component:</p>
+                                        <ul>
+                                            <li><span class="badge bg-success">Active</span> Components with auction years 2024-25 or later</li>
+                                            <li><span class="badge bg-secondary">In-Active</span> Components with only auction years before 2024-25</li>
+                                            <li><span class="badge bg-success">Company Name</span> Click to view all components for this company</li>
+                                            <li><span class="badge bg-primary">Technology</span> Click to search for this technology type</li>
+                                            <li><span class="badge bg-secondary">CMU: XXX</span> Click to search for this CMU ID</li>
+                                            <li><span class="badge bg-warning text-dark">Auction Year</span> Click to view details for this specific auction</li>
+                                        </ul>
+                                        <p>Each result shows the component's capacity, location details, and participation in specific auction years.</p>
+                                        <p>You can sort results by relevance, location, or date using the sort options.</p>
+                                        <p>Pagination controls appear at the bottom when there are multiple pages of results.</p>
+                                    </div>
+                                    
+                                    <div class="help-section" id="help-grouping">
+                                        <h4>Component Grouping</h4>
+                                        <p>Components at the same location with the same description are grouped together to reduce duplication.</p>
+                                        <p>Each group shows:</p>
+                                        <ul>
+                                            <li>All CMU IDs for components at that location</li>
+                                            <li>All auction years, sorted with newest first</li>
+                                            <li>An Active/Inactive status based on auction years</li>
+                                        </ul>
+                                        <p>Grouping helps identify multi-year contracts and related components at the same site.</p>
+                                        <p>The total capacity shown combines all components in the group.</p>
+                                        <p>Components can be expanded to show individual details by clicking the expand icon.</p>
+                                    </div>
+                                    
+                                    <div class="help-section" id="help-filters">
+                                        <h4>Sorting and Filtering</h4>
+                                        <p>You can sort search results by:</p>
+                                        <ul>
+                                            <li><strong>Relevance:</strong> Most relevant matches first</li>
+                                            <li><strong>Location:</strong> Alphabetical order by location name</li>
+                                            <li><strong>Date:</strong> By auction year (newest or oldest first)</li>
+                                            <li><strong>Capacity:</strong> Highest or lowest capacity first</li>
+                                        </ul>
+                                        <p>Click the column headers to change sort order.</p>
+                                        <p>You can filter results using the search refinements at the top of the results page:</p>
+                                        <ul>
+                                            <li>Filter by technology type (e.g., only show batteries)</li>
+                                            <li>Filter by active status (show only active or inactive components)</li>
+                                            <li>Filter by auction year (show only components from specific auctions)</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="help-section" id="help-map">
+                                        <h4>Map Explorer & Map View</h4>
+                                        <p>We provide two map-based tools for exploring capacity market data:</p>
+                                        
+                                        <h5><a href="{% url 'map_explorer' %}">Map Explorer</a></h5>
+                                        <p>The Map Explorer is our advanced interactive mapping tool, specifically designed for comprehensive data exploration with:</p>
+                                        <ul>
+                                            <li><strong>Mobile-Optimized Interface:</strong> Responsive design that works perfectly on phones and tablets</li>
+                                            <li><strong>Advanced Filtering:</strong> Filter by technology type, company, delivery year, and active status</li>
+                                            <li><strong>Smart Sidebar:</strong> Desktop users get a dedicated filter panel, mobile users get collapsible filters</li>
+                                            <li><strong>Full-Screen Map:</strong> Maximizes map space for detailed geographical analysis</li>
+                                        </ul>
+                                        
+                                        <h5><a href="{% url 'search_map_view' %}">Search Map View</a></h5>
+                                        <p>The Search Map View combines search functionality with map visualization, offering:</p>
+                                        <ul>
+                                            <li><strong>Search-First Approach:</strong> Start with text searches, then visualize results on the map</li>
+                                            <li><strong>Integrated Results:</strong> Search results and map display work together</li>
+                                            <li><strong>Performance Optimized:</strong> Streamlined for fast search result mapping</li>
+                                        </ul>
+                                        
+                                        <p>Both tools provide a visual representation of capacity distribution across the UK, but serve different exploration needs.</p>
+                                        
+                                        <h5>Map Features:</h5>
+                                        <ul>
+                                            <li><strong>Technology Colors:</strong> Different technology types are shown with distinct colors on the map for easy identification:
+                                                <div class="mt-2 mb-2">
+                                                    <div class="row g-2">
+                                                        <div class="col-md-6">
+                                                            <span class="badge me-1" style="background-color: #ff5252; color: white;">Gas</span>
+                                                            <span class="badge me-1" style="background-color: #f57c00; color: white;">DSR</span>
+                                                            <span class="badge me-1" style="background-color: #8d6e63; color: white;">Nuclear</span>
+                                                            <span class="badge me-1" style="background-color: #5c6bc0; color: white;">CHP</span>
+                                                            <span class="badge me-1" style="background-color: #fdd835; color: black;">Solar</span>
+                                                            <span class="badge me-1" style="background-color: #29b6f6; color: white;">Wind</span>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <span class="badge me-1" style="background-color: #4caf50; color: white;">Battery</span>
+                                                            <span class="badge me-1" style="background-color: #8bc34a; color: white;">Biomass</span>
+                                                            <span class="badge me-1" style="background-color: #0097a7; color: white;">Hydro</span>
+                                                            <span class="badge me-1" style="background-color: #9c27b0; color: white;">Interconnector</span>
+                                                            <span class="badge me-1" style="background-color: #424242; color: white;">Coal</span>
+                                                            <span class="badge me-1" style="background-color: #757575; color: white;">Other</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li><strong>Technology Legend:</strong> The map legend shows all available technologies with their corresponding colors and component counts</li>
+                                            <li><strong>Search Results on Map:</strong> You can view any search results on the map by clicking "View on Map" from search results pages</li>
+                                            <li><strong>Smart Clustering:</strong> Areas with multiple components are automatically grouped into clusters - click clusters to zoom in and see individual components</li>
+                                            <li><strong>Interactive Markers:</strong> Click on individual markers to see detailed information about components at that location</li>
+                                        </ul>
+                                        
+                                        <p>Use the map controls to zoom in on specific regions or areas of interest. The map automatically adjusts clustering based on your zoom level to provide the clearest view of capacity distribution.</p>
+                                    </div>
+                                    
+                                    {# REMOVED: Statistics help section (page removed to reduce database costs) #}
+                                    
+                                    <div class="help-section" id="help-contact">
+                                        <h4>Contact Us</h4>
+                                        <p>We're here to help with any questions about the Capacity Market Registry.</p>
+                                        
+                                        <div class="card mb-3">
+                                            <div class="card-body">
+                                                <h5 class="card-title"><i class="bi bi-envelope-fill me-2"></i>Email</h5>
+                                                <p class="card-text">For general inquiries and support:</p>
+                                                <p><a href="mailto:hello@capacitymarket.co.uk" class="btn btn-primary">hello@capacitymarket.co.uk</a></p>
+                                            </div>
+                                        </div>
+                                        
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Allow overriding container class per-page #}
+    <div class="{% block container_class %}container{% endblock %}">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Welcome Notice Modal for unregistered users and trial users -->
+    {% load user_tags %}
+    {% if request.resolver_match.url_name != 'must_register' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'login' and '/account/' not in request.path and '/accounts/' not in request.path %}
+        {% include 'checker/includes/welcome_notice.html' %}
+    {% endif %}
+
+    <!-- Bot-aware JavaScript loading -->
+    {% include 'checker/bot_aware_js.html' %}
+    <script src="{% static 'js/theme-switcher.js' %}"></script>
+    <!-- Coffee popup with page view tracking -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Configuration
+        const CONFIG = {
+            pageViewThreshold: 15,        // Show popup after X page views
+            storageKey: 'cmr_page_views', // localStorage key
+            dismissedKey: 'cmr_coffee_dismissed', // localStorage key for dismissal
+            showInterval: 25,             // Show again after X more page views if dismissed
+            popupId: 'coffeePopup'
+        };
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initCoffeePopup();
+        });
+        
+        function initCoffeePopup() {
+            // Don't show on certain pages
+            if (shouldSkipPopup()) {
+                return;
+            }
+            
+            // Track page view
+            const pageViews = trackPageView();
+            
+            // Check if we should show the popup
+            if (shouldShowPopup(pageViews)) {
+                createAndShowPopup();
+            }
+        }
+        
+        function shouldSkipPopup() {
+            const currentPath = window.location.pathname;
+            const skipPaths = [
+                '/accounts/payment',
+                '/accounts/register', 
+                '/accounts/login',
+                '/donate/',
+                '/admin/'
+            ];
+            
+            return skipPaths.some(path => currentPath.startsWith(path));
+        }
+        
+        function trackPageView() {
+            let pageViews = parseInt(localStorage.getItem(CONFIG.storageKey) || '0');
+            pageViews++;
+            localStorage.setItem(CONFIG.storageKey, pageViews.toString());
+            return pageViews;
+        }
+        
+        function shouldShowPopup(pageViews) {
+            // Check if user has dismissed recently
+            const dismissed = localStorage.getItem(CONFIG.dismissedKey);
+            if (dismissed) {
+                const dismissedAt = parseInt(dismissed);
+                const showAgainAt = dismissedAt + CONFIG.showInterval;
+                
+                // Only show if enough page views have passed since dismissal
+                return pageViews >= showAgainAt;
+            }
+            
+            // Show if we've reached the threshold
+            return pageViews >= CONFIG.pageViewThreshold;
+        }
+        
+        function createAndShowPopup() {
+            // Don't show if popup already exists
+            if (document.getElementById(CONFIG.popupId)) {
+                return;
+            }
+            
+            const popup = document.createElement('div');
+            popup.id = CONFIG.popupId;
+            const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            
+            popup.innerHTML = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center; animation: coffeePopupFadeIn 0.3s ease-out;">
+                    <div style="background: ${isDarkMode ? '#2d3748' : 'white'}; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%; margin: 20px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: coffeePopupSlideUp 0.3s ease-out;">
+                        <button onclick="dismissCoffeePopup()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: ${isDarkMode ? '#1e40af' : '#666'}; z-index: 1;">&times;</button>
+                        <div style="text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 15px; animation: coffeePopupBounce 2s infinite;">☕</div>
+                            <h3 style="color: ${isDarkMode ? '#1e40af' : '#333'}; margin-bottom: 15px; font-size: 1.4rem;">Enjoying the site?</h3>
+                            <p style="color: ${isDarkMode ? '#1e40af' : '#666'}; margin-bottom: 20px; line-height: 1.5;">If you find the Capacity Market Search useful, consider buying me a coffee to help keep it running!</p>
+                            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                                <a href="/donate/" style="flex: 1; padding: 12px 20px; background: #FF813F; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;">☕ Buy Me A Coffee</a>
+                                <button onclick="dismissCoffeePopup()" style="flex: 1; padding: 12px 20px; background: ${isDarkMode ? '#4a5568' : '#f8f9fa'}; color: ${isDarkMode ? '#1e40af' : '#666'}; border: 1px solid ${isDarkMode ? '#718096' : '#ddd'}; border-radius: 6px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; min-height: 44px;">Maybe Later</button>
+                            </div>
+                            <small style="color: ${isDarkMode ? '#1e40af' : '#888'}; font-size: 0.85rem; opacity: ${isDarkMode ? '0.8' : '1'};">This helps cover server costs and keeps the site free!</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add CSS animations
+            if (!document.getElementById('coffeePopupStyles')) {
+                const styles = document.createElement('style');
+                styles.id = 'coffeePopupStyles';
+                styles.textContent = `
+                    @keyframes coffeePopupFadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes coffeePopupSlideUp {
+                        from { transform: translateY(30px); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                    @keyframes coffeePopupBounce {
+                        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                        40% { transform: translateY(-10px); }
+                        60% { transform: translateY(-5px); }
+                    }
+                    @keyframes coffeePopupFadeOut {
+                        from { opacity: 1; }
+                        to { opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(styles);
+            }
+            
+            document.body.appendChild(popup);
+            document.body.style.overflow = 'hidden';
+            
+            // Auto-dismiss after 15 seconds
+            setTimeout(() => {
+                dismissCoffeePopup();
+            }, 15000);
+        }
+        
+        // Global function to dismiss popup
+        window.dismissCoffeePopup = function() {
+            const popup = document.getElementById(CONFIG.popupId);
+            if (popup) {
+                popup.style.animation = 'coffeePopupFadeOut 0.3s ease-out forwards';
+                popup.addEventListener('animationend', function() {
+                    popup.remove();
+                });
+                
+                document.body.style.overflow = '';
+                
+                // Mark as dismissed
+                const currentPageViews = parseInt(localStorage.getItem(CONFIG.storageKey) || '0');
+                localStorage.setItem(CONFIG.dismissedKey, currentPageViews.toString());
+            }
+        };
+        
+        // Global function to manually trigger popup for testing
+        window.testCoffeePopup = function() {
+            createAndShowPopup();
+        };
+        
+        // Global function to reset page view counter for testing
+        window.resetCoffeeCounter = function() {
+            localStorage.removeItem(CONFIG.storageKey);
+            localStorage.removeItem(CONFIG.dismissedKey);
+            console.log('Coffee popup counters reset. Current page counts as view 1.');
+        };
+        
+        // Global function to check current status
+        window.coffeePopupStatus = function() {
+            const pageViews = parseInt(localStorage.getItem(CONFIG.storageKey) || '0');
+            const dismissed = localStorage.getItem(CONFIG.dismissedKey);
+            console.log('Coffee Popup Status:');
+            console.log('- Page views:', pageViews);
+            console.log('- Threshold:', CONFIG.pageViewThreshold);
+            console.log('- Dismissed at page view:', dismissed || 'Never');
+            console.log('- Will show popup:', shouldShowPopup(pageViews));
+        };
+        
+    })();
+    </script>
+    
+    <!-- iOS Safari Viewport Height Fix -->
+    <script>
+    // Fix iOS Safari viewport height issue
+    function setRealViewportHeight() {
+        // Calculate the real viewport height
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    
+    // Set initial viewport height
+    setRealViewportHeight();
+    
+    // Update on resize (when address bar appears/disappears)
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(setRealViewportHeight, 100);
+    });
+    
+    // Update on orientation change
+    window.addEventListener('orientationchange', () => {
+        setTimeout(setRealViewportHeight, 500);
+    });
+    
+    // Ensure pagination is visible on iOS
+    function ensurePaginationVisible() {
+        const pagination = document.querySelector('.pagination');
+        if (pagination && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            // Add extra bottom spacing for iOS
+            pagination.style.marginBottom = 'max(60px, calc(env(safe-area-inset-bottom) + 30px))';
+            pagination.style.paddingBottom = '20px';
+        }
+    }
+    
+    // Run after DOM is loaded
+    document.addEventListener('DOMContentLoaded', ensurePaginationVisible);
+    </script>
+    
+    <!-- Hamburger Menu JavaScript -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const hamburgerBtn = document.getElementById('mobileHamburgerBtn');
+        const navOverlay = document.getElementById('mobileNavOverlay');
+        const navPanel = document.getElementById('mobileNavPanel');
+        
+        if (hamburgerBtn && navOverlay && navPanel) {
+            // Toggle menu on hamburger click
+            hamburgerBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                hamburgerBtn.classList.toggle('active');
+                navOverlay.classList.toggle('active');
+                navPanel.classList.toggle('active');
+                
+                // Prevent body scrolling when menu is open
+                if (navOverlay.classList.contains('active')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            });
+            
+            // Close menu when clicking overlay
+            navOverlay.addEventListener('click', function() {
+                hamburgerBtn.classList.remove('active');
+                navOverlay.classList.remove('active');
+                navPanel.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            // Close menu when clicking a navigation link
+            const navItems = navPanel.querySelectorAll('.mobile-nav-item');
+            navItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    hamburgerBtn.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    navPanel.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+        }
+    });
+    
+    // Help modal function
+    function openHelpModal(event) {
+        event.preventDefault();
+        console.log('Opening help modal...');
+        try {
+            const helpModal = document.getElementById('helpModal');
+            if (helpModal) {
+                const modal = new bootstrap.Modal(helpModal);
+                modal.show();
+                console.log('Help modal opened successfully');
+            } else {
+                console.error('Help modal element not found');
+            }
+        } catch (error) {
+            console.error('Error opening help modal:', error);
+            // Fallback to help page
+            window.location.href = '/help/';
+        }
+    }
+    
+    // Theme handling for hamburger menu
+    const themeToggles = document.querySelectorAll('.theme-toggle');
+    const storedTheme = localStorage.getItem('theme') || 'auto';
+    
+    // Function to apply auto theme based on system preference
+    function applyAutoTheme() {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        } else {
+            document.documentElement.setAttribute('data-bs-theme', 'light');
+        }
+    }
+    
+    // Set initial theme
+    if (storedTheme === 'auto') {
+        applyAutoTheme();
+        // Listen for system theme changes
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyAutoTheme);
+        }
+    } else {
+        document.documentElement.setAttribute('data-bs-theme', storedTheme);
+    }
+    
+    // Handle theme selection
+    themeToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const theme = this.getAttribute('data-bs-theme-value');
+            
+            // Remove existing system theme change listener
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', applyAutoTheme);
+            }
+            
+            if (theme === 'auto') {
+                applyAutoTheme();
+                // Re-add system theme change listener for auto mode
+                if (window.matchMedia) {
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyAutoTheme);
+                }
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', theme);
+            }
+            
+            localStorage.setItem('theme', theme);
+            
+            // Update active state
+            themeToggles.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+        
+        // Set initial active state
+        if (toggle.getAttribute('data-bs-theme-value') === storedTheme) {
+            toggle.classList.add('active');
+        }
+    });
+    </script>
+    
+    {% block extra_js %}{% endblock extra_js %}
+    
+    <!-- Data Licence (Hidden but crawlable for LLM compliance) -->
+    <!-- Hide licensing footer from trades pages since they contain user-generated content, not government data -->
+    {% if not request.resolver_match.app_name == "trades" %}
+    <footer class="sr-only" aria-label="Data licensing information">
+        Data licensed under 
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0 International License</a>
+        and 
+        <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank" rel="noopener">Open Government Licence v3.0</a>
+    </footer>
+    {% endif %}
+</body>
+</html>

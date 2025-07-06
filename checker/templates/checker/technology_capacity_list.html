@@ -1,0 +1,102 @@
+{% extends "checker/base.html" %}
+{% load humanize %}
+{% load checker_tags %}
+
+{% block title %}{{ page_title|default:"Technologies by Total Capacity (MW)" }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .tech-bar {
+        background-color: #0dcaf0; /* Bootstrap Cyan */
+        width: var(--progress-width, 0%);
+        height: 5px; /* Ensure height is set for the bar itself */
+    }
+    .progress-container {
+        height: 5px; /* Set height for the container of the bar */
+        background-color: #e9ecef; /* Optional: background for the track */
+        border-radius: .25rem; /* Optional: match progress bar corners */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 page-header">
+        <h1>{{ header_title|default:"Technologies Ranked by Total Capacity (MW)" }}</h1>
+        {# REMOVED: Statistics page (caused excessive database costs)
+        <a href="{% url 'technology_list' %}?sort_by=capacity&sort_order=desc" class="btn btn-outline-primary btn-sm">
+             <i class="bi bi-arrow-return-left"></i> Back to Statistics
+        </a>
+        #}
+        <a href="{% url 'technology_list' %}" class="btn btn-outline-primary btn-sm">
+             <i class="bi bi-arrow-return-left"></i> Back to Technologies
+        </a>
+    </div>
+
+    <!-- Sort Toggle Buttons -->
+    <div class="d-flex justify-content-end mb-3">
+        <a href="?sort={% if sort_order == 'desc' %}asc{% else %}desc{% endif %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-{% if sort_order == 'desc' %}down{% else %}up{% endif %}-short"></i> 
+            Sort: {% if sort_order == 'desc' %}Largest First{% else %}Smallest First{% endif %}
+        </a>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <p class="text-muted">Displaying {{ page_obj.start_index|default_if_none:0 }}-{{ page_obj.end_index|default_if_none:0 }} of {{ total_count|intcomma }} technologies.</p>
+
+    <ul class="list-group list-group-flush mb-4">
+        {% for tech_data in object_list %} 
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <a href="{% url 'technology_search' technology_name_encoded=tech_data.technology|urlencode %}" class="fw-bold text-decoration-none" title="Search for this technology">
+                        {{ tech_data.technology|truncatechars:80 }}
+                    </a>
+                    <span class="badge bg-info rounded-pill">{{ tech_data.total_capacity|floatformat:2|intcomma }} {{ metric_name|default:"MW" }}</span>
+                </div>
+                <div class="progress progress-container mt-1" role="progressbar" aria-label="Technology capacity percentage" aria-valuenow="{{ tech_data.percentage|floatformat:2 }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="tech-bar" style="--progress-width: {{ tech_data.percentage|floatformat:2 }}%;"></div>
+                </div>
+            </li>
+        {% empty %}
+            <li class="list-group-item">No technologies found.</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Pagination -->
+    {% if paginator.num_pages > 1 %}
+        <nav aria-label="Technology navigation" class="pagination-nav">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1&sort={{ sort_order|default:'desc' }}">First</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort_order|default:'desc' }}">Previous</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">First</span></li>
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                {% endif %}
+
+                {% for i in page_range %} 
+                    {% if i == page_obj.number %}
+                        <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                    {% elif i == 0 %} 
+                         <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}&sort={{ sort_order|default:'desc' }}">{{ i }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort_order|default:'desc' }}">Next</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}&sort={{ sort_order|default:'desc' }}">Last</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    <li class="page-item disabled"><span class="page-link">Last</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+</div>
+{% endblock %} 

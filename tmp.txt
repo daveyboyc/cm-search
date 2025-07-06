@@ -1,0 +1,70 @@
+import pandas as pd
+import urllib.parse
+import logging
+import time
+import traceback
+import json
+from django.shortcuts import render, redirect
+from django.core.cache import cache
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+import requests
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import re
+from django.db.models import Count, Value
+from django.db.models.functions import Coalesce
+from ..models import Component
+from rapidfuzz import fuzz, process
+from django.urls import reverse
+import pickle
+import base64
+from django.db.models import Q
+
+from ..utils import (
+    normalize,
+    get_cache_key,
+    format_location_list,
+    safe_url_param,
+    from_url_param,
+)
+from .data_access import (
+    get_cmu_dataframe,
+    fetch_components_for_cmu_id,
+    get_component_data_from_json,
+    save_component_data_to_json,
+)
+from .search_logic import analyze_query
+from .company_index import get_company_links_html  # Import the new company index service
+
+logger = logging.getLogger(__name__)
+
+# Cache configuration for company links
+COMPANY_LINKS_CACHE_KEY_PREFIX = "company_links_v1"
+COMPANY_LINKS_CACHE_TTL = 3600 * 24 * 7  # 7 days (same as CMU dataframe)
+
+def search_companies_service(request, extra_context=None, return_data_only=False):
+    """
+    Search service that finds companies and their components.
+    Builds a dictionary of context data for rendering company search results.
+    Now uses the prebuilt company index for faster performance.
+    """
+    start_time = time.time()
+    context = {}
+    extra_context = extra_context or {}
+
+    # Try to get query parameters
+    query = request.GET.get("q", "").strip()
+    page = request.GET.get("page", "1")
+    per_page = int(request.GET.get("per_page", 10))
+    sort_by = request.GET.get("sort_by", "relevance")
+    sort_order = request.GET.get("sort_order", "desc")
+    
+    # Ensure integers for page and per_page
+    try:
+        page = int(page)
+    except (ValueError, TypeError):
+        page = 1
+
+    # Generate a cache key for this specific search request
+    cache_key = get_cache_key(
+        f"search_service_{query}_p{page}_pp{per_page}_sort{sort_by}_{sort_order}"

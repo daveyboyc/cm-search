@@ -1,0 +1,55 @@
+{
+  "location_name": "Imperial College London",
+  "total_assets": 2,
+  "total_components": 18,
+  "total_capacity_mw": 12.15,
+  "year_range": "2021 - 2026",
+  "duplicate_count": 6,
+  "missing_capacity_count": 15,
+  "capacity_mismatch_count": 0,
+  "has_coordinates": false,
+  "assets": [
+    {
+      "description": "A 4.5MW gas fired reciprocating engine CHP (Engine 1).",
+      "primary_technology": "Combined Heat and Power (CHP)",
+      "primary_company": "Unknown",
+      "cmus": {
+        "VIT304": {
+          "total_records": 6,
+          "records_with_capacity": 0,
+          "avg_capacity": 0.0,
+          "has_duplicates": true,
+          "auction_count": 6
+        },
+        "VIT404": {
+          "total_records": 3,
+          "records_with_capacity": 2,
+          "avg_capacity": 4.05,
+          "has_duplicates": true,
+          "auction_count": 3
+        }
+      }
+    },
+    {
+      "description": "A 4.5MW gas fired reciprocating engine CHP (Engine 2).",
+      "primary_technology": "Combined Heat and Power (CHP)",
+      "primary_company": "VITAL ENERGI SOLUTIONS LIMITED",
+      "cmus": {
+        "VIT304": {
+          "total_records": 6,
+          "records_with_capacity": 0,
+          "avg_capacity": 0.0,
+          "has_duplicates": true,
+          "auction_count": 6
+        },
+        "VIT404": {
+          "total_records": 3,
+          "records_with_capacity": 1,
+          "avg_capacity": 4.05,
+          "has_duplicates": true,
+          "auction_count": 3
+        }
+      }
+    }
+  ]
+}

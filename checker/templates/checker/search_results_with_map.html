@@ -1,0 +1,619 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+{% load humanize %}
+
+{% block title %}Search Results - Map View{% endblock %}
+
+{% block extra_head %}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<!-- Leaflet MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<style>
+    /* Keep the background from base template */
+    
+    /* Google-like header with logo and search */
+    .search-header {
+        background: transparent;
+        padding: 20px 0;
+        width: 100%;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .search-header-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+    
+    .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-shrink: 0;
+    }
+    
+    .logo-section h1 {
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .search-form-container {
+        flex: 1;
+        max-width: 800px;
+    }
+    
+    .search-form-container .input-group {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        border-radius: 25px;
+        overflow: hidden;
+        background: white;
+    }
+    
+    .search-form-container .form-control {
+        border: none;
+        padding: 12px 20px;
+        font-size: 16px;
+        height: 48px;
+        background: white;
+    }
+    
+    .search-form-container .btn-primary {
+        border: none;
+        padding: 0 30px;
+        font-weight: 500;
+        height: 48px;
+        background-color: #4285f4;
+    }
+    
+    .search-form-container .btn-primary:hover {
+        background-color: #3367d6;
+    }
+    
+    /* Main content area */
+    .main-content {
+        width: 100%;
+        height: calc(100vh - 88px); /* Adjusted for smaller header */
+        display: flex;
+        background: transparent;
+    }
+    
+    /* Results panel - semi-transparent like original */
+    .results-panel {
+        width: 50%;
+        min-width: 300px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        overflow-y: auto;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+    
+    .results-content {
+        padding: 20px;
+    }
+    
+    /* Divider between panels */
+    .divider {
+        width: 4px;
+        background: #dee2e6;
+        cursor: col-resize;
+        position: relative;
+        flex-shrink: 0;
+        transition: background-color 0.2s;
+    }
+    
+    .divider:hover {
+        background: #adb5bd;
+    }
+    
+    .divider::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 30px;
+        background: #6c757d;
+        border-radius: 1px;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    
+    .divider:hover::after {
+        opacity: 1;
+    }
+    
+    /* Map panel */
+    .map-panel {
+        flex: 1;
+        position: relative;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        min-width: 300px;
+    }
+    
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* Results styling - match search_results.html */
+    .results-meta {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .component-record {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(222, 226, 230, 0.8);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .component-record:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+    }
+    
+    .component-record.active {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 2px rgba(13,110,253,0.25);
+    }
+    
+    /* Sort controls */
+    .sort-controls {
+        margin-bottom: 15px;
+        padding: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 5px;
+        font-size: 0.9rem;
+        border: 1px solid rgba(222, 226, 230, 0.8);
+    }
+    
+    .sort-controls a {
+        margin-right: 10px;
+        text-decoration: none;
+        color: #0d6efd;
+    }
+    
+    .sort-controls .active-sort {
+        font-weight: bold;
+        color: #000;
+    }
+    
+    /* Map controls */
+    .map-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    /* Technology badges */
+    .badge-tech {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        margin-left: 8px;
+    }
+    
+    .badge-battery { background-color: #4caf50; }
+    .badge-gas { background-color: #ff9800; }
+    .badge-wind { background-color: #2196f3; }
+    .badge-solar { background-color: #ffeb3b; color: #333; }
+    .badge-dsr { background-color: #9c27b0; }
+    .badge-nuclear { background-color: #f44336; }
+    .badge-biomass { background-color: #795548; }
+    .badge-hydro { background-color: #00bcd4; }
+    .badge-interconnector { background-color: #9c27b0 !important; }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .search-header-content {
+            flex-wrap: wrap;
+        }
+        
+        .logo-section h1 {
+            font-size: 1.5rem;
+        }
+        
+        .search-form-container {
+            width: 100%;
+        }
+        
+        .main-content {
+            flex-direction: column;
+        }
+        
+        .results-panel {
+            width: 100% !important;
+            height: 50%;
+            border-right: none;
+            border-bottom: 1px solid #dee2e6;
+            min-width: auto;
+        }
+        
+        .divider {
+            display: none; /* Hide divider on mobile */
+        }
+        
+        .map-panel {
+            width: 100% !important;
+            height: 50%;
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+<!-- Skip default navbar for custom header -->
+{% endblock %}
+
+{% block container_class %}p-0{% endblock %}
+
+{% block content %}
+<!-- Custom Search Header -->
+<div class="search-header">
+    <div class="search-header-content">
+        <div class="logo-section">
+            <img src="{% static 'images/favicon.png' %}" alt="Logo" height="40">
+            <h1>CMR Search</h1>
+        </div>
+        <div class="search-form-container">
+            <form method="get" action="#" class="search-form">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" 
+                           placeholder="Search by company name, location, CMU ID..." 
+                           value="{{ query|default:'asda' }}" required>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="main-content">
+    <!-- Results Panel -->
+    <div class="results-panel">
+        <div class="results-content">
+            <!-- Results Meta -->
+            <div class="results-meta">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">Search Results for "{{ query|default:'asda' }}"</h4>
+                        <p class="text-muted mb-0">Found 100 results in 0.23 seconds</p>
+                    </div>
+                    <span class="badge bg-info text-dark">Cached Results</span>
+                </div>
+            </div>
+            
+            <!-- Sort Controls -->
+            <div class="sort-controls">
+                Sort by:
+                <a href="?q={{ query }}&sort_by=relevance" class="active-sort">
+                    Relevance
+                </a>
+                <a href="?q={{ query }}&sort_by=capacity&sort_order=desc">
+                    Capacity <i class="fas fa-sort-down"></i>
+                </a>
+                <a href="?q={{ query }}&sort_by=name">
+                    Name <i class="fas fa-sort-alpha-down"></i>
+                </a>
+                <a href="?q={{ query }}&sort_by=year&sort_order=desc">
+                    Year <i class="fas fa-sort-numeric-down"></i>
+                </a>
+            </div>
+            
+            <!-- Results List -->
+            <div id="results-list">
+                {% for i in "x"|rjust:25 %}
+                <div class="component-record" data-id="{{ forloop.counter }}" 
+                     data-lat="{% cycle '51.3168' '53.4808' '52.4862' '53.8008' '51.4545' %}" 
+                     data-lng="{% cycle '-0.5600' '-2.2426' '-1.8904' '-1.5491' '-2.5879' %}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="mb-1">
+                                <a href="#" class="text-decoration-none text-dark">
+                                    ASDA {% cycle 'Woking' 'Manchester' 'Birmingham' 'Leeds' 'Bristol' %} 
+                                    {% cycle 'Distribution Centre' 'Store' 'Depot' 'Warehouse' 'Superstore' %}
+                                </a>
+                                <span class="badge badge-tech badge-{% cycle 'battery' 'gas' 'dsr' 'solar' 'wind' %}">
+                                    {% cycle 'Battery' 'Gas' 'DSR' 'Solar' 'Wind' %}
+                                </span>
+                            </h5>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-building"></i> {% cycle 'ASDA Stores Ltd' 'ASDA Group' 'ASDA Logistics' 'ASDA Retail' %}
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-map-marker-alt"></i> {% cycle 'Woking, Surrey' 'Manchester' 'Birmingham' 'Leeds' 'Bristol' %}
+                            </p>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-bolt"></i> <strong>{{ forloop.counter|add:50 }} MW</strong>
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-calendar"></i> {% cycle '2023' '2024' '2025' %}
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-tag"></i> CMU_{{ forloop.counter|stringformat:"05d" }}
+                            </p>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary view-on-map" data-id="{{ forloop.counter }}">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            <nav aria-label="Search results pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#">4</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Divider between panels -->
+    <div class="divider"></div>
+    
+    <!-- Map Panel -->
+    <div class="map-panel">
+        <div id="map"></div>
+        
+        <!-- Map Controls -->
+        <div class="map-controls">
+            <div class="btn-group btn-group-sm mb-2" role="group">
+                <button type="button" class="btn btn-outline-secondary active" id="map-btn">
+                    <i class="fas fa-map"></i> Map
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="satellite-btn">
+                    <i class="fas fa-satellite"></i> Satellite
+                </button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary w-100" id="reset-view">
+                <i class="fas fa-compress"></i> Reset View
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+let map;
+let markers = [];
+let markerClusterGroup;
+let streetLayer, satelliteLayer;
+
+// Initialize map
+function initMap() {
+    map = L.map('map').setView([54.5, -3.5], 6); // Center on UK
+    
+    // Street layer
+    streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    });
+    
+    // Satellite layer
+    satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+    });
+    
+    streetLayer.addTo(map);
+    
+    markerClusterGroup = L.markerClusterGroup();
+    map.addLayer(markerClusterGroup);
+    
+    addMarkersFromResults();
+}
+
+// Technology colors
+const techColors = {
+    'battery': '#4caf50',
+    'gas': '#ff9800',
+    'wind': '#2196f3',
+    'solar': '#ffeb3b',
+    'dsr': '#9c27b0',
+    'nuclear': '#f44336',
+    'biomass': '#795548',
+    'hydro': '#00bcd4'
+};
+
+// Add markers from search results
+function addMarkersFromResults() {
+    markerClusterGroup.clearLayers();
+    markers = [];
+    
+    document.querySelectorAll('.component-record').forEach((record) => {
+        const lat = parseFloat(record.dataset.lat) + (Math.random() - 0.5) * 0.1;
+        const lng = parseFloat(record.dataset.lng) + (Math.random() - 0.5) * 0.1;
+        const techType = record.querySelector('.badge-tech').className.match(/badge-(\w+)/)[1];
+        
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background-color: ${techColors[techType]}; width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+        
+        const marker = L.marker([lat, lng], { icon: icon });
+        marker.recordId = record.dataset.id;
+        
+        const title = record.querySelector('h5 a').textContent.trim();
+        const capacity = record.querySelector('.fa-bolt').parentElement.textContent.trim();
+        const location = record.querySelector('.fa-map-marker-alt').parentElement.textContent.trim();
+        
+        marker.bindPopup(`
+            <div style="min-width: 200px;">
+                <h6>${title}</h6>
+                <p class="mb-1">${capacity}</p>
+                <p class="mb-0"><small>${location}</small></p>
+            </div>
+        `);
+        
+        markers.push(marker);
+        markerClusterGroup.addLayer(marker);
+    });
+}
+
+// Draggable divider functionality
+function initDraggableDivider() {
+    const divider = document.querySelector('.divider');
+    const resultsPanel = document.querySelector('.results-panel');
+    const mapPanel = document.querySelector('.map-panel');
+    const mainContent = document.querySelector('.main-content');
+    
+    if (!divider || !resultsPanel || !mapPanel || !mainContent) return;
+    
+    let isDragging = false;
+    let startX = 0;
+    let startWidth = 0;
+    
+    // Load saved position if available
+    const savedWidth = localStorage.getItem('resultsWidth');
+    if (savedWidth) {
+        resultsPanel.style.width = savedWidth + 'px';
+        resultsPanel.style.flex = 'none';
+        mapPanel.style.flex = '1';
+    }
+    
+    divider.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startWidth = resultsPanel.offsetWidth;
+        
+        // Add dragging styles
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        
+        // Prevent text selection
+        e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        const deltaX = e.clientX - startX;
+        const newWidth = startWidth + deltaX;
+        const containerWidth = mainContent.offsetWidth;
+        
+        // Constrain width to min/max values
+        const minWidth = 300;
+        const maxWidth = containerWidth - 300 - divider.offsetWidth;
+        
+        if (newWidth >= minWidth && newWidth <= maxWidth) {
+            resultsPanel.style.width = newWidth + 'px';
+            resultsPanel.style.flex = 'none';
+            mapPanel.style.flex = '1';
+            
+            // Save position
+            localStorage.setItem('resultsWidth', newWidth);
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            
+            // Trigger map resize event
+            if (map) {
+                setTimeout(() => map.invalidateSize(), 300);
+            }
+        }
+    });
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    initDraggableDivider();
+    
+    // Click on result to zoom map
+    document.querySelectorAll('.component-record').forEach(record => {
+        record.addEventListener('click', function() {
+            const id = this.dataset.id;
+            
+            // Highlight selected
+            document.querySelectorAll('.component-record').forEach(r => r.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Find and zoom to marker
+            const marker = markers.find(m => m.recordId === id);
+            if (marker) {
+                map.setView(marker.getLatLng(), 12);
+                marker.openPopup();
+            }
+        });
+    });
+    
+    // View on map button
+    document.querySelectorAll('.view-on-map').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.closest('.component-record').click();
+        });
+    });
+    
+    // Map type switching
+    document.getElementById('map-btn').addEventListener('click', function() {
+        if (!this.classList.contains('active')) {
+            map.removeLayer(satelliteLayer);
+            map.addLayer(streetLayer);
+            this.classList.add('active');
+            document.getElementById('satellite-btn').classList.remove('active');
+        }
+    });
+    
+    document.getElementById('satellite-btn').addEventListener('click', function() {
+        if (!this.classList.contains('active')) {
+            map.removeLayer(streetLayer);
+            map.addLayer(satelliteLayer);
+            this.classList.add('active');
+            document.getElementById('map-btn').classList.remove('active');
+        }
+    });
+    
+    // Reset view
+    document.getElementById('reset-view').addEventListener('click', function() {
+        map.setView([54.5, -3.5], 6);
+    });
+});
+</script>
+{% endblock %}

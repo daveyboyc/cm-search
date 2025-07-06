@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🛠️ Fix Timer Issues</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .fix-card { border: 2px solid #007bff; border-radius: 10px; padding: 20px; margin: 15px 0; }
+        .success { color: green; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        button { font-size: 16px; padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🛠️ Fix Timer and Access Issues</h1>
+    
+    <div class="fix-card">
+        <h3>🧹 Step 1: Clear All Timer Data</h3>
+        <p>This will remove all timer restrictions and give you a fresh start.</p>
+        <button class="btn-danger" onclick="clearAllTimerData()">🗑️ Clear All Timer Data</button>
+        <button class="btn-warning" onclick="clearEverything()">🧨 Nuclear Option: Clear Everything</button>
+        <div id="clearStatus"></div>
+    </div>
+    
+    <div class="fix-card">
+        <h3>📊 Step 2: Check Current Status</h3>
+        <button class="btn-primary" onclick="checkCurrentStatus()">📊 Check Status</button>
+        <div id="statusDisplay"></div>
+    </div>
+    
+    <div class="fix-card">
+        <h3>🧪 Step 3: Test Access</h3>
+        <p>Test different pages to verify the timer system works correctly:</p>
+        <button class="btn-success" onclick="testHomepage()">🏠 Test Homepage</button>
+        <button class="btn-warning" onclick="testMapPage()">🗺️ Test Map (Should trigger timer)</button>
+        <button class="btn-primary" onclick="testDonationPage()">💰 Test Donation Page</button>
+    </div>
+    
+    <div class="fix-card">
+        <h3>📋 Expected Behavior</h3>
+        <ul>
+            <li><strong>Homepage/Search/Lists:</strong> ✅ No timer, full access</li>
+            <li><strong>Map Pages:</strong> ⏱️ 30-second timer starts</li>
+            <li><strong>After 30 seconds on maps:</strong> 🚫 Redirect to payment page</li>
+            <li><strong>Non-map pages after timer expires:</strong> ✅ Still accessible</li>
+            <li><strong>Test donation page:</strong> ✅ Always accessible</li>
+        </ul>
+    </div>
+    
+    <div class="fix-card">
+        <h3>🔑 Test Accounts</h3>
+        <ul>
+            <li><strong>testuser</strong> / testpass123 (Free user - 30s map trial)</li>
+            <li><strong>testuser2</strong> / testpass123 (Free user - 30s map trial)</li>
+            <li><strong>testuser3</strong> / testpass123 (Free user - 30s map trial)</li>
+            <li><strong>premiumuser</strong> / testpass123 (Premium - unlimited access)</li>
+        </ul>
+    </div>
+    
+    <script>
+        function clearAllTimerData() {
+            // Clear all possible timer-related keys
+            const keysToRemove = [
+                'timerStartTime',
+                'mapTrialExpired', 
+                'timerLockout',
+                'welcomeNoticeShown'
+            ];
+            
+            keysToRemove.forEach(key => {
+                sessionStorage.removeItem(key);
+                localStorage.removeItem(key);
+            });
+            
+            document.getElementById('clearStatus').innerHTML = `
+                <p class="success">✅ Cleared all timer data!</p>
+                <p>The following keys were removed:</p>
+                <ul>${keysToRemove.map(key => `<li>${key}</li>`).join('')}</ul>
+                <p><strong>Refresh your main browser window to apply changes.</strong></p>
+            `;
+        }
+        
+        function clearEverything() {
+            // Nuclear option: clear all storage
+            sessionStorage.clear();
+            localStorage.clear();
+            
+            // Also clear cookies for this domain
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            document.getElementById('clearStatus').innerHTML = `
+                <p class="success">💥 NUCLEAR CLEAR COMPLETE!</p>
+                <p>Cleared:</p>
+                <ul>
+                    <li>All sessionStorage</li>
+                    <li>All localStorage</li>
+                    <li>All cookies</li>
+                </ul>
+                <p><strong>Close all browser tabs and restart browser for full reset.</strong></p>
+            `;
+        }
+        
+        function checkCurrentStatus() {
+            const startTime = sessionStorage.getItem('timerStartTime');
+            const trialExpired = sessionStorage.getItem('mapTrialExpired');
+            const oldLockout = sessionStorage.getItem('timerLockout');
+            
+            let status = '<h4>Current Status:</h4>';
+            
+            if (trialExpired) {
+                status += '<p class="error">❌ Map trial has expired</p>';
+            } else if (startTime) {
+                const elapsed = Math.floor((Date.now() - parseInt(startTime)) / 1000);
+                const remaining = Math.max(0, 30 - elapsed);
+                status += `<p class="warning">⏱️ Timer active: ${remaining} seconds remaining</p>`;
+            } else {
+                status += '<p class="success">✅ No active timer - ready for fresh trial</p>';
+            }
+            
+            if (oldLockout) {
+                status += '<p class="error">⚠️ Old lockout detected (should be cleared)</p>';
+            }
+            
+            // Check localStorage too
+            const lsKeys = ['timerStartTime', 'mapTrialExpired', 'timerLockout', 'welcomeNoticeShown'];
+            const lsData = lsKeys.filter(key => localStorage.getItem(key));
+            if (lsData.length > 0) {
+                status += `<p class="warning">⚠️ LocalStorage data found: ${lsData.join(', ')}</p>`;
+            }
+            
+            document.getElementById('statusDisplay').innerHTML = status;
+        }
+        
+        function testHomepage() {
+            window.open('/', '_blank');
+        }
+        
+        function testMapPage() {
+            window.open('/map/', '_blank');
+        }
+        
+        function testDonationPage() {
+            window.open('/test-access-donation/', '_blank');
+        }
+        
+        // Check status on page load
+        checkCurrentStatus();
+    </script>
+</body>
+</html>

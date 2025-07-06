@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Capacity Market Search",
+  "name_for_model": "capacity_market_search",
+  "description_for_human": "Search and explore UK Capacity Market auction data, companies, technologies, and locations. Find detailed information about power generation facilities and their auction results.",
+  "description_for_model": "A comprehensive database of UK Capacity Market auction data including power generation facilities, companies, technologies, locations, and auction results. Users can search for specific components, explore company portfolios, analyze technology distributions, and access detailed facility information including capacity, location, and auction participation history.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://capacitymarket.co.uk/.well-known/openapi.json"
+  },
+  "logo_url": "https://capacitymarket.co.uk/static/images/favicon.png",
+  "contact_email": "info@capacitymarket.co.uk",
+  "legal_info_url": "https://capacitymarket.co.uk/legal/"
+}

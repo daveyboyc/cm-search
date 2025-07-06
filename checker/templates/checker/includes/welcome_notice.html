@@ -1,0 +1,752 @@
+{% load user_tags %}
+<!-- Welcome Notice Modal - Always show for testing -->
+<!-- User authenticated: {{ user.is_authenticated }} -->
+<!-- User has paid access: {{ user|has_paid_access }} -->
+<!-- User needs timer: {{ user|needs_timer }} -->
+<!-- Welcome Notice Modal -->
+<div class="modal fade" id="welcomeNoticeModal" tabindex="-1" aria-labelledby="welcomeNoticeLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="welcomeNoticeLabel">
+                    <i class="bi bi-info-circle-fill me-2"></i>Welcome to Capacity Market Search
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="bi bi-clock-fill text-warning" style="font-size: 3rem;"></i>
+                </div>
+                <h6 class="text-center mb-3">🗺️ <strong id="timer-display">1 week</strong> free trial to explore all features!</h6>
+                <p class="mb-3">
+                    {% if user.is_authenticated %}
+                        You can explore the basic features, but will need to upgrade for continued access to premium features like the interactive map.
+                    {% else %}
+                        You can explore the basic features, but will need to register for continued access to premium features like the interactive map.
+                    {% endif %}
+                </p>
+                <div class="alert alert-info text-center">
+                    <strong>Choose your contribution amount</strong><br>
+                    <small>Unlimited access to all premium features</small>
+                </div>
+                <p class="small text-muted mb-0">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Secure payment • No subscription • Lifetime access
+                </p>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Continue Browsing
+                </button>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'accounts:payment_selection' %}" class="btn btn-primary">
+                        <i class="bi bi-credit-card-2-front-fill me-2"></i>Get Full Access
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary">
+                        <i class="bi bi-person-plus-fill me-2"></i>Register & Support
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Prevent duplicate execution
+if (!window.welcomeNoticeInitialized) {
+    window.welcomeNoticeInitialized = true;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Welcome notice script loaded');
+        
+        // Check if user is a premium user - if so, clear any existing timer and stop
+        {% if user|has_paid_access %}
+        console.log('User has premium access, clearing any existing timer and stopping popup');
+        sessionStorage.removeItem('timerStartTime');
+        sessionStorage.removeItem('timerLockout');
+        // Clear unregistered user timers as well
+        localStorage.removeItem('unregisteredAccessStart');
+        localStorage.removeItem('unregisteredTimerExpired');
+        localStorage.removeItem('unregisteredPopupShown');
+        return;
+        {% endif %}
+        
+        // Check if user is admin/staff - they get premium access
+        {% if user.is_superuser or user.is_staff %}
+        console.log('User is admin/staff, clearing any existing timer and stopping all popups');
+        sessionStorage.removeItem('timerStartTime');
+        sessionStorage.removeItem('timerLockout');
+        sessionStorage.removeItem('mapTrialExpired');
+        localStorage.removeItem('welcomeNoticeShown');
+        return;
+        {% endif %}
+        
+        // Check if we're on any auth page
+        const currentPath = window.location.pathname;
+        const isAuthPage = currentPath.includes('/must-register/') || 
+                          currentPath.includes('/register/') ||
+                          currentPath.includes('/login/') ||
+                          currentPath.includes('/payment-required/') ||
+                          currentPath.includes('/accounts/') ||
+                          currentPath.includes('/account/') || // Keep for backward compatibility
+                          currentPath.includes('/trades/'); // Trading board - free to view
+        
+        // On auth pages, just return without any timer or lockout logic
+        if (isAuthPage) {
+            console.log('On auth page - no timer or lockout enforcement');
+            return;
+        }
+        
+        // Function to show the welcome modal
+        function showWelcomeModal() {
+            console.log('Attempting to show welcome modal');
+            const welcomeModalElement = document.getElementById('welcomeNoticeModal');
+            console.log('Modal element found:', !!welcomeModalElement);
+            
+            if (welcomeModalElement) {
+                try {
+                    const welcomeModal = new bootstrap.Modal(welcomeModalElement, {
+                        backdrop: true,
+                        keyboard: true
+                    });
+                    console.log('Bootstrap modal created, showing...');
+                    welcomeModal.show();
+                    
+                    // Record that we showed it now
+                    localStorage.setItem('welcomeNoticeShown', Date.now().toString());
+                    console.log('Welcome modal should now be visible');
+                    
+                    // Ensure modal backdrop is properly removed when closed
+                    welcomeModalElement.addEventListener('hidden.bs.modal', function () {
+                        console.log('Modal hidden, cleaning up');
+                        // Remove any lingering backdrop elements
+                        const backdrops = document.querySelectorAll('.modal-backdrop');
+                        backdrops.forEach(backdrop => backdrop.remove());
+                        
+                        // Restore body scroll
+                        document.body.classList.remove('modal-open');
+                        document.body.style.removeProperty('padding-right');
+                    });
+                } catch (error) {
+                    console.error('Error creating/showing modal:', error);
+                }
+            } else {
+                console.error('Welcome modal element not found in DOM');
+            }
+        }
+        
+        // REMOVED: All map locking functions for 2-tier system
+        // In this branch, all users (unauthenticated, trial, full) have map access
+        // Map locking functionality moved to other branches if needed
+        
+        // Unified popup for unregistered users with 3-minute timer
+        function showUnregisteredUserPopup() {
+            const now = Date.now();
+            let startTime = localStorage.getItem('unregisteredAccessStart');
+            
+            // If no start time exists, set it now
+            if (!startTime) {
+                startTime = now.toString();
+                localStorage.setItem('unregisteredAccessStart', startTime);
+                console.log('Setting initial timer start time:', new Date(now));
+            }
+            
+            // Check if timer has expired
+            const elapsed = Math.floor((now - parseInt(startTime)) / 1000);
+            console.log(`Timer check: ${elapsed}s elapsed of 300s`);
+            
+            if (elapsed >= 300) {
+                console.log('5-minute period already expired - redirecting immediately');
+                localStorage.setItem('unregisteredTimerExpired', 'true');
+                window.location.href = '/accounts/must-register/';
+                return;
+            }
+            
+            // Always start the countdown (whether popup was shown or not)
+            startUnregisteredCountdown();
+            
+            // Only show popup if not already shown
+            if (localStorage.getItem('unregisteredPopupShown')) {
+                console.log('Popup already shown - continuing timer in background');
+                return;
+            }
+            
+            console.log('Showing unified popup for unregistered user');
+            localStorage.setItem('unregisteredPopupShown', 'true');
+            
+            // Create popup HTML
+            const popupHtml = `
+                <div class="modal fade" id="unregisteredUserModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-dark">
+                                <h5 class="modal-title">⏰ Limited Time Access</h5>
+                            </div>
+                            <div class="modal-body text-center">
+                                <div class="mb-3">
+                                    <h4 class="text-danger" id="unregisteredTimer">5 minutes remaining</h4>
+                                </div>
+                                <p><strong>You have 5 minutes to explore the site before you need to register.</strong></p>
+                                <p>Register now for <strong>1 week</strong> of free access to all features!</p>
+                                <div class="mt-3 d-flex justify-content-center gap-3">
+                                    <button type="button" class="btn btn-primary" onclick="window.location.href='/accounts/must-register/'">
+                                        📝 Register Now (Free 1 Week Trial)
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        👀 Continue Browsing
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing popup if any
+            const existingPopup = document.getElementById('unregisteredUserModal');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+            
+            // Add popup to page
+            document.body.insertAdjacentHTML('beforeend', popupHtml);
+            
+            // Show the popup
+            const modal = new bootstrap.Modal(document.getElementById('unregisteredUserModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+            modal.show();
+            
+            // Start the countdown
+            startUnregisteredCountdown();
+            
+            // Clean up if user closes popup
+            document.getElementById('unregisteredUserModal').addEventListener('hidden.bs.modal', function() {
+                // Continue countdown even if popup is closed
+                this.remove();
+            });
+        }
+        
+        // Function to start/continue the countdown from current time
+        function startUnregisteredCountdown() {
+            const startTime = localStorage.getItem('unregisteredAccessStart');
+            if (!startTime) return;
+            
+            const updateCountdown = () => {
+                const now = Date.now();
+                const elapsed = Math.floor((now - parseInt(startTime)) / 1000);
+                const timeRemaining = 300 - elapsed;
+                
+                console.log(`Debug: Timer update - elapsed: ${elapsed}s, remaining: ${timeRemaining}s`);
+                
+                // Check if timer should redirect
+                if (timeRemaining <= 0) {
+                    console.log('5-minute timer expired - redirecting to registration');
+                    // Don't remove timer - keep it to prevent reset on navigation
+                    localStorage.setItem('unregisteredTimerExpired', 'true');
+                    window.location.href = '/accounts/must-register/';
+                    return;
+                }
+                
+                // Update display if popup is visible
+                const timerDisplay = document.getElementById('unregisteredTimer');
+                if (timerDisplay) {
+                    const minutes = Math.floor(timeRemaining / 60);
+                    const seconds = timeRemaining % 60;
+                    if (minutes > 0) {
+                        timerDisplay.textContent = `${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''} remaining`;
+                    } else {
+                        timerDisplay.textContent = `${seconds} second${seconds !== 1 ? 's' : ''} remaining`;
+                    }
+                    if (timeRemaining <= 30) {
+                        timerDisplay.className = 'text-danger font-weight-bold';
+                    }
+                    console.log(`Debug: Timer display updated to: ${timerDisplay.textContent}`);
+                } else {
+                    console.log('Debug: Timer display element not found');
+                }
+                
+                // Continue countdown
+                setTimeout(updateCountdown, 1000);
+            };
+            
+            updateCountdown();
+        }
+        
+        // Search tracking functions DISABLED for testing map locking
+        function initializeSearchTracking() {
+            console.log('Search tracking disabled - testing map locking only');
+            return; // Completely disabled for now
+        }
+        
+        function checkSearchLimit() {
+            const searchCount = getTrialSearchCount();
+            if (searchCount >= 5) {
+                console.log('Search limit reached - showing search limit popup');
+                showSearchLimitPopup();
+                return true; // Limit reached
+            }
+            return false; // Limit not reached
+        }
+        
+        function getTrialSearchCount() {
+            const userId = '{{ user.id|default:"" }}';
+            const trialStartTime = '{% if user.is_authenticated and user.profile and user.profile.free_access_start_time %}{{ user.profile.free_access_start_time|date:"c" }}{% else %}{% endif %}';
+            const storageKey = `trialSearches_${userId}_${trialStartTime}`;
+            
+            const searchData = localStorage.getItem(storageKey);
+            if (!searchData) {
+                return 0;
+            }
+            
+            try {
+                const data = JSON.parse(searchData);
+                return data.count || 0;
+            } catch (e) {
+                return 0;
+            }
+        }
+        
+        function incrementTrialSearchCount() {
+            const userId = '{{ user.id|default:"" }}';
+            const trialStartTime = '{% if user.is_authenticated and user.profile and user.profile.free_access_start_time %}{{ user.profile.free_access_start_time|date:"c" }}{% else %}{% endif %}';
+            const storageKey = `trialSearches_${userId}_${trialStartTime}`;
+            
+            const currentCount = getTrialSearchCount();
+            const newCount = currentCount + 1;
+            
+            const searchData = {
+                count: newCount,
+                lastSearch: Date.now(),
+                userId: userId,
+                trialStart: trialStartTime
+            };
+            
+            localStorage.setItem(storageKey, JSON.stringify(searchData));
+            console.log(`Trial search count: ${newCount}/5`);
+            
+            return newCount;
+        }
+        
+        function interceptSearchForms() {
+            // Find all search forms and add event listeners
+            const searchForms = document.querySelectorAll('form[action*="search"], form#search-form, .search-form');
+            const searchInputs = document.querySelectorAll('input[name="q"], input[name="query"]');
+            const searchButtons = document.querySelectorAll('button[type="submit"]:has(~ input[name="q"]), input[type="submit"][value*="Search"]');
+            
+            // No visual indicators needed - search forms should look normal
+            function addSearchLimitIndicators() {
+                // Do nothing - keep search UI looking normal
+                console.log('Search limit reached - will show popup on next search attempt');
+            }
+            
+            // No visual changes needed when at limit
+            if (getTrialSearchCount() >= 5) {
+                console.log('Search limit already reached for this user');
+            }
+            
+            // Intercept form submissions
+            searchForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const currentCount = getTrialSearchCount();
+                    if (currentCount >= 5) {
+                        e.preventDefault();
+                        showSearchLimitPopup();
+                        addSearchLimitIndicators();
+                        return false;
+                    }
+                    
+                    // Check if this will be the 5th search
+                    if (currentCount === 4) {
+                        // This is the last allowed search
+                        incrementTrialSearchCount();
+                        // Show popup after a delay to let the search complete
+                        setTimeout(() => {
+                            showSearchLimitPopup();
+                            addSearchLimitIndicators();
+                        }, 1000);
+                    } else {
+                        // Increment counter on successful search
+                        incrementTrialSearchCount();
+                    }
+                });
+            });
+            
+            // Also intercept any search buttons
+            searchButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (getTrialSearchCount() >= 5) {
+                        e.preventDefault();
+                        showSearchLimitPopup();
+                        return false;
+                    }
+                });
+            });
+        }
+        
+        function showSearchLimitPopup() {
+            // Check if popup is already shown
+            const existingPopup = document.getElementById('searchLimitModal');
+            if (existingPopup) {
+                // Popup already exists, just show it again if hidden
+                const existingModal = bootstrap.Modal.getInstance(existingPopup);
+                if (existingModal) {
+                    existingModal.show();
+                }
+                return;
+            }
+            
+            // Check if we've already shown this popup in this session
+            const popupShownKey = `searchLimitPopupShown_${getTrialSearchCount()}`;
+            if (sessionStorage.getItem(popupShownKey)) {
+                return; // Don't show popup again
+            }
+            
+            // Mark popup as shown for this session
+            sessionStorage.setItem(popupShownKey, 'true');
+            
+            // Create popup HTML
+            const popupHtml = `
+                <div class="modal fade" id="searchLimitModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title">🔍 Search Limit Reached</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <p><strong>You've used all 5 searches in your trial period!</strong></p>
+                                <p>Choose your access level to continue searching:</p>
+                                <div class="row mt-4">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-primary">
+                                            <div class="card-body">
+                                                <h6 class="card-title">📋 List Access</h6>
+                                                <h4 class="text-primary">£2</h4>
+                                                <p class="small">Unlimited searches & list views<br>No map access</p>
+                                                <button type="button" class="btn btn-primary btn-sm" onclick="window.location.href='/accounts/payment_selection/'">
+                                                    Choose List Access
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-success">
+                                            <div class="card-body">
+                                                <h6 class="card-title">🗺️ Full Access</h6>
+                                                <h4 class="text-success">£5</h4>
+                                                <p class="small">Unlimited everything<br>All features included</p>
+                                                <button type="button" class="btn btn-success btn-sm" onclick="window.location.href='/accounts/payment_selection/'">
+                                                    Choose Full Access
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <small class="text-muted">Or wait one month for another 1-week trial period</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add popup to page
+            document.body.insertAdjacentHTML('beforeend', popupHtml);
+            
+            // Show the popup
+            const modal = new bootstrap.Modal(document.getElementById('searchLimitModal'), {
+                backdrop: true,
+                keyboard: true
+            });
+            modal.show();
+            
+            // Clean up when closed
+            document.getElementById('searchLimitModal').addEventListener('hidden.bs.modal', function() {
+                // Don't remove the modal, keep it for future use
+            });
+        }
+        
+        // Check if this is a map page - only apply lockout restrictions to map pages
+        const isMapPage = window.location.pathname.includes('/map/') || 
+                         window.location.pathname.includes('/search-map/') ||
+                         window.location.search.includes('view=map');
+        
+        // For map pages only - check if user is locked out from premium features
+        const lockoutTime = sessionStorage.getItem('mapTrialExpired');
+        if (lockoutTime && isMapPage) {
+            console.log('Map trial has expired for this user - showing popup on map page');
+            showMapAccessExpiredPopup();
+            return;
+        }
+        
+        // Check if timer already expired before starting popup/timer (only for map pages)
+        const existingStartTime = sessionStorage.getItem('timerStartTime');
+        if (existingStartTime && isMapPage) {
+            const elapsed = Math.floor((Date.now() - parseInt(existingStartTime)) / 1000);
+            console.log(`Existing timer found: ${elapsed}s elapsed`);
+            if (elapsed >= 30) {
+                console.log('Timer already expired - showing map access popup');
+                sessionStorage.setItem('mapTrialExpired', Date.now().toString());
+                sessionStorage.removeItem('timerStartTime');
+                showMapAccessExpiredPopup();
+                return;
+            }
+        }
+        
+        // Check if we should handle unregistered users
+        const userAccessLevel = '{{ user|user_access_level }}';
+        console.log('Debug: User access level detected:', userAccessLevel);
+        if (userAccessLevel === 'unauthenticated') {
+            console.log('Debug: Unregistered user detected');
+            
+            // Check if timer has permanently expired
+            if (localStorage.getItem('unregisteredTimerExpired') === 'true') {
+                console.log('Debug: Timer permanently expired - redirecting immediately');
+                window.location.href = '/accounts/must-register/';
+                return;
+            }
+            
+            // Always check timer status immediately
+            const now = Date.now();
+            const startTime = localStorage.getItem('unregisteredAccessStart');
+            
+            if (startTime) {
+                const elapsed = Math.floor((now - parseInt(startTime)) / 1000);
+                console.log(`Debug: Timer already running - ${elapsed}s elapsed of 300s`);
+                
+                if (elapsed >= 300) {
+                    console.log('Debug: Timer expired - redirecting immediately');
+                    localStorage.setItem('unregisteredTimerExpired', 'true');
+                    window.location.href = '/accounts/must-register/';
+                    return;
+                }
+                
+                // Continue countdown
+                startUnregisteredCountdown();
+                
+                // Show popup only if not shown yet
+                if (!localStorage.getItem('unregisteredPopupShown')) {
+                    // If they've been here less than 30 seconds, wait for 30 seconds
+                    // If they've been here more than 30 seconds, show immediately
+                    const delayTime = elapsed < 30 ? (30 - elapsed) * 1000 : 0;
+                    setTimeout(showUnregisteredUserPopup, delayTime);
+                }
+            } else {
+                // First visit - start timer and show popup after 30 seconds
+                console.log('Debug: First visit - starting timer');
+                localStorage.setItem('unregisteredAccessStart', now.toString());
+                setTimeout(showUnregisteredUserPopup, 30000);
+            }
+        } else {
+            console.log('Debug: User authenticated or different access level, no popup');
+            // Clear any old unregistered user timers for authenticated users
+            {% if user.is_authenticated %}
+            localStorage.removeItem('unregisteredAccessStart');
+            localStorage.removeItem('unregisteredTimerExpired');
+            localStorage.removeItem('unregisteredPopupShown');
+            console.log('Debug: Cleared old unregistered user timers for authenticated user');
+            {% endif %}
+        }
+        
+        // Map timer DISABLED for testing - focusing on basic access control only
+        // startMapTimer();
+        
+        // Check if map buttons should be locked on page load
+        // DISABLED for 2-tier system - only trial_expired users need locks, handled elsewhere
+        // checkAndLockMapButtons();
+        
+        // Search tracking DISABLED for testing - focusing on map locking only
+        // initializeSearchTracking();
+    });
+    
+    // 5-minute map timer (persistent across page loads)
+    function startMapTimer() {
+        // Timer applies to users who need it (authenticated trial users only)
+        {% if user|needs_timer %}
+        
+        // Skip timer for unauthenticated users - they have their own unified system
+        const userAccessLevel = '{{ user|user_access_level }}';
+        if (userAccessLevel === 'unauthenticated') {
+            console.log('Unregistered user - using unified popup system instead of timer');
+            return;
+        }
+        
+        // Check if this is a map page - only apply timer restrictions to map pages
+        const isMapPage = window.location.pathname.includes('/map/') || 
+                         window.location.pathname.includes('/search-map/') ||
+                         window.location.search.includes('view=map');
+        
+        console.log('Map timer debug:', {
+            userAccessLevel: userAccessLevel,
+            currentPath: window.location.pathname,
+            currentSearch: window.location.search,
+            isMapPage: isMapPage,
+            mapTrialExpired: sessionStorage.getItem('mapTrialExpired'),
+            mapTimerStartTime: sessionStorage.getItem('mapTimerStartTime')
+        });
+        
+        // Trial users should only have timer restrictions on map pages
+        if (userAccessLevel === 'trial' && !isMapPage) {
+            console.log('Trial user on non-map page - no timer restrictions');
+            return; // Don't apply timer restrictions on list pages for trial users
+        }
+        
+        // Check if map trial already expired
+        if (sessionStorage.getItem('mapTrialExpired')) {
+            console.log('Map trial already expired - showing popup');
+            showMapAccessExpiredPopup();
+            return;
+        }
+        
+        // Check if timer already started in this session
+        let startTime = sessionStorage.getItem('mapTimerStartTime');
+        const firstMapAccess = !startTime;
+        
+        if (!startTime) {
+            startTime = Date.now();
+            sessionStorage.setItem('mapTimerStartTime', startTime);
+            console.log('Starting new 5-minute map timer');
+            
+            // Show initial map access popup for first-time map users
+            if (isMapPage) {
+                showMapAccessInfoPopup();
+            }
+        } else {
+            startTime = parseInt(startTime);
+            console.log('Resuming existing map timer');
+        }
+        
+        const totalDuration = 900; // 15 minutes (900 seconds)
+        const timerDisplay = document.getElementById('timer-display');
+        
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const timeRemaining = Math.max(0, totalDuration - elapsed);
+            
+            if (timerDisplay) {
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                if (minutes > 0) {
+                    timerDisplay.textContent = `${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`;
+                } else {
+                    timerDisplay.textContent = `${seconds} second${seconds !== 1 ? 's' : ''}`;
+                }
+            }
+            console.log('Map timer:', timeRemaining + 's remaining (elapsed: ' + elapsed + 's)');
+            
+            if (timeRemaining <= 0) {
+                console.log('Map timer expired - locking map access');
+                // Mark map trial as expired
+                sessionStorage.setItem('mapTrialExpired', Date.now().toString());
+                sessionStorage.removeItem('mapTimerStartTime');
+                
+                // Show expired popup
+                showMapAccessExpiredPopup();
+                return;
+            }
+            
+            // Show warning at 30 seconds remaining
+            if (timeRemaining === 30 && isMapPage) {
+                showMapTimerWarning();
+            }
+        }
+        
+        // Update immediately and then every second
+        updateTimer();
+        const timerInterval = setInterval(updateTimer, 1000);
+        
+        {% else %}
+        console.log('User has paid access, no timer needed');
+        {% endif %}
+    }
+    
+    // Show info popup when user first accesses map
+    function showMapAccessInfoPopup() {
+        // Check if we've already shown this popup
+        if (sessionStorage.getItem('mapAccessInfoShown')) {
+            return; // Don't show again in this session
+        }
+        
+        const popupHtml = `
+            <div class="modal fade" id="mapAccessInfoModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">🗺️ Premium Map Features</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <p><strong>This is a premium feature!</strong></p>
+                            <p>You have <strong>15 minutes</strong> to explore the interactive map during your trial.</p>
+                            <div class="alert alert-warning">
+                                <strong>💡 After 15 minutes:</strong> Map access will be locked. You can continue using list views or upgrade for unlimited access.
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6>📋 List Access</h6>
+                                            <h5 class="text-primary">£2</h5>
+                                            <small>Unlimited lists<br>No maps</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6>🗺️ Full Access</h6>
+                                            <h5 class="text-success">£5</h5>
+                                            <small>Everything<br>Unlimited</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Start 15-minute trial</button>
+                            <a href="/accounts/payment_selection/" class="btn btn-success">Upgrade Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing popup if any
+        const existingPopup = document.getElementById('mapAccessInfoModal');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+        
+        // Add popup to page
+        document.body.insertAdjacentHTML('beforeend', popupHtml);
+        
+        // Show the popup
+        const modal = new bootstrap.Modal(document.getElementById('mapAccessInfoModal'));
+        modal.show();
+        
+        // Mark as shown
+        sessionStorage.setItem('mapAccessInfoShown', 'true');
+    }
+    
+    // Show warning when 30 seconds remain
+    function showMapTimerWarning() {
+        const warningHtml = `
+            <div class="alert alert-warning alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 9999;" role="alert">
+                <strong>⏰ 30 seconds remaining!</strong> Your map access will expire soon.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', warningHtml);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            const alert = document.querySelector('.alert-warning');
+            if (alert) alert.remove();
+        }, 5000);
+    }
+}
+</script>

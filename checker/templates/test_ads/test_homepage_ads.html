@@ -1,0 +1,439 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-GB" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capacity Market Search - Homepage Ad Preview</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base styles */
+        body, html {
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Roboto', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Homepage-specific layout */
+        .homepage-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* TOP AD BAR */
+        .top-ad-bar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 0;
+            text-align: center;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* Header section with search */
+        .header-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Logo and title */
+        .logo-section {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .logo-section h1 {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .logo-section p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+
+        /* Search box */
+        .search-container {
+            max-width: 600px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px 60px 20px 25px;
+            border: none;
+            font-size: 18px;
+            outline: none;
+            background: white;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #4285f4;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* SIDEBAR ADS (Desktop only) */
+        .sidebar-ad {
+            position: fixed;
+            width: 160px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .sidebar-ad.left {
+            left: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+        }
+
+        .sidebar-ad.right {
+            right: 20px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .sidebar-ad h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .sidebar-ad p {
+            font-size: 11px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .sidebar-ad .btn {
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 20px;
+        }
+
+        /* BOTTOM AD SECTION */
+        .bottom-ad-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            margin: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Quick links */
+        .quick-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .quick-link {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .quick-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* User status indicator */
+        .user-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 1200px) {
+            .sidebar-ad {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .logo-section h1 {
+                font-size: 2.5rem;
+            }
+            
+            .search-input {
+                padding: 15px 50px 15px 20px;
+                font-size: 16px;
+            }
+            
+            .search-btn {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .top-ad-bar {
+                font-size: 12px;
+                padding: 6px 0;
+            }
+            
+            .bottom-ad-section {
+                margin: 10px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo-section h1 {
+                font-size: 2rem;
+            }
+            
+            .logo-section p {
+                font-size: 1rem;
+            }
+            
+            .quick-links {
+                gap: 10px;
+            }
+            
+            .quick-link {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+
+        /* Ad styling */
+        .ad-label {
+            font-size: 9px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            opacity: 0.7;
+        }
+
+        /* Mobile banner ad */
+        .mobile-banner-ad {
+            display: none;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            margin: 10px;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-banner-ad {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- User Status Indicator -->
+    <div class="user-status">
+        NON-SUBSCRIBER - Ads Visible
+    </div>
+
+    <div class="homepage-container">
+        <!-- TOP AD BAR (visible to non-subscribers) -->
+        <div class="top-ad-bar">
+            <span class="ad-label">Advertisement</span>
+            <strong>🔋 Battery Storage Solutions</strong> - Get a free consultation for your energy project → 
+            <a href="#" style="color: #007bff; text-decoration: none;">Learn More</a>
+        </div>
+
+        <!-- LEFT SIDEBAR AD (Desktop only) -->
+        <div class="sidebar-ad left">
+            <div class="ad-label">Sponsored</div>
+            <div style="font-size: 30px; margin-bottom: 10px;">⚡</div>
+            <h4>Solar Energy</h4>
+            <p>Commercial solar installations. Cut energy costs by 40%.</p>
+            <button class="btn btn-primary btn-sm">Get Quote</button>
+        </div>
+
+        <!-- RIGHT SIDEBAR AD (Desktop only) -->
+        <div class="sidebar-ad right">
+            <div class="ad-label">Advertisement</div>
+            <div style="font-size: 30px; margin-bottom: 10px;">🏭</div>
+            <h4>Energy Trading</h4>
+            <p>Professional energy market analysis tools and forecasting.</p>
+            <button class="btn btn-success btn-sm">Free Trial</button>
+        </div>
+
+        <!-- Header Section -->
+        <div class="header-section">
+            <!-- Logo and Title -->
+            <div class="logo-section">
+                <h1>⚡ CMR Search</h1>
+                <p>The easiest way to explore Capacity Market auctions</p>
+            </div>
+
+            <!-- Search Container -->
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Search companies, technologies, locations, or CMU IDs..." value="">
+                    <button class="search-btn">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="quick-links">
+                <a href="#" class="quick-link">
+                    <i class="bi bi-lightning-charge me-1"></i>Technologies
+                </a>
+                <a href="#" class="quick-link">
+                    <i class="bi bi-building me-1"></i>Companies
+                </a>
+                <a href="#" class="quick-link">
+                    <i class="bi bi-geo-alt me-1"></i>Locations
+                </a>
+                <a href="#" class="quick-link">
+                    <i class="bi bi-map me-1"></i>Map Explorer
+                </a>
+                <a href="#" class="quick-link">
+                    <i class="bi bi-question-circle me-1"></i>FAQ
+                </a>
+            </div>
+        </div>
+
+        <!-- MOBILE BANNER AD -->
+        <div class="mobile-banner-ad">
+            <span class="ad-label">Ad</span>
+            🔌 <strong>Smart Grid Technology</strong> - Optimize your energy infrastructure
+        </div>
+
+        <!-- BOTTOM AD SECTION -->
+        <div class="bottom-ad-section">
+            <div class="ad-label">Sponsored Content</div>
+            <div class="row align-items-center">
+                <div class="col-md-2 text-center">
+                    <div style="font-size: 40px; color: #28a745;">🌱</div>
+                </div>
+                <div class="col-md-7">
+                    <h5 style="margin-bottom: 5px; color: #333;">Renewable Energy Marketplace</h5>
+                    <p style="margin-bottom: 0; color: #666; font-size: 14px;">
+                        Connect with leading renewable energy providers. Solar, wind, and storage solutions for businesses.
+                    </p>
+                </div>
+                <div class="col-md-3 text-end">
+                    <button class="btn btn-success">Explore Options</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Theme switcher
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+            
+            // Update background for dark mode
+            if (newTheme === 'dark') {
+                document.body.style.background = 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)';
+            } else {
+                document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+        }
+        
+        // Search functionality simulation
+        document.querySelector('.search-btn').addEventListener('click', function() {
+            const searchValue = document.querySelector('.search-input').value;
+            alert(`Search submitted: "${searchValue}"\n\nThis would redirect to search results with ads.`);
+        });
+        
+        document.querySelector('.search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.querySelector('.search-btn').click();
+            }
+        });
+        
+        // Quick link handlers
+        document.querySelectorAll('.quick-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert(`Clicked: ${this.textContent.trim()}\n\nThis would navigate to that section with ads.`);
+            });
+        });
+        
+        // Theme toggle shortcut
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 't' || e.key === 'T') {
+                toggleTheme();
+            }
+        });
+        
+        console.log('Homepage Ad Preview Loaded');
+        console.log('Press "T" to toggle dark/light theme');
+        console.log('Ads shown: Top bar, Left sidebar, Right sidebar, Mobile banner, Bottom section');
+    </script>
+    
+    <div style="position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 11px; z-index: 1000;">
+        Press "T" to toggle theme • HOMEPAGE AD PREVIEW
+    </div>
+</body>
+</html>

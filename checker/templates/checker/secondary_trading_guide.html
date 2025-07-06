@@ -1,0 +1,323 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Secondary Trading in the UK Capacity Market - Complete Guide 2025{% endblock %}
+
+{% block meta_description %}Complete guide to secondary trading in the UK Capacity Market: rules, phases, common pitfalls, and everything you need to know about trading capacity obligations.{% endblock %}
+
+{% block og_title %}Secondary Trading in the UK Capacity Market - Complete Guide{% endblock %}
+{% block og_description %}Master secondary trading in the UK Capacity Market with our comprehensive guide covering all phases, rules, and best practices.{% endblock %}
+
+{% block body_class %}has-universal-navbar{% endblock %}
+
+{% block page_header %}
+{% include 'checker/includes/universal_navbar.html' %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.guide-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--bs-body-bg);
+    border-radius: 8px;
+    border: 1px solid var(--bs-border-color);
+}
+
+.guide-header {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--bs-primary);
+    margin-bottom: 1rem;
+}
+
+.phase-box {
+    background: var(--bs-light);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    border-left: 4px solid var(--bs-primary);
+}
+
+.highlight-box {
+    background: var(--bs-warning-bg-subtle);
+    border-left: 4px solid var(--bs-warning);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.rule-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.rule-title {
+    font-weight: 600;
+    color: var(--bs-primary);
+    margin-bottom: 0.5rem;
+}
+
+.faq-item {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--bs-light);
+    border-radius: 8px;
+}
+
+.faq-question {
+    font-weight: 600;
+    color: var(--bs-primary);
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb-nav {
+    background: var(--bs-light);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .rules-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Breadcrumb Navigation -->
+    <div class="breadcrumb-nav">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'capacity_market_guide' %}">Capacity Market Guide</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Secondary Trading</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1>Secondary Trading in the UK Capacity Market</h1>
+        <p class="lead">The complete guide to trading capacity obligations after the auction</p>
+    </div>
+
+    <!-- Introduction -->
+    <div class="guide-section">
+        <h2 class="guide-header">📈 What is Secondary Trading?</h2>
+        <p>Secondary trading allows capacity providers to buy and sell their capacity obligations after the initial auction. This creates a flexible market where providers can manage their positions, handle plant outages, or allow new market entrants to acquire capacity without waiting for the next auction.</p>
+        
+        <div class="highlight-box">
+            <strong>Key Point:</strong> Secondary trading is essential for market flexibility - it allows capacity obligations to move to where they can be delivered most efficiently.
+        </div>
+        
+        <p>All trades are logged on the EMR portal and automatically adjust monthly payments and penalty caps for both parties involved in the transaction.</p>
+    </div>
+
+    <!-- Key Rules -->
+    <div class="guide-section">
+        <h2 class="guide-header">📋 Key Rules at a Glance</h2>
+        <div class="rules-grid">
+            <div class="rule-card">
+                <div class="rule-title">Trading Window</div>
+                <p>Opens once capacity agreements are issued and runs until one working day before a potential stress event.</p>
+            </div>
+            <div class="rule-card">
+                <div class="rule-title">Bilateral Trading</div>
+                <p>All trades are bilateral agreements between two parties - there is no central exchange or order book.</p>
+            </div>
+            <div class="rule-card">
+                <div class="rule-title">EMR Portal</div>
+                <p>All trades must be registered on the EMR portal to be legally effective and adjust payments.</p>
+            </div>
+            <div class="rule-card">
+                <div class="rule-title">Price Discovery</div>
+                <p>Prices are determined by bilateral negotiation - there is no published pricing mechanism.</p>
+            </div>
+            <div class="rule-card">
+                <div class="rule-title">Automatic Adjustments</div>
+                <p>Monthly payments and penalty caps automatically adjust based on registered trades.</p>
+            </div>
+            <div class="rule-card">
+                <div class="rule-title">New Entrants</div>
+                <p>Companies can acquire capacity without participating in the original auction.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phase 1: Post-Auction Trading -->
+    <div class="guide-section">
+        <h2 class="guide-header">🎯 Phase 1: Post-Auction Trading (Years 1-4)</h2>
+        <div class="phase-box">
+            <h4>Timeline: Immediately after auction results until delivery year</h4>
+            <p><strong>Primary Use Cases:</strong></p>
+            <ul>
+                <li><strong>Portfolio Optimization:</strong> Companies can adjust their capacity positions based on changing business needs</li>
+                <li><strong>New Market Entry:</strong> Companies that missed the auction can acquire capacity obligations</li>
+                <li><strong>Risk Management:</strong> Providers can reduce exposure if they're concerned about delivery capability</li>
+                <li><strong>Asset Sales:</strong> When power plants are sold, capacity obligations often transfer with them</li>
+            </ul>
+            
+            <div class="highlight-box">
+                <strong>Important:</strong> During this phase, trading is primarily about strategic positioning rather than operational needs.
+            </div>
+        </div>
+    </div>
+
+    <!-- Phase 2: Pre-Delivery Trading -->
+    <div class="guide-section">
+        <h2 class="guide-header">⚡ Phase 2: Pre-Delivery Year Trading</h2>
+        <div class="phase-box">
+            <h4>Timeline: 12 months before delivery year begins</h4>
+            <p><strong>Key Activities:</strong></p>
+            <ul>
+                <li><strong>Operational Planning:</strong> Providers assess their actual delivery capability</li>
+                <li><strong>Outage Management:</strong> Planned maintenance schedules become clearer</li>
+                <li><strong>Capability Adjustments:</strong> Fine-tuning based on updated plant performance data</li>
+                <li><strong>Market Consolidation:</strong> Larger players may acquire smaller positions</li>
+            </ul>
+            
+            <p><strong>Trading Intensifies Because:</strong></p>
+            <ul>
+                <li>Delivery obligations become more concrete and measurable</li>
+                <li>Operational constraints are better understood</li>
+                <li>Financial planning requires greater certainty</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Phase 3: Live Delivery Trading -->
+    <div class="guide-section">
+        <h2 class="guide-header">🚨 Phase 3: Live Delivery Year Trading</h2>
+        <div class="phase-box">
+            <h4>Timeline: During the delivery year, up to one working day before stress events</h4>
+            <p><strong>Critical Characteristics:</strong></p>
+            <ul>
+                <li><strong>High Stakes:</strong> Failure to deliver during stress events results in significant penalties</li>
+                <li><strong>Real-Time Decisions:</strong> Trading decisions must be made quickly as stress events approach</li>
+                <li><strong>Operational Focus:</strong> All trading is driven by actual operational capability</li>
+                <li><strong>Emergency Transfers:</strong> Last-minute transfers due to unexpected outages</li>
+            </ul>
+            
+            <div class="highlight-box">
+                <strong>Critical Timing:</strong> Trading closes one working day before a potential stress event - after this point, you must deliver or face penalties.
+            </div>
+            
+            <p><strong>Common Scenarios:</strong></p>
+            <ul>
+                <li><strong>Unplanned Outages:</strong> Plant failures require immediate capacity transfer</li>
+                <li><strong>Fuel Constraints:</strong> Gas supply issues may prevent delivery</li>
+                <li><strong>Weather Events:</strong> Extreme weather affecting plant availability</li>
+                <li><strong>Grid Constraints:</strong> Network issues preventing power delivery</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Common Pitfalls -->
+    <div class="guide-section">
+        <h2 class="guide-header">⚠️ Common Pitfalls to Avoid</h2>
+        
+        <div class="faq-item">
+            <div class="faq-question">Waiting Too Long to Trade</div>
+            <p>Many providers wait until the delivery year to address capacity shortfalls. By then, prices are typically much higher and options are limited. Early trading in Phases 1-2 usually offers better pricing and more counterparties.</p>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Inadequate Due Diligence</div>
+            <p>Not properly verifying the counterparty's ability to deliver can result in cascade failures. If your counterparty can't deliver, you're still liable for the original obligation plus penalties.</p>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Poor Documentation</div>
+            <p>Failing to properly register trades on the EMR portal or maintain clear contractual terms can lead to disputes and regulatory issues.</p>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Ignoring Penalty Caps</div>
+            <p>Not understanding how penalty caps transfer with trades can result in unexpected financial exposure during stress events.</p>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Seasonal Timing Mistakes</div>
+            <p>Stress events are more likely during winter months. Trading capacity away during summer at low prices only to need it back in winter at high prices is a common costly mistake.</p>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="guide-section">
+        <h2 class="guide-header">❓ Frequently Asked Questions</h2>
+        
+        <div class="faq-item">
+            <div class="faq-question">Can anyone participate in secondary trading?</div>
+            <p>Only parties with capacity obligations or those who can take on such obligations can participate. New entrants must meet the same qualification requirements as auction participants.</p>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">How are secondary trading prices determined?</div>
+            <p>Prices are determined through bilateral negotiation. There's no central pricing mechanism, though market participants often reference auction clearing prices and current market conditions.</p>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">What happens to payments when capacity is traded?</div>
+            <p>Monthly capacity payments automatically adjust based on registered trades. The seller's payments decrease while the buyer's payments increase proportionally.</p>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Are there restrictions on how much can be traded?</div>
+            <p>You can trade up to your full capacity obligation, but you cannot trade more than you hold. Partial trades are common and allowed.</p>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">What about penalty caps in secondary trading?</div>
+            <p>Penalty caps transfer with the traded capacity. The buyer assumes the penalty risk while the seller is relieved of it for the traded portion.</p>
+        </div>
+    </div>
+
+    <!-- Related Links -->
+    <div class="card mt-5">
+        <div class="card-header">
+            <h3>Related Resources</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Learn More</h5>
+                    <ul>
+                        <li><a href="{% url 'capacity_market_guide' %}">Main Capacity Market Guide</a></li>
+                        <li><a href="{% url 'capacity_market_faq' %}">Capacity Market FAQ</a></li>
+                        <li><a href="{% url 'battery_storage_guide' %}">Battery Storage Guide</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Explore Data</h5>
+                    <ul>
+                        <li><a href="{% url 'search_map_view' %}">Search All Components</a></li>
+                        <li><a href="{% url 'company_list_optimized' %}">Browse Companies</a></li>
+                        <li><a href="{% url 'technology_list' %}">Browse Technologies</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Key Technologies</h5>
+                    <ul>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Gas' %}">Gas Power Stations</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Battery' %}">Battery Storage</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='DSR' %}">Demand Side Response</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

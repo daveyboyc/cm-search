@@ -1,0 +1,40 @@
+{
+  "page_info": {
+    "body_classes": "tundra tableau public ff-IFrameSizedToWindow",
+    "readyState": "complete",
+    "title": "Workbook: IETF Competition Winners",
+    "total_elements": 728,
+    "url": "https://public.tableau.com/views/IETFProjectMap/MapDashboard?:showVizHome=no"
+  },
+  "iframes": [
+    {
+      "className": "no-class",
+      "height": 0,
+      "id": "primaryContent",
+      "index": 0,
+      "left": 0,
+      "src": "no-src",
+      "top": 0,
+      "width": 0
+    }
+  ],
+  "tableau_elements": [
+    {
+      "count": 1,
+      "sample_classes": "tundra tableau public ff-IFrameSizedToWindow",
+      "selector": "[class*=\"tableau\"]"
+    },
+    {
+      "count": 200,
+      "sample_classes": "tab-widget, dashboardSpacer tab-widget, tab-dashboard tab-widget is-dashboard",
+      "selector": "[class*=\"tab-\"]"
+    },
+    {
+      "count": 4,
+      "sample_classes": "tab-zone tab-widget tabZone-viz tabZoneReady, vizDisabled, tab-zone tab-widget tabZone-viz",
+      "selector": "[class*=\"viz\"]"
+    }
+  ],
+  "svg_analysis": [],
+  "clickable_analysis": []
+}

@@ -1,0 +1,105 @@
+/* iOS Safari Viewport Height Fix */
+/* Fixes rubber band scrolling issue on iPhone */
+
+/* Set CSS custom properties for real viewport height */
+:root {
+  --vh: 1vh;
+  --real-vh: calc(var(--vh, 1vh) * 100);
+  --navbar-height: 56px;
+  --content-height: calc(var(--real-vh) - var(--navbar-height));
+}
+
+/* Fix for map containers that use 100vh - don't restrict content pages */
+.map-explorer-container {
+  height: var(--content-height) !important;
+  max-height: var(--content-height) !important;
+  min-height: var(--content-height) !important;
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* This targets iOS Safari specifically */
+  
+  /* Use -webkit-fill-available for iOS map containers only */
+  .map-explorer-container {
+    height: -webkit-fill-available !important;
+    height: stretch !important;
+    max-height: -webkit-fill-available !important;
+    max-height: stretch !important;
+  }
+  
+  /* Fix body height for iOS but allow scrolling - only apply to map pages */
+  body.map-page html, 
+  body.map-page body {
+    height: -webkit-fill-available !important;
+    /* Remove overflow hidden to allow scrolling on content pages */
+  }
+  
+  /* Fix for search results containers */
+  .search-results-container {
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Ensure bottom elements are accessible */
+  .pagination,
+  .page-navigation,
+  .bottom-navigation {
+    margin-bottom: env(safe-area-inset-bottom, 40px) !important;
+    padding-bottom: 20px !important;
+  }
+  
+  /* Extra spacing for search results with pagination */
+  .search-results-container .pagination {
+    margin-bottom: env(safe-area-inset-bottom, 60px) !important;
+    padding-bottom: 30px !important;
+  }
+}
+
+/* Mobile specific adjustments - only for map pages */
+@media (max-width: 768px) {
+  /* Only apply fixed positioning to map containers, not regular content pages */
+  .map-explorer-container {
+    top: 56px !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    position: fixed !important;
+  }
+  
+  /* Allow normal scrolling for content pages */
+  body:not(.map-page) .main-container {
+    position: relative !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: calc(100vh - 56px) !important;
+  }
+  
+  /* Ensure content doesn't get cut off at bottom */
+  .search-results-container,
+  .filter-sidebar {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  
+  /* Add safe area for newer iPhones */
+  @supports (padding: max(0px)) {
+    .pagination,
+    .page-navigation {
+      padding-bottom: max(40px, env(safe-area-inset-bottom)) !important;
+      margin-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+    }
+    
+    /* Extra spacing for search results */
+    .search-results-container .pagination {
+      padding-bottom: max(60px, calc(env(safe-area-inset-bottom) + 30px)) !important;
+      margin-bottom: max(30px, env(safe-area-inset-bottom)) !important;
+    }
+  }
+  
+  /* Force scroll container to respect bottom padding */
+  .search-results-container {
+    scroll-padding-bottom: 80px !important;
+  }
+}

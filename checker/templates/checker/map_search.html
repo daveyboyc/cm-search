@@ -1,0 +1,896 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Search Results Map - Capacity Market Search{% endblock %}
+
+{# Override the container class to use container-fluid for full width #}
+{% block container_class %}container-fluid{% endblock %}
+
+{% block extra_head %}
+<style>
+    #map-container {
+        position: relative;
+        width: 100%;
+        height: 850px; /* Reverted to 850px */
+        /* min-height: 500px; /* Removed min-height */
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    #map {
+        height: 100%;
+        width: 100%;
+    }
+
+    #loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    #map-status {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 5px 10px;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 4px;
+        z-index: 500;
+        display: none;
+    }
+
+    .search-info-panel {
+        position: absolute; 
+        top: 10px; 
+        right: 10px; 
+        z-index: 1000; 
+        background-color: rgba(255,255,255,0.9); 
+        padding: 10px; 
+        border-radius: 4px; 
+        max-width: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<!-- Simplified Header for Map View -->
+<header class="py-4 text-center">
+    {% if geocoded_count and total_count %}
+        <div class="small text-muted">
+            {{ geocoded_count|default:0 }} of {{ total_count|default:0 }} components are geocoded 
+            ({% widthratio geocoded_count total_count 100 %}%) 
+        </div>
+    {% endif %}
+</header>
+{% endblock %}
+
+{% block content %}
+    <!-- Map Container -->
+    <div id="map-container" class="position-relative">
+        <div id="map"></div>
+        <div id="loading-overlay" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <div id="map-status"></div>
+        <!-- Search results are displayed directly on the map without legends -->
+        <div class="search-info-panel">
+            <div class="mt-2">
+                <a href="/?q={{ search_query }}&suppress_map=true" class="btn btn-sm btn-outline-secondary">View List</a>
+                <a href="/map/" class="btn btn-sm btn-outline-primary ms-1"><i class="bi bi-arrows-fullscreen"></i> Full Map</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Marker Count / Map Controls (Below Map) -->
+    <div class="mt-3">
+        <div class="d-flex justify-content-between">
+            <div>
+                <span class="me-2"><strong><span id="marker-count">0</span></strong> components shown</span>
+                <small></small>
+            </div>
+            <div>
+                <button id="reset-view-btn" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrows-fullscreen"></i> Reset View
+                </button>
+            </div>
+        </div>
+        <div id="data-usage-stats" class="text-muted small mt-2"></div>
+    </div>
+
+    <!-- Hidden fields for page load data -->
+    <div style="display: none;">
+        <input type="hidden" id="is-search-page" value="{{ is_search_view|yesno:'true,false' }}">
+        <input type="hidden" id="search-query-input" value="{{ search_query|escapejs }}">
+        <input type="hidden" id="technology-for-legend" value="All">
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Constants for the map
+    const UK_CENTER = { lat: 54.00366, lng: -2.547855 }; // Centered on UK
+    const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes cache
+
+    // Global variables
+    let map, infoWindow, markers = [], markerLabels = [], markerClustererEnabled = true, mapClusterManager = null;
+    let currentTech = null, debouncedLoadMarkers;
+    let overlappingMarkers = [], showTechLabels = true, separateOverlaps = true;
+    
+    // Map data cache
+    let mapDataCache = {}; // Use let for easy clearing
+    
+    // Track usage stats for this session
+    window.sessionStats = {
+        requestCount: 0,
+        cachedRequestsCount: 0,
+        cacheHits: 0,
+        cacheMisses: 0,
+        totalDataSize: 0
+    };
+
+    // Helper functions for map
+    function clearMarkers() {
+        // Clear existing markers
+        for (let i = 0; i < markers.length; i++) {
+            if (markers[i]) {
+                markers[i].map = null;
+            }
+        }
+        markers = [];
+        
+        // Clear clusterer if present
+        if (mapClusterManager) {
+            if (typeof mapClusterManager.clearMarkers === 'function') {
+                // Old interface
+                mapClusterManager.clearMarkers();
+            } else if (typeof mapClusterManager.clear === 'function') {
+                // New interface (AdvancedMarkerClusterer)
+                mapClusterManager.clear();
+            }
+        }
+    }
+    
+    // Function to show status message
+    function showStatus(message, duration = 0) {
+        const statusEl = document.getElementById('map-status');
+        if (!statusEl) return;
+        
+        statusEl.textContent = message;
+        statusEl.style.display = 'block';
+        
+        if (duration > 0) {
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, duration);
+        }
+    }
+    
+    // Function to create a marker for a feature
+    function createMarker(feature) {
+        const position = { 
+            lat: feature.geometry.coordinates[1], 
+            lng: feature.geometry.coordinates[0]
+        };
+        
+        // Get marker color from feature properties or use default
+        const color = feature.properties.color || '#1E88E5'; // Default to blue if no color specified
+        
+        try {
+            // Create a custom HTML element for the marker
+            const markerElement = document.createElement('div');
+            markerElement.style.width = '30px'; // Increased size
+            markerElement.style.height = '30px';
+            markerElement.style.backgroundColor = color;
+            markerElement.style.borderRadius = '50%';
+            markerElement.style.border = '2.5px solid white'; // Slightly thicker border
+            markerElement.style.boxShadow = '0 1px 2px rgba(0,0,0,0.3)'; // Add shadow
+            markerElement.style.cursor = 'pointer';
+
+            // Create the Advanced Marker
+            const marker = new google.maps.marker.AdvancedMarkerElement({
+                position: position,
+                map: markerClustererEnabled ? null : map, // Only add to map if clustering is disabled
+                content: markerElement, // Use the custom element
+                title: feature.properties.description || feature.properties.title || ''
+            });
+
+            // Create InfoWindow content only when needed (in click handler)
+            marker.addListener('click', () => {
+                // Create the info window content (deferred until click time)
+                const contentData = feature.properties;
+                
+                // Format the content based on available properties
+                const content = `
+                    <div class="info-window-content">
+                        <h5 class="mb-2">${contentData.title || contentData.name || 'Component'}</h5>
+                        ${contentData.description ? `<p>${contentData.description}</p>` : ''}
+                        ${contentData.company ? 
+                                    `<p class="mb-1"><strong>Company:</strong> ${contentData.company}</p>` : ''}
+                        ${contentData.technology ? 
+                                    `<p class="mb-1"><strong>Technology:</strong> ${contentData.technology}</p>` : ''}
+                        ${contentData.capacity_mw ? 
+                                    `<p class="mb-1"><strong>Capacity:</strong> ${contentData.capacity_mw} MW</p>` : ''}
+                        ${contentData.cmu_id ? 
+                                    `<p class="mb-1"><strong>CMU ID:</strong> ${contentData.cmu_id}</p>` : ''}
+                        ${contentData.year ? 
+                                    `<p class="mb-1"><strong>Year:</strong> ${contentData.year}</p>` : ''}
+                        ${contentData.agreement_type ? 
+                                    `<p class="mb-1"><strong>Agreement Type:</strong> ${contentData.agreement_type}</p>` : ''}
+                        ${contentData.auction ? 
+                                    `<p class="mb-1"><strong>Auction:</strong> ${contentData.auction}</p>` : ''}
+                        <hr>
+                        <div class="text-center mt-2">
+                            ${contentData.id ? 
+                                `<a href="/component/${contentData.id}/" class="btn btn-sm btn-primary" target="_blank">View Details</a>` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                infoWindow.setContent(content);
+                infoWindow.open(map, marker);
+            });
+            
+            return marker;
+        } catch (error) {
+            console.error("Error creating advanced marker:", error);
+            // Fall back to regular marker if advanced marker isn't available
+            try {
+                // Create a regular Google Maps marker as fallback
+                const regularMarker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: feature.properties.title || ''
+                });
+                
+                // Add click handler for info window
+                regularMarker.addListener('click', () => {
+                    const contentData = feature.properties;
+                    const content = `
+                        <div class="info-window-content">
+                            <h5>${contentData.title || contentData.name || 'Component'}</h5>
+                            ${contentData.technology ? `<p><strong>Technology:</strong> ${contentData.technology}</p>` : ''}
+                            ${contentData.company ? `<p><strong>Company:</strong> ${contentData.company}</p>` : ''}
+                            ${contentData.id ? `<a href="/component/${contentData.id}/" target="_blank">View Details</a>` : ''}
+                        </div>
+                    `;
+                    infoWindow.setContent(content);
+                    infoWindow.open(map, regularMarker);
+                });
+                
+                return regularMarker;
+            } catch (fallbackError) {
+                console.error("Fallback marker creation also failed:", fallbackError);
+                return null; // Return null if all marker creation attempts fail
+            }
+        }
+    }
+
+    // Function to process API data (either fetched or cached)
+    function processMapData(data, source = 'fetch') { // Add source param for logging
+        console.log(`Processing data from ${source}: ${data.features.length} features, total: ${data.metadata.total}`);
+        const markerCountEl = document.getElementById('marker-count'); // Ensure this line is present
+
+        clearMarkers(); // Clear previous markers
+
+        let processedMarkers = []; 
+        data.features.forEach(feature => {
+            try {
+                const marker = createMarker(feature); 
+                if (marker) {
+                    processedMarkers.push(marker);
+                }
+            } catch (error) {
+                console.error("Error processing marker:", error);
+            }
+        });
+
+        console.log(`Successfully created ${processedMarkers.length} markers out of ${data.features.length} features`);
+        markers = processedMarkers; 
+
+        // Re-enable clusterer logic
+        console.log(`Checking clustering: markerClustererEnabled=${markerClustererEnabled}, mapClusterManager exists? ${!!mapClusterManager}`);
+
+        if (markerClustererEnabled && mapClusterManager) {
+            if (typeof mapClusterManager.addMarkers === 'function') {
+                // Old interface
+                mapClusterManager.addMarkers(processedMarkers);
+            } else if (typeof mapClusterManager.add === 'function') {
+                // New interface (AdvancedMarkerClusterer)
+                mapClusterManager.add(processedMarkers);
+            }
+            console.log(`Added ${processedMarkers.length} markers to clusterer.`);
+        } else {
+            console.log(`Added ${processedMarkers.length} markers directly to map (clustering disabled).`);
+        }
+
+        if (markerCountEl) {
+             markerCountEl.textContent = data.metadata.count; // Use count from metadata
+             const totalNote = document.querySelector('#marker-count + small');
+             if (totalNote && data.metadata.count < data.metadata.total) {
+                 totalNote.textContent = `(Showing ${data.metadata.count} of ${data.metadata.total} matching components in view)`;
+             } else if (totalNote) {
+                  totalNote.textContent = ''; 
+             }
+        }
+            
+        showStatus("Map updated.", 1500);
+        // Note: Rendering time measured in loadMarkers context
+    }
+
+    // Main function to load markers
+    function loadMarkers(overrideTechnology = null) {
+        // Clear existing markers first 
+        clearMarkers();
+        
+        const startTime = performance.now();
+        console.log("loadMarkers called", overrideTechnology ? `for tech: ${overrideTechnology}` : '');
+        showStatus("Loading map data...");
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay) loadingOverlay.style.display = 'flex';
+        
+        // Check if we're in search view mode
+        const isSearchView = document.getElementById('is-search-page').value === 'true';
+        const searchQuery = document.getElementById('search-query-input').value;
+        
+        // Log entry point for debugging
+        console.log(`loadMarkers entry point: override=${overrideTechnology}, search=${isSearchView}, query=${searchQuery}`);
+        
+        // For search views, we don't require a technology to be selected
+        if (isSearchView) {
+            console.log("Search view detected with query:", searchQuery);
+            // Override technology with 'All' to show all technologies for search results
+            overrideTechnology = 'All';
+        }
+
+        // Always use 'All' for technology in search view
+        const technology = overrideTechnology || 'All';
+        currentTech = technology;
+        
+        // Get selected CM period from the switch (default to future)
+        const cmPeriod = 'future';
+        
+        // Store for later use
+        window.currentCmPeriod = cmPeriod;
+        console.log(`CM Period for search: ${cmPeriod}`);
+
+        // Only get bounds if map is initialized
+        let north = '', south = '', east = '', west = '';
+        try {
+            if (map && typeof map.getBounds === 'function') {
+                const bounds = map.getBounds();
+                if (bounds) {
+                    north = bounds.getNorthEast().lat();
+                    south = bounds.getSouthWest().lat();
+                    east = bounds.getNorthEast().lng();
+                    west = bounds.getSouthWest().lng();
+                    console.log(`Map bounds: N:${north}, S:${south}, E:${east}, W:${west}`);
+                } else {
+                    console.log("Map bounds not available yet");
+                }
+            } else {
+                console.warn("Map not fully initialized, skipping bounds");
+            }
+        } catch (e) {
+            console.error("Error getting map bounds:", e);
+        }
+
+        // Build URL parameters
+        const params = new URLSearchParams();
+        params.append('technology', technology);
+        
+        // Add search query if in search view
+        if (isSearchView && searchQuery) {
+            params.append('search_query', searchQuery);
+            
+            // When in search view, if technology is "All", don't include the technology parameter
+            // to avoid conflicts with the search query filtering
+            if (technology === "All") {
+                // Remove the technology parameter to show all technologies for search results
+                params.delete('technology');
+                console.log("Removed technology parameter for search view with 'All' technology");
+            }
+        }
+        
+        // Add CM period parameter
+        params.append('cm_period', cmPeriod);
+        
+        // Only add company parameter if it has a value
+        if (params.has('company') && (!params.get('company') || params.get('company') === '')) {
+            console.log('Removing empty company parameter');
+            params.delete('company');
+        }
+        
+        if (north && south && east && west) {
+            params.append('north', north);
+            params.append('south', south);
+            params.append('east', east);
+            params.append('west', west);
+        }
+        
+        // Frontend Cache Check
+        const cacheKey = params.toString(); // Use URL params as key
+        console.log(`Checking cache for key: ${cacheKey}`);
+        
+        // Check if we have cached data
+        if (mapDataCache[cacheKey] && mapDataCache[cacheKey].data) {
+            const cachedItem = mapDataCache[cacheKey];
+            const now = Date.now();
+            
+            // Check if cache is still valid
+            if (now - cachedItem.timestamp < CACHE_DURATION_MS) {
+                console.log(`%cCache HIT: Using cached data for ${cacheKey}`, 'color: green; font-weight: bold');
+                window.sessionStats.cacheHits++;
+                
+                // Use the cached data
+                processMapData(cachedItem.data, 'cache');
+                
+                // Log rendering time for cached load
+                const endTime = performance.now();
+                console.log(`Map rendering from cache took ${(endTime - startTime).toFixed(2)}ms`);
+                if (loadingOverlay) loadingOverlay.style.display = 'none'; // Hide loading
+                showStatus("Using cached data", 1000);
+                updateDataUsageUI();
+                return;
+            } else {
+                console.log(`Cache expired for key ${cacheKey} (${Math.round((now - cachedItem.timestamp)/1000)}s old)`);
+                // Remove expired entry
+                delete mapDataCache[cacheKey];
+            }
+        }
+        
+        window.sessionStats.cacheMisses++;
+        console.log(`%cCache MISS: Fetching data for ${cacheKey}`, 'color: red');
+        
+        // Fetch logic for cache miss
+        // Check if we have a search query and no other parameters, add a special marker to help debug
+        if (isSearchView && searchQuery && params.has('search_query') && !params.has('technology')) {
+            console.log("DEBUG: Search query only request detected:", searchQuery);
+            params.append('debug', '1'); // Add debug parameter
+        }
+        
+        // Revert to the original API endpoint path
+        const fetchUrl = `/api/map-data/?${params.toString()}`; // Restored to original path
+        console.log(`Fetching from API: ${fetchUrl}`);
+
+        fetch(fetchUrl)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const sizeHeader = response.headers.get('Content-Length');
+                window.sessionStats.totalDataSize += sizeHeader ? parseInt(sizeHeader, 10) : 0;
+                updateDataUsageUI();
+                return response.json(); 
+            })
+            .then(data => {
+                console.log(`Received data: ${data.features.length} features, total: ${data.metadata.total}`);
+                
+                // Store in frontend cache
+                const dataSize = JSON.stringify(data).length;
+                mapDataCache[cacheKey] = {
+                    data: data,
+                    timestamp: Date.now(),
+                    size: dataSize
+                };
+                console.log(`%cStored in cache: ${cacheKey} (${Math.round(dataSize/1024)}KB)`, 'color: blue');
+                
+                // Limit cache size
+                limitCacheSize(20);
+                
+                // Process the data
+                processMapData(data, 'fetch');
+                
+                const endTime = performance.now();
+                console.log(`Map rendering from fetch took ${(endTime - startTime).toFixed(2)}ms`);
+            })
+            .catch(error => {
+                console.error('Error loading map data:', error);
+                showStatus(`Error loading data: ${error.message}`, 5000);
+                
+                // Try to show a fallback message with error info
+                const searchInfoPanel = document.querySelector('.search-info-panel');
+                if (searchInfoPanel) {
+                    searchInfoPanel.innerHTML += `
+                        <div class="alert alert-warning mt-3">
+                            <strong>Error loading map data</strong><br>
+                            Please try refreshing the page. If the issue persists, view results in list mode.
+                        </div>
+                    `;
+                }
+            })
+            .finally(() => {
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+                updateDataUsageUI();
+                
+                // Log the state of key variables for debugging
+                try {
+                    console.log('Map data loading complete. Current state:', {
+                        technology: currentTech || 'none',
+                        search_query: searchQuery || 'none',
+                        cmPeriod: window.currentCmPeriod || 'none',
+                        markerCount: (markers && markers.length) || 0,
+                        cacheKey: cacheKey || 'none'
+                    });
+                } catch (e) {
+                    console.error('Error logging map state:', e);
+                }
+            });
+    }
+    
+    // Function to update data usage UI
+    function updateDataUsageUI() {
+        let usageElement = document.getElementById('data-usage-stats');
+        if (!usageElement) {
+            // Create the element if it doesn't exist
+            const mapControls = document.querySelector('.mt-3 > .d-flex'); // Find the container below the map
+            if (mapControls) {
+                const div = document.createElement('div');
+                div.id = 'data-usage-stats';
+                div.className = 'text-muted small mt-2'; // Add some basic styling
+                mapControls.parentNode.insertBefore(div, mapControls.nextSibling);
+            } else {
+                console.warn("Could not find a place to add data-usage-stats element.");
+                return; // Exit if we can't find or create the element
+            }
+            // Re-select the element after creating it
+            usageElement = document.getElementById('data-usage-stats');
+        }
+
+        const stats = window.sessionStats;
+        const totalKB = (stats.totalDataSize / 1024).toFixed(1);
+        usageElement.innerHTML = `
+            Data: ${totalKB}KB | Cache: ${stats.cacheHits}/${stats.cacheHits + stats.cacheMisses}
+        `;
+    }
+    
+    // Function to limit cache size (remove oldest entries when exceeding limit)
+    function limitCacheSize(maxEntries = 20) {
+        const entries = Object.keys(mapDataCache).map(key => ({
+            key,
+            timestamp: mapDataCache[key].timestamp
+        }));
+        
+        if (entries.length <= maxEntries) return; // No need to clean up yet
+        
+        // Sort by time (oldest first) and remove oldest entries
+        entries.sort((a, b) => a.timestamp - b.timestamp);
+        const keysToRemove = entries.slice(0, entries.length - maxEntries).map(e => e.key);
+        
+        // Remove the old entries
+        keysToRemove.forEach(key => delete mapDataCache[key]);
+    }
+
+    // Initialize the map - make it explicitly global for the callback
+    window.initMap = async function() {
+        console.log("Global window.initMap called");
+        
+        try {
+            // Import necessary libraries - Restore marker library
+            console.log("Importing Google Maps libraries...");
+            const { Map } = await google.maps.importLibrary("maps");
+            const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+            console.log("Google Maps libraries imported successfully");
+            
+            // Find the map element
+            const mapElement = document.getElementById('map');
+            if (!mapElement) {
+                console.error("Map element not found");
+                return;
+            }
+            console.log("Map element found:", mapElement);
+
+            // Create the map
+            console.log("Creating Google Map with center:", UK_CENTER);
+            map = new google.maps.Map(mapElement, {
+                center: UK_CENTER,
+                zoom: 7,
+                mapId: 'b922aa76eabe8b6c', // Keep Map ID
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                    position: google.maps.ControlPosition.TOP_CENTER
+                },
+                streetViewControl: false
+            });
+            console.log("Google Map created successfully");
+            
+            // Initialize info window
+            infoWindow = new google.maps.InfoWindow();
+
+            // Re-enable Clusterer Initialization
+            if (typeof markerClusterer !== 'undefined') {
+                    console.log("markerClusterer global object FOUND. Proceeding with initialization.");
+            } else {
+                console.log("markerClusterer global object NOT FOUND. Will try to import...")
+                try {
+                    // Try to import the marker clusterer
+                    try {
+                        const { AdvancedMarkerClusterer } = await google.maps.importLibrary("marker");
+                        console.log("AdvancedMarkerClusterer imported successfully from marker library.");
+                    } catch (err) {
+                        console.warn("Could not import AdvancedMarkerClusterer from marker library:", err);
+                        
+                        // Try importing MarkerClusterer instead
+                        try {
+                            await google.maps.importLibrary("markerclusterer");
+                            console.log("MarkerClusterer library imported successfully.");
+                        } catch (err2) {
+                            console.warn("Could not import MarkerClusterer library:", err2);
+                        }
+                    }
+                    
+                    // Try to initialize with new API first, then fall back if needed
+                    try {
+                        // Try the newest API
+                        if (typeof AdvancedMarkerClusterer === 'function') {
+                            console.log("Using AdvancedMarkerClusterer API");
+                            mapClusterManager = new AdvancedMarkerClusterer({
+                                map: map,
+                                markers: []
+                            });
+                        } 
+                        // Try next newest API
+                        else if (typeof google.maps.markerclusterer?.MarkerClusterer === 'function') {
+                            console.log("Using google.maps.markerclusterer.MarkerClusterer API");
+                            mapClusterManager = new google.maps.markerclusterer.MarkerClusterer({
+                                map: map,
+                                markers: []
+                            });
+                        }
+                        // Fall back to classic API
+                        else {
+                            console.log("Using classic MarkerClusterer API");
+                            mapClusterManager = new MarkerClusterer(map, [], {
+                                maxZoom: 14,
+                                gridSize: 50
+                            });
+                        }
+                    } catch (clusterError) {
+                        console.error("Error initializing clusterer:", clusterError);
+                        // Disable clustering if all methods fail
+                        markerClustererEnabled = false;
+                    }
+                    
+                    console.log("Map cluster manager initialized successfully.");
+                } catch (error) {
+                    console.warn("Error importing marker clusterer:", error);
+                    console.log("Using fallback clustering approach with custom markers...");
+                    
+                    // Create a custom clustering manager with AdvancedMarkers
+                    mapClusterManager = {
+                        markers: [],
+                        clusters: [],
+                        
+                        // Add markers to the cluster manager
+                        addMarkers: function(markers) {
+                            this.markers = markers;
+                            this.cluster();
+                        },
+                        
+                        // Clear all markers
+                        clearMarkers: function() {
+                            this.markers = [];
+                            this.clusters.forEach(cluster => {
+                                if (cluster.marker) cluster.marker.map = null;
+                            });
+                            this.clusters = [];
+                        },
+                        
+                        // Simple clustering algorithm
+                        cluster: function() {
+                            // Group markers by grid cells
+                            const gridSize = 60; // pixels
+                            const zoom = map.getZoom();
+                            const clusters = {};
+                            
+                            this.markers.forEach(marker => {
+                                const pixel = map.getProjection().fromLatLngToPoint(marker.position);
+                                const gridX = Math.floor(pixel.x * Math.pow(2, zoom) / gridSize);
+                                const gridY = Math.floor(pixel.y * Math.pow(2, zoom) / gridSize);
+                                const key = `${gridX}_${gridY}`;
+                                
+                                if (!clusters[key]) {
+                                    clusters[key] = [];
+                                }
+                                clusters[key].push(marker);
+                            });
+                            
+                            // Create cluster markers
+                            Object.values(clusters).forEach(clusterMarkers => {
+                                if (clusterMarkers.length > 1) {
+                                    // Calculate average position
+                                    const positions = clusterMarkers.map(m => m.position);
+                                    const avgLat = positions.reduce((sum, pos) => sum + pos.lat, 0) / positions.length;
+                                    const avgLng = positions.reduce((sum, pos) => sum + pos.lng, 0) / positions.length;
+                                    const position = { lat: avgLat, lng: avgLng };
+                                    
+                                    // Create cluster element
+                                    const count = clusterMarkers.length;
+                                    const clusterElement = document.createElement('div');
+                                    
+                                    // Choose style based on count
+                                    let bgColor, size;
+                                    if (count < 10) {
+                                        bgColor = '#FF5252'; // Red
+                                        size = 40;
+                                    } else if (count < 100) {
+                                        bgColor = '#FF9800'; // Orange
+                                        size = 45;
+                                    } else if (count < 1000) {
+                                        bgColor = '#4CAF50'; // Green
+                                        size = 50;
+                                    } else {
+                                        bgColor = '#2196F3'; // Blue
+                                        size = 55;
+                                    }
+                                    
+                                    clusterElement.style.width = `${size}px`;
+                                    clusterElement.style.height = `${size}px`;
+                                    clusterElement.style.backgroundColor = bgColor;
+                                    clusterElement.style.borderRadius = '50%';
+                                    clusterElement.style.border = '2px solid white';
+                                    clusterElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+                                    clusterElement.style.display = 'flex';
+                                    clusterElement.style.justifyContent = 'center';
+                                    clusterElement.style.alignItems = 'center';
+                                    clusterElement.style.color = 'white';
+                                    clusterElement.style.fontWeight = 'bold';
+                                    clusterElement.style.fontSize = '12px';
+                                    clusterElement.textContent = count;
+                                    clusterElement.style.cursor = 'pointer'; // Add cursor pointer
+
+                                    // Create an AdvancedMarkerElement for the cluster
+                                    const clusterMarker = new google.maps.marker.AdvancedMarkerElement({
+                                        position,
+                                        content: clusterElement,
+                                        // Set zIndex higher than individual markers if needed
+                                        zIndex: 1000 + count, 
+                                    });
+                                    
+                                    // Add click handler to zoom in
+                                    clusterMarker.addListener('click', () => {
+                                        map.setCenter(position);
+                                        map.setZoom(map.getZoom() + 2);
+                                    });
+                                    
+                                    // Add to map
+                                    clusterMarker.map = map;
+                                    
+                                    // Track it
+                                    this.clusters.push({
+                                        markers: clusterMarkers,
+                                        marker: clusterMarker
+                                    });
+                                    
+                                    // Hide original markers
+                                    clusterMarkers.forEach(m => {
+                                        m.map = null;
+                                    });
+                                } else if (clusterMarkers.length === 1) {
+                                    // Show single marker
+                                    clusterMarkers[0].map = map;
+                                }
+                            });
+                        }
+                    };
+                    
+                    // Add listener for zoom change to recluster
+                    map.addListener('zoom_changed', () => {
+                        if (mapClusterManager) {
+                            mapClusterManager.clearMarkers();
+                            mapClusterManager.addMarkers(markers);
+                        }
+                    });
+                }
+            }
+            
+            // Wait for map to be fully loaded before initial load / adding listeners
+            google.maps.event.addListenerOnce(map, 'idle', function() {
+                console.log("Map idle event fired, proceeding with initial load/listeners");
+                
+                // Auto-load search results for the search map view
+                if (isSearchView) {
+                    // For search map, we force loading of results with "All" technology
+                    console.log("Detected search view, auto-loading results...");
+                    
+                    // Force load markers with "All" technology selected (no filtering)
+                    setTimeout(() => {
+                        console.log("Loading search results for query: {{ search_query|escapejs }}");
+                        loadMarkers('All');
+                    }, 500); // Small delay to ensure everything is ready
+                }
+                
+                // Add event listener for map bounds change
+                map.addListener('idle', function() {
+                    // Log debugging info
+                    console.log("Map idle event fired");
+                    
+                    // Get current search query and reload with current view
+                    const searchQuery = "{{ search_query|escapejs }}";
+                    
+                    if (searchQuery && markers.length > 0) {
+                        console.log("Debouncing loadMarkers on idle");
+                        
+                        // Use a debounced version of loadMarkers to avoid too many calls
+                        if (typeof debouncedLoadMarkers === 'function') {
+                            debouncedLoadMarkers('All');
+                        }
+                    }
+                });
+                
+                // Add zoom changed listener to handle high zoom levels specially
+                map.addListener('zoom_changed', function() {
+                    const zoom = map.getZoom();
+                    console.log(`Zoom changed to: ${zoom}`);
+                });
+            });
+            
+            // Initialize the data usage display
+            updateDataUsageUI();
+            
+            // Set up debounced load markers function
+            debouncedLoadMarkers = debounce(loadMarkers, 500);
+            
+            // Set up reset view button
+            const resetViewBtn = document.getElementById('reset-view-btn');
+            if (resetViewBtn) {
+                resetViewBtn.addEventListener('click', function() {
+                    map.setCenter(UK_CENTER);
+                    map.setZoom(7);
+                    showStatus('View reset', 1000);
+                });
+            }
+            
+            // Initialize the buttons and UI after map is loaded
+            console.log("Map initialization complete - setting up UI");
+
+            // Add a callback to ensure map is fully loaded
+            google.maps.event.addListenerOnce(map, 'tilesloaded', function() {
+                console.log("Map tiles loaded - map is fully initialized");
+                
+                // Update the search info
+                document.getElementById('search-query').textContent = "{{ search_query|escapejs }}";
+                document.getElementById('result-count').textContent = "{{ result_count|default:'0' }}";
+            });
+
+            // Return success
+            return true;
+            } catch (error) {
+                console.error("Error in map initialization:", error);
+                // Show error to user
+                const mapElement = document.getElementById('map');
+                if (mapElement) {
+                    mapElement.innerHTML = '<div class="alert alert-danger">Error loading map. Please refresh the page and try again.</div>';
+                }
+                return false;
+            }
+    };
+
+    // Helper function: Debounce to prevent too many rapid calls
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    };
+</script>
+{% endblock %}
+
+<!-- Load Google Maps API *after* defining initMap -->
+<!-- Added libraries=marker and map_ids -->
+<!-- Load Google Maps JavaScript API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap&libraries=places,marker,markerclusterer&v=weekly" defer></script>

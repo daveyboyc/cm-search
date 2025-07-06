@@ -1,0 +1,100 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+{% load humanize %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+    /* Keep existing styles from current search page */
+    .results-list .result-item {
+        border-bottom: var(--bs-border-width) solid var(--bs-border-color-translucent);
+        padding: 15px 0;
+    }
+    .results-list .result-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Map link button styling */
+    .map-link-btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    /* Badge container styling */
+    .cmu-badges-container, .auction-badges-container {
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <form method="get" action="{% url 'search_map_view' %}" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search by company name, location, CMU ID..." value="{{ query }}" required>
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </form>
+
+    <h2 class="h4">Search Results for "{{ query }}"</h2>
+    
+    {% if debug_info %}
+    <p class="text-muted">
+        <small>
+            Found {{ total_components|intcomma }} components across {{ total_locations|intcomma }} locations
+            ({{ debug_info.query_time|floatformat:2 }}s)
+        </small>
+    </p>
+    {% endif %}
+
+    <div class="results-list">
+        {% if location_groups %}
+            {% for location_group in location_groups %}
+                {% include "checker/components/_location_group_item.html" with location_group=location_group query=query %}
+            {% endfor %}
+            
+            {# Pagination #}
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Search results pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    <span class="page-item disabled">
+                        <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {# Show more options if needed #}
+            {% if total_locations > per_page %}
+            <div class="alert alert-info mt-3">
+                <p><strong>Want to see more?</strong> You're currently viewing {{ location_groups|length }} of {{ total_locations }} total matching locations.</p>
+                <div class="btn-group" role="group">
+                    <a href="?q={{ query|urlencode }}&per_page=50" class="btn btn-outline-primary">Show 50</a>
+                    <a href="?q={{ query|urlencode }}&per_page=100" class="btn btn-outline-primary">Show 100</a>
+                    <a href="?q={{ query|urlencode }}&per_page=200" class="btn btn-outline-primary">Show 200</a>
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-warning">
+                No results found for "{{ query }}". Try a different search term.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

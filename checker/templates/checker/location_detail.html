@@ -1,0 +1,171 @@
+{% extends "checker/base.html" %}
+{% load checker_tags %}
+
+{% block title %}{{ location_group.location }} - Location Details{% endblock %}
+
+{% block body_class %}has-universal-navbar{% endblock %}
+
+{% block page_header %}
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+<!-- Welcome Notice for New Users -->
+{% include 'checker/includes/welcome_notice.html' %}
+{% endblock %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'search_components' %}">Search</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Location Details</li>
+        </ol>
+    </nav>
+
+    <h1 class="h3 mb-4">{{ location_group.location }}</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Components</h6>
+                    <p class="card-text h4">{{ location_group.component_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Primary Technology</h6>
+                    <p class="card-text">{{ primary_technology }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Primary Company</h6>
+                    <p class="card-text">{{ primary_company }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Capacity</h6>
+                    <p class="card-text">{{ capacity_display }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if aggregation_info.is_aggregated %}
+    <div class="alert alert-info" role="alert">
+        <strong>Aggregated CMU:</strong> This location is part of CMU {{ aggregation_info.cmu_id }} 
+        which spans {{ aggregation_info.total_locations }} locations with a total capacity of 
+        {{ aggregation_info.total_capacity }} MW ({{ aggregation_info.applicant }})
+    </div>
+    {% endif %}
+
+    <h2 class="h4 mb-2">Components at this Location</h2>
+    <p class="text-muted small mb-3">Click on auction years to see individual component pages</p>
+    
+    {% for description, cmu_dict in organized_data.items %}
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">{{ description }}</h5>
+        </div>
+        <div class="card-body">
+            {% for cmu_id, cmu_data in cmu_dict.items %}
+            <div class="mb-3">
+                <h6>
+                    CMU: <a href="{% url 'cmu_detail' cmu_id %}">{{ cmu_id }}</a>
+                    <a href="{% url 'search_components' %}?q={{ cmu_id }}&search_type=cmu" class="btn btn-sm btn-outline-secondary ms-2">
+                        <i class="bi bi-search"></i> Search all {{ cmu_id }} components
+                    </a>
+                    <br>
+                    <span class="text-muted">
+                        {{ cmu_data.technology }} - {{ cmu_data.company|default:"Unknown Company" }}
+                    </span>
+                </h6>
+                <div class="auction-links">
+                    {% for link in cmu_data.auction_links %}
+                    <a href="{{ link.url }}" class="btn btn-sm btn-outline-primary me-2 mb-2">
+                        {{ link.name }} ({{ link.component_count }})
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Map Section -->
+    {% if location_group.latitude and location_group.longitude %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Location Map</h5>
+        </div>
+        <div class="card-body">
+            <div id="map" style="height: 400px;"></div>
+        </div>
+    </div>
+    
+    <script>
+        async function initLocationMap() {
+            const { Map } = await google.maps.importLibrary("maps");
+            const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+            
+            const location = { lat: {{ location_group.latitude }}, lng: {{ location_group.longitude }} };
+            
+            // Initialize Google Map
+            const map = new Map(document.getElementById("map"), {
+                zoom: 13,
+                center: location,
+                mapId: "location_detail_map",
+                gestureHandling: "cooperative"
+            });
+            
+            // Create marker element
+            const markerElement = document.createElement('div');
+            markerElement.className = 'custom-marker';
+            markerElement.style.width = '24px';
+            markerElement.style.height = '24px';
+            markerElement.style.backgroundColor = '#0d6efd';
+            markerElement.style.borderRadius = '50%';
+            markerElement.style.border = '2px solid white';
+            markerElement.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+            
+            // Create advanced marker
+            const marker = new AdvancedMarkerElement({
+                map: map,
+                position: location,
+                title: "{{ location_group.location|escapejs }}",
+                content: markerElement
+            });
+            
+            // Create InfoWindow
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="padding: 10px;">
+                        <h6>{{ location_group.location|escapejs }}</h6>
+                        <p><strong>{{ location_group.component_count }} component{{ location_group.component_count|pluralize }}</strong></p>
+                        {% if primary_technology %}<p>{{ primary_technology|escapejs }}</p>{% endif %}
+                        {% if primary_company %}<p>{{ primary_company|escapejs }}</p>{% endif %}
+                    </div>
+                `
+            });
+            
+            // Add click listener
+            marker.addListener('gmp-click', () => {
+                infoWindow.open({
+                    anchor: marker,
+                    map: map,
+                });
+            });
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initLocationMap);
+    </script>
+    {% endif %}
+{% endblock %}

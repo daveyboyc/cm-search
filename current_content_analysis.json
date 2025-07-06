@@ -1,0 +1,279 @@
+{
+  "content_analysis": {
+    "all_text_nodes": [
+      {
+        "parent_class": "",
+        "parent_id": "",
+        "parent_tag": "NOSCRIPT",
+        "text": "<iframe src=\"https://www.googletagmanager.com/ns.html?id=GTM-WP98PN\"\n      height=\"0\" width=\"0\" style=\"display:none;visibility:hidden\"></iframe>"
+      },
+      {
+        "parent_class": {
+          "animVal": "",
+          "baseVal": ""
+        },
+        "parent_id": "",
+        "parent_tag": "style",
+        "text": "#tail{fill:url(#fade)}#head{fill:#616570}stop{stop-color:#616570}"
+      },
+      {
+        "parent_class": "",
+        "parent_id": "tabBootErrTitle",
+        "parent_tag": "DIV",
+        "text": "Unexpected Error"
+      },
+      {
+        "parent_class": "",
+        "parent_id": "tabBootErrBody",
+        "parent_tag": "DIV",
+        "text": "An unexpected error occurred. If you continue to receive this error please contact\n                your Tableau Server Administrator."
+      },
+      {
+        "parent_class": "",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "IETF Competition Winners"
+      },
+      {
+        "parent_class": "tabMapAttributionLink",
+        "parent_id": "",
+        "parent_tag": "A",
+        "text": "\u00a9 2025 Mapbox"
+      },
+      {
+        "parent_class": "tabMapAttributionLink2",
+        "parent_id": "",
+        "parent_tag": "A",
+        "text": "\u00a9 OpenStreetMap"
+      },
+      {
+        "parent_class": "",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Filters:"
+      },
+      {
+        "parent_class": "sr-only",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Filter"
+      },
+      {
+        "parent_class": "",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Industry"
+      },
+      {
+        "parent_class": "sr-only",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Inclusive"
+      },
+      {
+        "parent_class": "tabComboBoxName",
+        "parent_id": "tab-ui-id-1750155795879",
+        "parent_tag": "SPAN",
+        "text": "(All)"
+      },
+      {
+        "parent_class": "sr-only",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Filter"
+      },
+      {
+        "parent_class": "",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Region"
+      },
+      {
+        "parent_class": "sr-only",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Inclusive"
+      },
+      {
+        "parent_class": "tabComboBoxName",
+        "parent_id": "tab-ui-id-1750155795877",
+        "parent_tag": "SPAN",
+        "text": "(All)"
+      },
+      {
+        "parent_class": "sr-only",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Filter"
+      },
+      {
+        "parent_class": "",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Technology type"
+      },
+      {
+        "parent_class": "sr-only",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Inclusive"
+      },
+      {
+        "parent_class": "tabComboBoxName",
+        "parent_id": "tab-ui-id-1750155795881",
+        "parent_tag": "SPAN",
+        "text": "(All)"
+      },
+      {
+        "parent_class": "sr-only",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Filter"
+      },
+      {
+        "parent_class": "",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Technology details"
+      },
+      {
+        "parent_class": "sr-only",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Inclusive"
+      },
+      {
+        "parent_class": "tabComboBoxName",
+        "parent_id": "tab-ui-id-1750155795885",
+        "parent_tag": "SPAN",
+        "text": "(All)"
+      },
+      {
+        "parent_class": "sr-only",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Filter"
+      },
+      {
+        "parent_class": "",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Project type"
+      },
+      {
+        "parent_class": "sr-only",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Inclusive"
+      },
+      {
+        "parent_class": "tabComboBoxName",
+        "parent_id": "tab-ui-id-1750155795883",
+        "parent_tag": "SPAN",
+        "text": "(All)"
+      },
+      {
+        "parent_class": "",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Key:"
+      },
+      {
+        "parent_class": "",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Project type"
+      },
+      {
+        "parent_class": "tabLegendItemLabel",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Deployment"
+      },
+      {
+        "parent_class": "tabLegendItemLabel",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Engineering Study"
+      },
+      {
+        "parent_class": "tabLegendItemLabel",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Feasibility Study"
+      },
+      {
+        "parent_class": "toolbar-button-label fnwkbpb",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "View on Tableau Public"
+      },
+      {
+        "parent_class": "toolbar-button-label f1yrzn2s",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Undo"
+      },
+      {
+        "parent_class": "toolbar-button-label f1yrzn2s",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Redo"
+      },
+      {
+        "parent_class": "toolbar-button-label f1yrzn2s",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Revert"
+      },
+      {
+        "parent_class": "toolbar-button-label f1yrzn2s",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Replay Animation"
+      },
+      {
+        "parent_class": "toolbar-button-label f1yrzn2s",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Replay Speed Options"
+      },
+      {
+        "parent_class": "toolbar-button-label f1yrzn2s",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Download"
+      },
+      {
+        "parent_class": "toolbar-button-label f1yrzn2s",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Full Screen"
+      },
+      {
+        "parent_class": "toolbar-button-label fnwkbpb",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "Share"
+      },
+      {
+        "parent_class": "toolbar-button-label f1yrzn2s",
+        "parent_id": "",
+        "parent_tag": "SPAN",
+        "text": "More options..."
+      },
+      {
+        "parent_class": "",
+        "parent_id": "staticConfigContainer",
+        "parent_tag": "TEXTAREA",
+        "text": "{\n          \"isAuthoring\": false,\n          \"isJsDebug\": false,\n          \"isMobile\": false,\n          \"isOffline\": false,\n          \"isPublic\": true,\n          \"isSalesforceNative\": false,\n          \"parentFrameOrigin\": \"\",\n          \"publicGalleryLink\": \"https://public.tableau.com/s/gallery\",\n          \"showPagePathPrefix\": \"\",\n          \"vizqlPrefix\": \"vizql\"\n        }"
+      }
+    ],
+    "body_text": "IETF Competition Winners\n\u00a9 2025 Mapbox\u00a9 OpenStreetMap\nFilters:\nFilter\nIndustry\nInclusive\n(All)\nFilter\nRegion\nInclusive\n(All)\nFilter\nTechnology type\nInclusive\n(All)\nFilter\nTechnology details\nInclusive\n(All)\nFilter\nProject type\nInclusive\n(All)\nKey:\nProject type\nDeployment\nEngineering Study\nFeasibility Study\nView on Tableau Public\nUndo\nRedo\nRevert\nReplay Animation\nReplay Speed Options\nDownload\nFull Screen\nShare",
+    "marker_elements": [],
+    "page_title": "Workbook: IETF Competition Winners",
+    "svg_elements": []
+  },
+  "iframe_content": null,
+  "interaction_results": []
+}

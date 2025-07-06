@@ -1,0 +1,15 @@
+{
+  "company_name": "J. Suttle Transport Ltd",
+  "description": "Deep Decarbonisation (Electrification) Electrification of crushing and conveyance equipment J. Suttle Transport produce a range of crushed stone products from Swanworth Quarry in Dorset. Their project will fully electrify their crushing plants by replacing diesel-powered screen and conveyance equipment with electrical alternatives. The new design and layout will enhance productivity, improve energy efficiency, and cut annual emissions by more than 130 tCO2e. J. Suttle Transport’s solutions will create a bright future for their newly expanded quarry.",
+  "tuple_id": 137,
+  "actions": {
+    "commandItems": [
+      {
+        "commandsType": "item",
+        "name": "Click here to see more information on the website ",
+        "telemetryId": "0",
+        "command": "tabdoc:load-url dashboard=\"Map Dashboard\" url=\"https://www.gov.uk/government/publications/industrial-energy-transformation-fund-ietf-competition-winners/ietf-phase-3-spring-2024-competition-winners#project-id-31039--j-suttle-transport-limited\" worksheet=\"Map External\""
+      }
+    ]
+  }
+}

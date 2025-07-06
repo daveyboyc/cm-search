@@ -1,0 +1,67 @@
+--- a/checker/templates/checker/includes/filter_bar_map.html
++++ b/checker/templates/checker/includes/filter_bar_map.html
+@@ -261,8 +261,8 @@
+         
+         dropdown.addEventListener('wheel', function(e) {
+             console.log('Wheel event on map dropdown', index);
+             e.stopPropagation();
+-            e.preventDefault();
+-        }, { passive: false });
++            // Don't prevent default - allow natural scrolling
++        }, { passive: true });
+         
+         dropdown.addEventListener('scroll', function(e) {
+             e.stopPropagation();
+@@ -176,12 +176,25 @@
+ .filter-bar-map .dropdown-menu-scrollable {
+     max-height: 320px !important;
+-    overflow-y: scroll !important;
++    overflow-y: auto !important; /* Use auto instead of scroll */
+     overflow-x: hidden !important;
+     /* Ensure proper scrolling on all devices */
+     -webkit-overflow-scrolling: touch !important;
+     /* Prevent parent scrolling */
+     overscroll-behavior: contain !important;
++    /* Fix for technology-map pages */
++    position: relative !important;
++    transform: translateZ(0) !important; /* Force GPU acceleration */
++}
++
++/* Fix dropdown z-index for map pages */
++.filter-bar-map .dropdown-menu {
++    z-index: 1200 !important; /* Above map containers */
++    position: absolute !important;
++}
++
++/* Ensure dropdown container allows overflow */
++.filter-bar-map .dropdown {
++    position: static !important; /* Allow dropdown to escape container */
+ }
+ 
+ .filter-bar-map .dropdown-menu-scrollable::-webkit-scrollbar {
+
+--- a/checker/templates/checker/search_technology_map.html
++++ b/checker/templates/checker/search_technology_map.html
+@@ -449,6 +449,22 @@
+         }
+     }
+     
++    /* Fix for dropdown scrolling on map pages */
++    .search-results-container .dropdown-menu {
++        z-index: 1200 !important;
++        max-height: 320px !important;
++        overflow-y: auto !important;
++    }
++    
++    /* Ensure dropdowns can overflow their containers */
++    .search-results-container .dropdown {
++        position: static !important;
++    }
++    
++    /* Fix for filter bar positioning */
++    .filter-bar-map {
++        position: relative !important;
++        z-index: 10 !important;
++    }
+ </style>
+ {% endblock %}

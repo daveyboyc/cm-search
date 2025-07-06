@@ -1,0 +1,105 @@
+{% comment %}
+Bot-aware JavaScript loading template
+Only loads heavy JS libraries for human users, not bots
+Saves bandwidth and improves crawl speed
+{% endcomment %}
+
+<script>
+// Bot detection function
+function isBot() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const botPatterns = [
+        'googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider',
+        'yandexbot', 'facebookexternalhit', 'twitterbot', 'linkedinbot',
+        'whatsapp', 'telegrambot', 'applebot', 'ia_archiver',
+        'claudebot', 'gptbot', 'chatgpt', 'ccbot', 'bytespider',
+        'crawler', 'spider', 'bot', 'scraper'
+    ];
+    
+    // Check for bot patterns in user agent
+    for (let pattern of botPatterns) {
+        if (userAgent.includes(pattern)) {
+            return true;
+        }
+    }
+    
+    // Additional bot detection heuristics
+    // If it's an automated browser or has no plugins, it's likely a bot
+    if (navigator.webdriver) return true; // Automated browser
+    if (!navigator.plugins || navigator.plugins.length === 0) return true; // No plugins
+    
+    return false; // Likely human user
+}
+
+// Only load heavy JS for human users
+if (!isBot()) {
+    // Load Bootstrap JS (always needed for functionality)
+    const bootstrapScript = document.createElement('script');
+    bootstrapScript.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js';
+    bootstrapScript.integrity = 'sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz';
+    bootstrapScript.crossOrigin = 'anonymous';
+    document.head.appendChild(bootstrapScript);
+    
+    // Block for heavy libraries that bots don't need
+    window.loadHeavyLibraries = function() {
+        // Google Maps API (loaded dynamically when needed)
+        if (window.needsGoogleMaps) {
+            const mapsScript = document.createElement('script');
+            mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${window.googleMapsApiKey}&callback=initMap&libraries=marker`;
+            mapsScript.async = true;
+            document.head.appendChild(mapsScript);
+        }
+        
+        // Chart.js (loaded dynamically when needed)
+        if (window.needsChartJs) {
+            const chartScript = document.createElement('script');
+            chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+            chartScript.onload = function() {
+                if (window.initCharts) window.initCharts();
+            };
+            document.head.appendChild(chartScript);
+        }
+        
+        // FontAwesome (loaded dynamically when needed)
+        if (window.needsFontAwesome) {
+            const faLink = document.createElement('link');
+            faLink.rel = 'stylesheet';
+            faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
+            document.head.appendChild(faLink);
+        }
+    };
+    
+    // Auto-load heavy libraries if page indicates it needs them
+    if (document.querySelector('[data-needs-maps]')) {
+        window.needsGoogleMaps = true;
+        window.googleMapsApiKey = document.querySelector('[data-needs-maps]').dataset.apiKey;
+    }
+    if (document.querySelector('[data-needs-charts]')) {
+        window.needsChartJs = true;
+    }
+    if (document.querySelector('[data-needs-fontawesome]')) {
+        window.needsFontAwesome = true;
+    }
+    
+    // Load heavy libraries if needed
+    if (window.needsGoogleMaps || window.needsChartJs || window.needsFontAwesome) {
+        window.loadHeavyLibraries();
+    }
+    
+} else {
+    // Bot fallback - minimal functionality
+    console.log('Bot detected - serving lightweight version');
+    
+    // Still need Bootstrap JS for basic functionality
+    const bootstrapScript = document.createElement('script');
+    bootstrapScript.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js';
+    bootstrapScript.integrity = 'sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz';
+    bootstrapScript.crossOrigin = 'anonymous';
+    document.head.appendChild(bootstrapScript);
+    
+    // Stub functions for bot compatibility - only override if they don't exist
+    if (!window.loadHeavyLibraries) window.loadHeavyLibraries = function() { /* No-op for bots */ };
+    if (!window.initMap) window.initMap = function() { /* No-op for bots */ };
+    if (!window.initCharts) window.initCharts = function() { /* No-op for bots */ };
+}
+</script>

@@ -1,0 +1,156 @@
+{% extends "checker/base.html" %}
+
+{% block title %}Capacity Market Guide - Understanding the UK Electricity Capacity Market{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Understanding the UK Capacity Market</h1>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <h2>What is the Capacity Market?</h2>
+            <p>The UK Capacity Market is a mechanism designed to ensure security of electricity supply by providing payments to reliable forms of capacity - both demand reduction and electricity generation - to be available when needed.</p>
+            
+            <h3>Key Objectives</h3>
+            <ul>
+                <li><strong>Security of Supply:</strong> Ensuring adequate electricity capacity during peak demand periods</li>
+                <li><strong>Market Stability:</strong> Providing revenue certainty for generators and demand response providers</li>
+                <li><strong>Cost Efficiency:</strong> Delivering security at the lowest cost to consumers</li>
+                <li><strong>Technology Neutral:</strong> Open to all forms of capacity including storage, demand response, and generation</li>
+            </ul>
+
+            <h3>How Capacity Market Auctions Work</h3>
+            <p>The capacity market operates through competitive auctions where providers bid to supply capacity. There are two main types of auctions:</p>
+            
+            <h4>T-4 Auctions (Four Years Ahead)</h4>
+            <p>These are the main auctions held four years before the delivery year, allowing time for new capacity to be built. T-4 auctions typically secure the majority of required capacity.</p>
+            
+            <h4>T-1 Auctions (One Year Ahead)</h4>
+            <p>These fine-tuning auctions are held one year before delivery to account for changes in demand forecasts and capacity availability since the T-4 auction.</p>
+            
+            <h4>Secondary Trading</h4>
+            <p>After the auctions, capacity obligations can be bought and sold through secondary trading. This allows providers to manage their positions, handle outages, or enables new market entrants to acquire capacity without waiting for the next auction.</p>
+            
+            <p>Our platform provides both educational resources and a <strong>live trading marketplace</strong>:</p>
+            <ul>
+                <li><strong><a href="{% url 'trades:list' %}">Secondary Trading Board</a></strong> - Active marketplace for buying and selling capacity obligations</li>
+                <li><strong><a href="{% url 'secondary_trading_guide' %}">Secondary Trading Guide</a></strong> - Comprehensive guide covering all trading phases and rules</li>
+            </ul>
+
+            <h3>Capacity Market Participants</h3>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h4>Generation Technologies</h4>
+                    <ul>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Gas' %}">Gas-fired power stations</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Nuclear' %}">Nuclear power plants</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Coal' %}">Coal power stations</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Biomass' %}">Biomass generators</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Hydro' %}">Hydroelectric plants</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>Flexible Technologies</h4>
+                    <ul>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Battery' %}">Battery storage systems</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='DSR' %}">Demand Side Response</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Pumped Storage' %}">Pumped storage hydro</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Interconnector' %}">Interconnectors</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Capacity Market Timeline</h3>
+            <p>The capacity market has evolved significantly since its introduction:</p>
+            <ul>
+                <li><strong>2013:</strong> Capacity market legislation introduced</li>
+                <li><strong>2014:</strong> First T-4 auction for delivery year 2018/19</li>
+                <li><strong>2016:</strong> First T-1 auction</li>
+                <li><strong>2018:</strong> Market suspended following EU state aid ruling</li>
+                <li><strong>2019:</strong> Market resumed with EU approval</li>
+                <li><strong>2021:</strong> Post-Brexit arrangements confirmed</li>
+            </ul>
+
+            <h3>Current Market Status (2024-2028)</h3>
+            <p>The current capacity market covers delivery years from 2024-25 to 2027-28, with over 40,000 MW of capacity secured across various technologies. Key trends include:</p>
+            <ul>
+                <li>Growing participation of <a href="{% url 'technology_detail_map' technology_name='Battery' %}">battery storage</a></li>
+                <li>Increased <a href="{% url 'technology_detail_map' technology_name='DSR' %}">demand side response</a> participation</li>
+                <li>Retirement of older coal and gas plants</li>
+                <li>New build gas plants and storage systems</li>
+            </ul>
+            
+            <h3>Secondary Trading Marketplace</h3>
+            <p>Beyond the initial auctions, capacity obligations can be traded in the secondary market. Our platform provides comprehensive secondary trading resources:</p>
+            
+            <h4>🔄 Live Trading Board</h4>
+            <p>Our <strong><a href="{% url 'trades:list' %}">Secondary Trading Board</a></strong> is an active marketplace where capacity providers can:</p>
+            <ul>
+                <li><strong>Post Sale Adverts:</strong> Offer capacity obligations for sale with flexible pricing options</li>
+                <li><strong>Post Purchase Requests:</strong> Advertise capacity requirements and desired terms</li>
+                <li><strong>Browse Active Listings:</strong> View all current buy and sell opportunities</li>
+                <li><strong>Direct Messaging:</strong> Contact counterparties directly through our secure messaging system</li>
+            </ul>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #0d6efd;">
+                <h5>💡 Trading Board Features</h5>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Flexible Capacity:</strong> Indicate if your capacity amount is negotiable</li>
+                    <li><strong>Price Options:</strong> Set specific £/kW/year prices or "POA" (Price on Application)</li>
+                    <li><strong>Multiple Delivery Years:</strong> Trade capacity for 2025, 2026, 2027, and future years</li>
+                    <li><strong>Privacy Controls:</strong> Choose whether to display your contact email publicly</li>
+                    <li><strong>Professional Service:</strong> £5 fee ensures serious participants and maintains quality</li>
+                </ul>
+            </div>
+            
+            <h4>📖 Educational Resources</h4>
+            <p>Understanding secondary trading is crucial for effective participation. Our <strong><a href="{% url 'secondary_trading_guide' %}">Secondary Trading Guide</a></strong> covers:</p>
+            <ul>
+                <li><strong>Three Trading Phases:</strong> From post-auction strategic positioning to live delivery year trading</li>
+                <li><strong>Common Pitfalls:</strong> Avoid costly mistakes with timing, due diligence, and documentation</li>
+                <li><strong>Market Dynamics:</strong> Understanding pricing, penalty caps, and payment adjustments</li>
+                <li><strong>Regulatory Requirements:</strong> EMR portal registration and compliance essentials</li>
+            </ul>
+            
+            <h3>Explore the Data</h3>
+            <p>Use our interactive tools to explore capacity market data:</p>
+            <ul>
+                <li><strong><a href="{% url 'map_explorer' %}">Map Explorer</a></strong> - Interactive map with advanced filtering for exploring all capacity market assets by location, technology, and company</li>
+                <li><strong><a href="{% url 'search_map_view' %}">Search Components</a></strong> - Search and filter capacity market components with integrated map visualization</li>
+                <li><strong><a href="{% url 'trades:list' %}">Secondary Trading Board</a></strong> - Live marketplace for secondary trading of capacity obligations</li>
+            </ul>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Quick Links</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'map_explorer' %}">🗺️ Map Explorer</a></li>
+                        <li><a href="{% url 'search_map_view' %}">🔍 Search Components</a></li>
+                        <li><a href="{% url 'technology_list' %}">⚡ Browse Technologies</a></li>
+                        <li><a href="{% url 'company_list_optimized' %}">🏢 Browse Companies</a></li>
+                        <li><a href="{% url 'trades:list' %}">📊 Secondary Trading Board</a></li>
+                        <li><a href="{% url 'secondary_trading_guide' %}">📖 Secondary Trading Guide</a></li>
+                        {# REMOVED: Statistics page (eliminated for cost reduction) #}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Key Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Capacity:</strong> Over 40 GW secured</p>
+                    <p><strong>Technologies:</strong> 15+ different types</p>
+                    <p><strong>Companies:</strong> Hundreds of participants</p>
+                    <p><strong>Locations:</strong> Across England, Scotland & Wales</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "checker/base.html" %}
+
+{% block title %}Battery Storage in the UK Capacity Market - Technology Guide{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Battery Storage in the UK Capacity Market</h1>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <h2>Overview</h2>
+            <p>Battery Energy Storage Systems (BESS) have become increasingly important in the UK's electricity system, providing flexible capacity that can respond rapidly to grid needs. In the capacity market, battery storage competes alongside traditional generation technologies to provide security of supply.</p>
+            
+            <h3>How Battery Storage Works in the Capacity Market</h3>
+            <p>Battery storage systems participate in the capacity market by committing to provide electricity during system stress events. Unlike traditional generators, batteries can:</p>
+            <ul>
+                <li><strong>Rapid Response:</strong> Discharge electricity within seconds of being called upon</li>
+                <li><strong>Grid Services:</strong> Provide frequency response and voltage support</li>
+                <li><strong>Energy Arbitrage:</strong> Store cheap electricity and discharge during peak periods</li>
+                <li><strong>Avoid Emissions:</strong> Provide clean capacity without direct carbon emissions</li>
+            </ul>
+
+            <h3>Battery Storage Locations in the UK</h3>
+            <p>Battery storage systems are distributed across the UK, with concentrations in areas with good grid connections and suitable planning permissions. <a href="{% url 'technology_detail_map' technology_name='Battery' %}">View all battery storage facilities</a> in our database.</p>
+
+            <h4>Major Battery Storage Hubs</h4>
+            <ul>
+                <li><strong>Thames Estuary:</strong> Large-scale developments near London</li>
+                <li><strong>Yorkshire:</strong> Co-located with wind farms and industrial areas</li>
+                <li><strong>Scotland:</strong> Supporting renewable energy integration</li>
+                <li><strong>Southwest England:</strong> Grid reinforcement and renewable support</li>
+            </ul>
+
+            <h3>Battery Technology Types</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Lithium-Ion Batteries</h4>
+                    <p>The dominant technology for grid-scale storage, offering:</p>
+                    <ul>
+                        <li>High energy density</li>
+                        <li>Fast response times</li>
+                        <li>Proven reliability</li>
+                        <li>Declining costs</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>Other Technologies</h4>
+                    <p>Emerging alternatives include:</p>
+                    <ul>
+                        <li>Flow batteries for longer duration</li>
+                        <li>Compressed air energy storage</li>
+                        <li>Hydrogen storage systems</li>
+                        <li>Gravity-based storage</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Key Battery Storage Companies</h3>
+            <p>Leading companies developing battery storage for the capacity market include:</p>
+            <ul>
+                <li><a href="{% url 'search_map_view' %}?q=Harmony">Harmony Energy</a> - Large-scale battery developer</li>
+                <li><a href="{% url 'search_map_view' %}?q=Zenobe">Zenobe Energy</a> - Flexible battery solutions</li>
+                <li><a href="{% url 'search_map_view' %}?q=Field">Field Energy</a> - Utility-scale storage</li>
+                <li><a href="{% url 'search_map_view' %}?q=Gresham">Gresham House Energy Storage</a> - Investment and development</li>
+            </ul>
+
+            <h3>Future of Battery Storage</h3>
+            <p>The role of battery storage in the capacity market is expected to grow significantly:</p>
+            <ul>
+                <li><strong>Increasing Capacity:</strong> More battery projects securing capacity agreements</li>
+                <li><strong>Longer Duration:</strong> 2-4 hour systems becoming standard</li>
+                <li><strong>Grid Services:</strong> Combining capacity with ancillary services</li>
+                <li><strong>Renewable Integration:</strong> Supporting wind and solar development</li>
+            </ul>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Battery Storage Data</h5>
+                </div>
+                <div class="card-body">
+                    <p><a href="{% url 'technology_detail_map' technology_name='Battery' %}" class="btn btn-primary">View All Battery Storage</a></p>
+                    <p><a href="{% url 'technology_list' %}" class="btn btn-outline-secondary">All Technologies</a></p>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Related Technologies</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'technology_detail_map' technology_name='DSR' %}">Demand Side Response</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Pumped%20Hydro' %}">Pumped Hydro</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Gas' %}">Gas Generation</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Wind' %}">Wind Power</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

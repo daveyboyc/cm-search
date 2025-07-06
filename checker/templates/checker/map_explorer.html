@@ -1,0 +1,2948 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+
+{% block title %}Map Explorer - Capacity Market Search{% endblock %}
+
+{% block body_class %}has-universal-navbar{% endblock %}
+
+{% block page_header %}
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+{% endblock %}
+
+{% block extra_head %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    /* Remove any body margins/padding for full screen and background image */
+    body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-image: none !important;
+        background-color: var(--bs-body-bg);
+    }
+    
+    
+    /* Remove all borders that might appear as lines */
+    .map-explorer-container,
+    .map-explorer-container * {
+        border-top: none !important;
+    }
+    
+    /* Ensure no hr elements or borders from base template */
+    hr {
+        display: none !important;
+    }
+    
+    /* Main container layout */
+    .map-explorer-container {
+        position: fixed;
+        top: 56px; /* Actual height of Bootstrap navbar */
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: row;
+        overflow: hidden;
+    }
+    
+    /* Desktop: Left sidebar for filters */
+    .filter-sidebar {
+        width: 33.33%; /* 1/3 of the screen width */
+        max-width: 500px; /* Max width to prevent it from being too wide on large screens */
+        min-width: 350px; /* Min width to ensure content isn't cramped */
+        background: var(--bs-body-bg);
+        border-right: 1px solid var(--bs-border-color);
+        padding: 30px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        height: 100%;
+    }
+    
+    /* Map container takes remaining space */
+    .map-container {
+        flex: 1;
+        position: relative;
+        height: 100%;
+        border: none;
+        background: none;
+        overflow: hidden; /* Prevent any overflow issues */
+    }
+    
+    /* Remove any borders or lines from map elements */
+    .map-container > * {
+        border-top: none !important;
+    }
+    
+    #map {
+        width: 100%;
+        height: 100%;
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Google Maps style "Search this area" button */
+    .search-area-banner {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    
+    /* Ensure search area button stays visible in fullscreen mode */
+    .gm-fullscreen-control ~ .search-area-banner,
+    :fullscreen .search-area-banner,
+    :-webkit-full-screen .search-area-banner,
+    :-moz-full-screen .search-area-banner {
+        position: fixed !important;
+        z-index: 2147483647 !important; /* Maximum z-index value */
+        top: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+    
+    /* Mobile positioning - move down to avoid map controls and center properly */
+    @media (max-width: 768px) {
+        .search-area-banner {
+            top: 80px; /* Move below map type controls on mobile */
+            margin-left: 50px !important; /* Center the button on mobile */
+            transform: translateX(-50%) !important;
+        }
+        
+        /* Mobile fullscreen positioning */
+        :fullscreen .search-area-banner,
+        :-webkit-full-screen .search-area-banner,
+        :-moz-full-screen .search-area-banner {
+            top: 80px !important; /* Keep mobile positioning in fullscreen */
+            margin-left: 50px !important;
+            transform: translateX(-50%) !important;
+        }
+    }
+    
+    .search-area-btn {
+        background: #1a73e8;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 24px;
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Google Sans', Roboto, Arial, sans-serif;
+    }
+    
+    .search-area-btn:hover {
+        background: #1557b0;
+        box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+        transform: translateY(-1px);
+    }
+    
+    .search-area-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
+    }
+    
+    .search-area-btn:disabled {
+        background: #9aa0a6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 2px 6px rgba(154, 160, 166, 0.3);
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+    
+    
+    /* Hide only the zoom in/out buttons, not street view or other controls */
+    .gm-style .gm-bundled-control .gm-bundled-control-on-bottom > div:first-child {
+        display: none !important;
+    }
+    
+    /* Alternative selector for zoom controls */
+    .gm-style .gm-bundled-control > div[data-control-width="40"] {
+        display: none !important;
+    }
+    
+    /* Hide zoom buttons specifically */
+    .gm-style button[title="Zoom in"],
+    .gm-style button[title="Zoom out"] {
+        display: none !important;
+    }
+    
+    /* Filter styling */
+    .filter-group {
+        margin-bottom: 20px;
+    }
+    
+    .filter-group label {
+        font-weight: 600;
+        color: var(--bs-body-color);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    /* Info bubble styling */
+    .info-bubble {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--bs-primary);
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        cursor: help;
+        position: relative;
+        margin-left: 8px;
+        flex-shrink: 0;
+        z-index: 10;
+    }
+    
+    .info-bubble:hover {
+        background: var(--bs-primary-dark, #0056b3);
+    }
+    
+    /* Tooltip styling */
+    .info-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(33, 37, 41, 0.95);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        line-height: 1.3;
+        max-width: 200px;
+        width: max-content;
+        white-space: normal;
+        text-align: left;
+        font-weight: normal;
+        margin-bottom: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+    }
+    
+    /* Responsive tooltip positioning */
+    .info-tooltip.align-right {
+        left: auto;
+        right: -8px;
+        transform: translateX(0);
+        max-width: 180px;
+    }
+    
+    .info-tooltip.align-right::after {
+        left: auto;
+        right: 16px;
+    }
+    
+    .info-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: rgba(33, 37, 41, 0.95);
+    }
+    
+    .info-bubble:hover .info-tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Dark mode tooltip styling */
+    html[data-bs-theme="dark"] .info-tooltip {
+        background: rgba(255, 255, 255, 0.95);
+        color: #212529;
+    }
+    
+    html[data-bs-theme="dark"] .info-tooltip::after {
+        border-top-color: rgba(255, 255, 255, 0.95);
+    }
+    
+    /* Hide labels for modern dropdowns since they're built into the button */
+    .modern-dropdown label {
+        display: none;
+    }
+    
+    .filter-group select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 6px;
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
+    }
+    
+    /* Technology dropdown colors */
+    .filter-group {
+        position: relative;
+    }
+    
+    .technology-dropdown-colors {
+        position: absolute;
+        right: 30px;
+        top: 35px;
+        pointer-events: none;
+        z-index: 10;
+    }
+    
+    .tech-color-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        display: none;
+    }
+    
+    .tech-color-indicator.active {
+        display: block;
+    }
+    
+    /* Modern dropdown styling */
+    .modern-dropdown {
+        position: relative;
+    }
+    
+    .dropdown-wrapper {
+        position: relative;
+    }
+    
+    .dropdown-button {
+        width: 100%;
+        padding: 4px 0;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        color: var(--bs-primary);
+        text-align: left;
+    }
+    
+    .dropdown-button:hover {
+        color: var(--bs-primary-dark);
+        text-decoration: underline;
+    }
+    
+    .dropdown-text {
+        flex: 1;
+        font-weight: 500;
+        color: inherit;
+    }
+    
+    .dropdown-arrow {
+        opacity: 0.6;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+    }
+    
+    .dropdown-button:hover .dropdown-arrow {
+        opacity: 0.8;
+    }
+    
+    .hidden-select {
+        display: none;
+    }
+    
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        z-index: 1000;
+        max-height: 250px;
+        overflow-y: auto;
+        display: none;
+        margin-top: 4px;
+    }
+    
+    .dropdown-menu.show {
+        display: block;
+    }
+    
+    .dropdown-header {
+        padding: 8px 16px;
+        font-weight: 600;
+        color: var(--bs-gray-600);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background-color: var(--bs-gray-100);
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+    
+    .dropdown-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        color: var(--bs-body-color);
+    }
+    
+    .dropdown-item:last-child {
+        border-bottom: none;
+        border-radius: 0 0 8px 8px;
+    }
+    
+    .dropdown-item:first-child {
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .dropdown-item:hover {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+    
+    .dropdown-item.selected {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: var(--bs-primary);
+        font-weight: 500;
+    }
+    
+    /* Search info panel */
+    .search-info {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--bs-border-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .search-info h6 {
+        margin: 0 0 8px 0;
+        color: var(--bs-primary);
+        font-weight: 600;
+    }
+    
+    .search-info .stats {
+        font-size: 0.9rem;
+        color: var(--bs-secondary-color);
+        margin: 0;
+    }
+    
+    /* Loading overlay */
+    #loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(4px);
+    }
+    
+    /* Map controls positioning */
+    .map-info-panel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        max-width: 300px;
+    }
+    
+    
+    
+    
+    
+    
+    /* Mobile responsive layout */
+    @media (max-width: 991px) {
+        .map-explorer-container {
+            flex-direction: column;
+            top: 96px !important; /* Below navbar + hamburger bar - override desktop value */
+            height: calc(100vh - 96px) !important; /* Adjust height to account for both bars */
+        }
+        
+        /* Mobile: Hamburger bar sits between navbar and map */
+        .mobile-hamburger-bar {
+            position: fixed;
+            top: 56px; /* Below navbar */
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: rgb(108, 117, 125); /* Solid background to prevent transparency overlap */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Add visual separation */
+        }
+        
+        .mobile-hamburger-bar .hamburger-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            color: white;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .mobile-hamburger-bar.open .hamburger-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* Mobile subtypes legend positioning */
+        .subtypes-legend {
+            position: fixed !important;
+            top: 96px !important; /* Below navbar + hamburger bar */
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: calc(100vw - 20px) !important; /* Almost full width with small margins */
+            max-width: 350px !important; /* Don't exceed reasonable width */
+            z-index: 1002 !important; /* Above hamburger bar */
+        }
+        
+        /* Filter panel slides down from hamburger bar */
+        .filter-sidebar {
+            position: fixed;
+            top: 96px; /* Below navbar + hamburger bar */
+            left: 0;
+            right: 0;
+            height: calc(100vh - 96px);
+            background: var(--bs-light);
+            transform: translateY(-110%); /* Move further up to completely hide */
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            visibility: hidden; /* Additional hiding for complete invisibility */
+        }
+        
+        .filter-sidebar.open {
+            transform: translateY(0);
+            visibility: visible; /* Restore visibility when opened */
+        }
+        
+        /* Filter content styling */
+        .filter-content {
+            flex: 1;
+            padding: 20px;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom, 40px));
+        }
+        
+        /* Mobile only show/hide classes */
+        .mobile-only {
+            display: block;
+        }
+        
+        .desktop-only {
+            display: none;
+        }
+        
+        /* Mobile filter grid - more compact */
+        .mobile-filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        /* Compact mobile dropdowns */
+        .mobile-only .modern-dropdown .dropdown-button {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        
+        /* Compact usage instructions on mobile */
+        .mobile-only .usage-instructions {
+            padding: 8px !important;
+            margin-bottom: 10px !important;
+            font-size: 0.8rem !important;
+        }
+        
+        /* Compact filter groups on mobile */
+        .mobile-only .filter-group {
+            margin-bottom: 10px;
+        }
+        
+        /* Hide info bubbles on mobile for cleaner look */
+        .mobile-only .info-bubble {
+            display: none;
+        }
+        
+        /* iOS Safari specific fixes for technology legend */
+        .mobile-only .technology-legend {
+            padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+            margin-bottom: env(safe-area-inset-bottom, 20px);
+        }
+        
+        .filter-group {
+            margin-bottom: 0;
+        }
+        
+        /* Ensure map container fills the space properly on mobile */
+        .map-container {
+            position: absolute;
+            top: 0; /* Start at top of parent container */
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 100%; /* Fill parent container */
+            overflow: hidden;
+            z-index: 1; /* Ensure it's below the hamburger bar but visible */
+        }
+        
+        /* Ensure the map div also fills the container on mobile */
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Map info panel adjustments for mobile - center the message */
+        .map-info-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            right: auto;
+            max-width: 300px;
+            width: 90%;
+            z-index: 500; /* Lower than filter panel */
+        }
+        
+        
+        /* iOS Safari specific fixes */
+        @supports (-webkit-touch-callout: none) {
+            /* This targets iOS Safari specifically */
+            
+            .filter-sidebar {
+                height: -webkit-fill-available !important;
+                max-height: -webkit-fill-available !important;
+            }
+            
+            .filter-content {
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                scroll-padding-bottom: 80px !important;
+            }
+            
+            /* Ensure technology legend items are accessible */
+            .mobile-only .technology-legend {
+                padding-bottom: max(60px, calc(env(safe-area-inset-bottom) + 40px)) !important;
+                margin-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+            }
+            
+            /* Add extra scroll area at bottom */
+            .filter-content::after {
+                content: "";
+                display: block;
+                height: env(safe-area-inset-bottom, 40px);
+                width: 100%;
+            }
+        }
+        
+        
+        .search-info {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .search-info .stats {
+            font-size: 1.1rem;
+            color: #6c757d;
+            margin: 0;
+        }
+    }
+    
+    /* Very small mobile screens */
+    @media (max-width: 576px) {
+        .mobile-filter-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-sidebar {
+            padding: 10px;
+        }
+        
+        .map-info-panel {
+            top: 8px;
+            right: 8px;
+            left: 8px;
+        }
+    }
+    
+    /* Dark mode support */
+    html[data-bs-theme="dark"] .filter-sidebar {
+        background: var(--bs-dark);
+        border-color: var(--bs-border-color);
+    }
+    
+    html[data-bs-theme="dark"] .search-info {
+        background: rgba(33, 37, 41, 0.95);
+        border-color: var(--bs-border-color);
+    }
+    
+    html[data-bs-theme="dark"] .mobile-filter-toggle {
+        background: var(--bs-primary);
+    }
+    
+    /* Google Maps InfoWindow dark mode fixes */
+    html[data-bs-theme="dark"] .gm-style .gm-style-iw {
+        background-color: #2c2c2c !important;
+        color: #ffffff !important;
+    }
+    
+    html[data-bs-theme="dark"] .gm-style .gm-style-iw-c {
+        background-color: #2c2c2c !important;
+        border: 1px solid #555 !important;
+    }
+    
+    html[data-bs-theme="dark"] .gm-style .gm-style-iw-d {
+        color: #ffffff !important;
+    }
+    
+    html[data-bs-theme="dark"] .gm-style .gm-style-iw-d h6 {
+        color: #ffffff !important;
+    }
+    
+    html[data-bs-theme="dark"] .gm-style .gm-style-iw-d p {
+        color: #ffffff !important;
+    }
+    
+    /* Technology legend styling */
+    .technology-legend-section {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--bs-border-color);
+    }
+    
+    .technology-legend-section label {
+        font-weight: 600;
+        color: var(--bs-body-color);
+        margin-bottom: 12px;
+        display: block;
+        font-size: 0.9rem;
+    }
+    
+    .technology-legend {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .technology-legend .legend-item {
+        display: flex;
+        align-items: center;
+        padding: 6px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 0.85rem;
+    }
+    
+    .technology-legend .legend-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .technology-legend .legend-item.active {
+        background-color: rgba(0, 0, 0, 0.1);
+        font-weight: 600;
+    }
+    
+    .technology-legend .legend-color {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        margin-right: 8px;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Subtypes legend styling (matching /map/) */
+    .subtypes-legend {
+        position: absolute;
+        width: 220px;
+        background-color: rgba(var(--bs-body-bg-rgb), 0.85);
+        padding: 10px;
+        padding-right: 35px;
+        border-radius: 4px;
+        z-index: 999;
+        transition: transform 0.3s ease-in-out;
+        max-height: 400px;
+        overflow-y: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .subtypes-legend.collapsed {
+        transform: translateX(calc(-100% + 30px));
+        overflow: hidden;
+    }
+    
+    .subtypes-legend.collapsed .subtype-item,
+    .subtypes-legend.collapsed #subtype-category-name {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    .subtype-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+        padding: 4px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 0.85rem;
+    }
+    
+    .subtype-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .subtype-item.active {
+        background-color: rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+    }
+    
+    .subtype-count {
+        margin-left: auto;
+        font-size: 0.8em;
+        color: #6c757d;
+        background-color: rgba(0, 0, 0, 0.05);
+        padding: 1px 5px;
+        border-radius: 10px;
+    }
+
+    /* Desktop-only class */
+    .desktop-only {
+        display: block;
+    }
+    
+    .mobile-only {
+        display: none;
+    }
+    
+    @media (max-width: 991px) {
+        .desktop-only {
+            display: none;
+        }
+        
+        .mobile-only {
+            display: block;
+        }
+    }
+    
+    /* iOS Safari specific fixes for rubber band scrolling */
+    @supports (-webkit-touch-callout: none) {
+        /* This targets iOS Safari specifically */
+        
+        /* Use -webkit-fill-available for iOS */
+        .filter-sidebar {
+            height: -webkit-fill-available !important;
+            max-height: -webkit-fill-available !important;
+        }
+        
+        /* Ensure proper scrolling on iOS */
+        .mobile-only .technology-legend {
+            padding-bottom: max(60px, calc(env(safe-area-inset-bottom) + 40px)) !important;
+            margin-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+        }
+        
+        /* Extra spacing for mobile filter content */
+        .mobile-only .filter-content {
+            padding-bottom: max(80px, calc(env(safe-area-inset-bottom) + 60px)) !important;
+        }
+        
+        /* Ensure body doesn't overflow on iOS */
+        html, body {
+            height: -webkit-fill-available !important;
+            overflow: hidden !important;
+        }
+    }
+    
+    /* Loading spinner animation */
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Mobile: Hamburger bar that sits between navbar and map -->
+<div class="mobile-hamburger-bar mobile-only" id="hamburgerBar" onclick="toggleMobileFilters()">
+    <div class="hamburger-icon">
+        <i class="bi bi-list" id="hamburgerIcon"></i>
+    </div>
+</div>
+
+<div class="map-explorer-container">
+    <!-- Desktop: Left Sidebar Filters / Mobile: Scrollable Filter Panel -->
+    <div class="filter-sidebar" id="filterSidebar">
+        
+        <!-- Filter content -->
+        <div class="filter-content" id="filterContent">
+            
+            <!-- Usage Instructions -->
+            <div class="usage-instructions" style="background: rgba(13, 110, 253, 0.1); padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 0.85rem;">
+                <h6 style="margin: 0 0 8px 0; color: var(--bs-primary); font-size: 0.9rem;">
+                    <i class="bi bi-info-circle me-1"></i>How to Explore
+                </h6>
+                <div style="line-height: 1.4;">
+                    <strong>Search:</strong> Use the search bar above for specific locations, companies (e.g., "ASDA"), or technologies<br>
+                    <strong>Browse:</strong> Select a company below, then choose "All Technologies" or pick a specific technology<br>
+                    <strong>Status:</strong> Filter by active/inactive components
+                </div>
+            </div>
+            
+            <!-- Filter grid for mobile, stacked for desktop -->
+            <div class="mobile-filter-grid">
+                <!-- Status Filter (Modern Style) -->
+                <div class="filter-group modern-dropdown">
+                    <label style="display: flex; align-items: center;">
+                        Status
+                        <div class="info-bubble">
+                            i
+                            <div class="info-tooltip">
+                                Filter components by their participation status in capacity market auctions. Active components are participating in 2024-25 or later auctions, while inactive components participated in earlier auctions only.
+                            </div>
+                        </div>
+                    </label>
+                    <div class="dropdown-wrapper">
+                        <div class="dropdown-button" id="statusDropdownButton">
+                            <i class="bi bi-activity me-2"></i>
+                            <span class="dropdown-text" id="statusDropdownText">
+                                {% if status_filter == 'all' %}All Years
+                                {% elif status_filter == 'inactive' %}Inactive (Pre-2024)
+                                {% else %}Active (2024-25+)
+                                {% endif %}
+                            </span>
+                            <i class="bi bi-chevron-down ms-2 text-muted dropdown-arrow"></i>
+                        </div>
+                        <select id="statusFilter" class="hidden-select">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active (2024-25+)</option>
+                            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive (Pre-2024)</option>
+                        </select>
+                        <div class="dropdown-menu" id="statusDropdownMenu">
+                            <div class="dropdown-item" data-value="all">
+                                <i class="bi bi-list-ul me-2"></i>All
+                            </div>
+                            <div class="dropdown-item" data-value="active">
+                                <i class="bi bi-check-circle me-2"></i>Active (2024-25+)
+                            </div>
+                            <div class="dropdown-item" data-value="inactive">
+                                <i class="bi bi-x-circle me-2"></i>Inactive (Pre-2024)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- No technology dropdown - using legend only like /map/ -->
+                
+                <!-- Company Filter (Modern Style) -->
+                <div class="filter-group modern-dropdown">
+                    <label style="display: flex; align-items: center;">
+                        Companies
+                        <div class="info-bubble">
+                            i
+                            <div class="info-tooltip">
+                                Select a company to view only their capacity market locations. Shows companies with more than 7 locations, plus "Everything else" for smaller companies.
+                            </div>
+                        </div>
+                    </label>
+                    <div class="dropdown-wrapper">
+                        <div class="dropdown-button" id="companyDropdownButton">
+                            <i class="bi bi-building me-2"></i>
+                            <span class="dropdown-text" id="companyDropdownText">
+                                {% if company_filter %}{{ company_filter }}
+                                {% else %}All Companies
+                                {% endif %}
+                            </span>
+                            <i class="bi bi-chevron-down ms-2 text-muted dropdown-arrow"></i>
+                        </div>
+                        <select id="topCompanyFilter" class="hidden-select">
+                            <option value="" {% if not company_filter %}selected{% endif %}>All Companies</option>
+                            {% for company_data in top_companies %}
+                                <option value="{{ company_data.company_name }}" {% if company_filter == company_data.company_name %}selected{% endif %}>{{ company_data.company_name }} ({{ company_data.count }})</option>
+                            {% endfor %}
+                        </select>
+                        <div class="dropdown-menu" id="companyDropdownMenu">
+                            <div class="dropdown-item" data-value="">
+                                <i class="bi bi-buildings me-2"></i>All Companies
+                            </div>
+                            {% for company_data in top_companies %}
+                                <div class="dropdown-item" data-value="{{ company_data.company_name }}">
+                                    <i class="bi bi-building me-2"></i>{{ company_data.company_name }}
+                                    <span class="text-muted ms-auto">({{ company_data.count }})</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Technology Legend (desktop only) -->
+            <div class="desktop-only technology-legend-section">
+                <label>
+                    Technology Types
+                    <div class="info-bubble">
+                        i
+                        <div class="info-tooltip">
+                            Click on technology types to filter the map to show only those locations. Available technologies depend on your company selection. When a company is selected, "All Technologies" shows all their technology types.
+                        </div>
+                    </div>
+                </label>
+                <div class="technology-legend" id="legend-items">
+                    <!-- Legend items will be added here dynamically -->
+                </div>
+            </div>
+            
+            <!-- Technology Types Section (Mobile) -->
+            <div class="mobile-only technology-legend-section">
+                <label>
+                    Technology Types
+                    <div class="info-bubble">
+                        i
+                        <div class="info-tooltip">
+                            Select technology types to filter the map to show only those locations. Available technologies depend on your company selection. When a company is selected, "All Technologies" shows all their technology types.
+                        </div>
+                    </div>
+                </label>
+                <div class="technology-legend" id="legend-items-mobile">
+                    <!-- Legend items will be added here dynamically -->
+                </div>
+            </div>
+            
+            <!-- Performance info (desktop only) -->
+            <div class="desktop-only">
+                <small class="text-muted">
+                    <i class="bi bi-speedometer2"></i>
+                    Loaded in {{ load_time|floatformat:3 }}s
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Map Container -->
+    <div class="map-container">
+        <div id="map"></div>
+        
+        <!-- Mobile Technology Legend - HIDDEN (technology types only in filter dropdown) -->
+        <div class="map-legend mobile-only" id="map-legend-mobile" style="display: none !important;">
+            <!-- Technology legend hidden on mobile - users access via filter dropdown only -->
+        </div>
+
+        <!-- Technology Subtypes Legend (Initially hidden) -->
+        <div class="map-legend subtypes-legend" id="subtypes-legend" style="display: none; left: 320px; top: 70px;">
+            <div class="legend-title">
+                <span id="subtype-category-name">Technology Subtypes</span>
+                <button id="close-subtypes" class="btn btn-sm p-0" style="position: absolute; right: 5px; top: 5px;" title="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div id="subtype-items">
+                <!-- Subtype items will be added here dynamically -->
+            </div>
+        </div>
+        
+        <!-- Loading overlay -->
+        <div id="loading-overlay">
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading map...</span>
+                </div>
+                <div class="mt-3">Loading map...</div>
+            </div>
+        </div>
+        
+        
+        <!-- Search this area button now created as Google Maps custom control -->
+        
+        <!-- Map info panel -->
+        <div class="map-info-panel">
+            <div class="search-info mobile-only">
+                <div class="stats" id="mapStats">
+                    Select a technology or company to view locations
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+let map;
+let markers = [];
+let infoWindow;
+
+// Viewport loading state  
+let isLoadingMarkers = false;
+let isAdjustingZoom = false; // Flag to prevent auto-reload during zoom adjustments
+let currentApiParams = {};
+let loadedAreas = new Set(); // Track which areas we've loaded
+let lastApiUrl = ''; // Track last API URL to prevent duplicates
+
+// Mobile filter toggle
+function toggleMobileFilters() {
+    const sidebar = document.getElementById('filterSidebar');
+    const hamburgerBar = document.getElementById('hamburgerBar');
+    const hamburgerIcon = document.getElementById('hamburgerIcon');
+    
+    if (sidebar.classList.contains('open')) {
+        // Close filter panel
+        sidebar.classList.remove('open');
+        hamburgerBar.classList.remove('open');
+        hamburgerIcon.className = 'bi bi-list';
+    } else {
+        // Open filter panel
+        sidebar.classList.add('open');
+        hamburgerBar.classList.add('open');
+        hamburgerIcon.className = 'bi bi-x';
+    }
+}
+
+
+// Update hamburger bar color when filters are active
+function updateMobileFilterStatus() {
+    const hamburgerBar = document.getElementById('hamburgerBar');
+    if (!hamburgerBar) return;
+    
+    const company = document.getElementById('topCompanyFilter').value;
+    const currentTech = document.querySelector('.legend-item.active');
+    
+    // Change bar color when filters are active
+    if (company || currentTech) {
+        hamburgerBar.style.background = 'rgba(255, 193, 7, 0.95)'; // Amber when active
+    } else {
+        hamburgerBar.style.background = 'rgba(108, 117, 125, 0.95)'; // Light grey when inactive
+    }
+}
+
+// Initialize map (must be global for Google Maps callback)
+window.initMap = function() {
+    // Default to UK center
+    const defaultCenter = { lat: 54.5, lng: -2.0 };
+    
+    map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 6,
+        center: defaultCenter,
+        mapId: "MAP_EXPLORER_ID", // Required for Advanced Markers
+        mapTypeId: google.maps.MapTypeId.ROADMAP, // Start with normal map view
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+            style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+            position: google.maps.ControlPosition.TOP_LEFT, // Default position
+        },
+        streetViewControl: true,
+        streetViewControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM, // Default position
+        },
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_TOP, // Default position
+        },
+        zoomControl: true,
+        zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM, // Default position
+        },
+        // Explicitly ensure labels are shown (this is the default behavior)
+        styles: []  // Empty styles array ensures default Google Maps styling with labels
+    });
+    
+    infoWindow = new google.maps.InfoWindow();
+    
+    // Map loaded successfully - keep default ROADMAP mode
+    console.log('Map initialized with type:', map.getMapTypeId());
+    
+    // When user switches to satellite view, automatically enable labels
+    google.maps.event.addListener(map, 'maptypeid_changed', function() {
+        if (map.getMapTypeId() === google.maps.MapTypeId.SATELLITE) {
+            // Immediately switch to hybrid (satellite with labels)
+            map.setMapTypeId(google.maps.MapTypeId.HYBRID);
+        }
+    });
+    
+    // Add search area button as a custom Google Maps control
+    // This ensures it stays visible in fullscreen mode
+    function createSearchAreaControl() {
+        const controlDiv = document.createElement('div');
+        controlDiv.className = 'search-area-banner';
+        controlDiv.style.display = 'none'; // Initially hidden
+        controlDiv.style.marginTop = '60px'; // Push down from top to match original position
+        
+        // Center the button properly on mobile
+        if (window.innerWidth <= 768) {
+            controlDiv.style.marginLeft = '50%';
+            controlDiv.style.transform = 'translateX(-50%)';
+        }
+        
+        controlDiv.id = 'searchAreaButton';
+        
+        const controlButton = document.createElement('button');
+        controlButton.className = 'search-area-btn';
+        controlButton.innerHTML = 'Search this area';
+        controlButton.addEventListener('click', searchCurrentArea);
+        
+        controlDiv.appendChild(controlButton);
+        
+        return controlDiv;
+    }
+    
+    // Add the search area button as a custom control
+    const searchAreaControl = createSearchAreaControl();
+    map.controls[google.maps.ControlPosition.TOP_CENTER].push(searchAreaControl);
+    
+    // Smart viewport loading: only for technologies with manageable marker counts
+    let loadTimeout = null;
+    
+    map.addListener('idle', function() {
+        const company = document.getElementById('topCompanyFilter').value;
+        const technology = currentTech;
+        
+        // DEBUG: Log map idle event
+        console.log('🗺️ Map idle event triggered');
+        console.log('  - Current tech:', technology);
+        console.log('  - Current company:', company);
+        console.log('  - isLoadingMarkers:', isLoadingMarkers);
+        console.log('  - isAdjustingZoom:', isAdjustingZoom);
+        console.log('  - Current zoom:', map.getZoom());
+        
+        // Auto-reload for small datasets, manual reload for large ones
+        // Temporarily removed Coal from auto-reload to fix zoom loop issue
+        const autoReloadTechs = ['Wind', 'Nuclear', 'Hydro', 'Interconnector'];
+        const shouldAutoReload = technology && autoReloadTechs.includes(technology);
+        
+        console.log('  - shouldAutoReload:', shouldAutoReload);
+        
+        // Don't auto-reload if we're in the middle of a zoom adjustment
+        if (shouldAutoReload && !isLoadingMarkers && !isAdjustingZoom) {
+            clearTimeout(loadTimeout);
+            loadTimeout = setTimeout(() => {
+                console.log(`🗺️ Auto-loading ${technology} for new viewport (small dataset)`);
+                lastApiUrl = '';
+                loadMapData();
+            }, 800);
+        } else if ((company || technology) && markers.length > 0) {
+            // For large datasets, show the "Search this area" button prominently
+            updateSearchAreaButton();
+        }
+    });
+    
+    // Hide loading overlay on initial load since no data is being loaded yet
+    document.getElementById('loading-overlay').style.display = 'none';
+    updateMapStats({ features: [] }); // Show guidance message
+    
+    // Don't load initial data - wait for company/technology selection
+    // loadMapData();
+};
+
+// Load map data with current filters
+function loadMapData(overrideTechnology = null) {
+    const query = '{{ query|escapejs|default:"" }}';
+    const status = document.getElementById('statusFilter').value;
+    const technology = overrideTechnology || currentTech; // Use currentTech instead of dropdown
+    console.log('loadMapData called with technology:', technology, 'currentTech:', currentTech, 'override:', overrideTechnology);
+    const company = document.getElementById('topCompanyFilter').value; // Updated ID
+    
+    // Don't load data unless company or technology is selected
+    if (!company && !technology) {
+        console.log('No company or technology selected - not loading map data');
+        // Clear existing markers
+        clearMarkers();
+        document.getElementById('loading-overlay').style.display = 'none';
+        updateMapStats({ features: [] });
+        return;
+    }
+    
+    
+    // Prevent concurrent loading
+    if (isLoadingMarkers) {
+        console.log('⏳ Already loading markers, skipping request');
+        return;
+    }
+    
+    isLoadingMarkers = true;
+    
+    // Show loading
+    document.getElementById('loading-overlay').style.display = 'flex';
+    
+    // Build API URL with viewport bounds for performance
+    let apiUrl = '/api/search-geojson/?limit=200';
+    
+    // Add viewport bounds if map is initialized
+    // ALWAYS include viewport bounds for better "Search this area" functionality
+    // For Octopus/Axle queries, we already limit results on the backend
+    if (map) {
+        const bounds = map.getBounds();
+        const zoom = map.getZoom();
+        if (bounds) {
+            const ne = bounds.getNorthEast();
+            const sw = bounds.getSouthWest();
+            apiUrl += `&north=${ne.lat()}&south=${sw.lat()}&east=${ne.lng()}&west=${sw.lng()}&zoom=${zoom}`;
+        }
+    }
+    
+    // If company but no technology, use "All" to show all technologies for that company
+    let effectiveTechnology = technology;
+    if (company && !technology) {
+        effectiveTechnology = 'All';
+    }
+    
+    // Always include a query parameter, even if empty
+    apiUrl += '&q=' + encodeURIComponent(query || '');
+    
+    // Regular filtering
+    if (effectiveTechnology && effectiveTechnology !== 'All') {
+        apiUrl += '&tech=' + encodeURIComponent(effectiveTechnology);
+    }
+    
+    // Always add company filter if selected
+    if (company) {
+        apiUrl += '&company=' + encodeURIComponent(company);
+    }
+    
+    // For EV Charging company subtypes, add/override company filter
+    if (currentEvChargingCompany && effectiveTechnology === 'EV Charging') {
+        // Remove existing company parameter and add the EV charging company
+        apiUrl = apiUrl.replace(/&company=[^&]*/, '');
+        apiUrl += '&company=' + encodeURIComponent(currentEvChargingCompany);
+    }
+    
+    // For DSR subtypes, add subtype parameter
+    if (currentDsrSubtype && effectiveTechnology === 'DSR') {
+        apiUrl += '&subtype=' + encodeURIComponent(currentDsrSubtype);
+    }
+    
+    // Add status filter (active/inactive)
+    if (status === 'active') {
+        apiUrl += '&show_active=true';
+    } else if (status === 'inactive') {
+        apiUrl += '&show_active=false';
+    }
+    // For 'all', don't add show_active parameter to get both active and inactive
+    
+    console.log('Loading map data with technology:', effectiveTechnology, 'status:', status);
+    console.log('Company filter value:', company);
+    console.log('Full API URL:', apiUrl);
+    
+    // Prevent duplicate API calls - check if URL is same as last request
+    if (apiUrl === lastApiUrl) {
+        console.log('⚠️ DUPLICATE API REQUEST BLOCKED!');
+        console.log('  - Current URL:', apiUrl);
+        console.log('  - Last URL:', lastApiUrl);
+        console.log('  - isSearchingCurrentArea:', isSearchingCurrentArea);
+        console.log('  - Timestamp:', new Date().toISOString());
+        
+        // Show visual feedback that request was blocked
+        const button = document.getElementById('searchAreaButton');
+        if (button && button.querySelector('.search-area-btn')) {
+            const btn = button.querySelector('.search-area-btn');
+            const originalText = btn.textContent;
+            btn.textContent = '⚠️ Same area - try moving map';
+            btn.style.backgroundColor = '#ff9800';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.backgroundColor = '';
+            }, 2000);
+        }
+        
+        isLoadingMarkers = false;
+        document.getElementById('loading-overlay').style.display = 'none';
+        return;
+    }
+    console.log('✅ New API request, updating lastApiUrl');
+    console.log('  - Old URL:', lastApiUrl);
+    console.log('  - New URL:', apiUrl);
+    lastApiUrl = apiUrl;
+    
+    // Store current API parameters for pagination
+    currentApiParams = {};
+    if (effectiveTechnology && effectiveTechnology !== 'All') {
+        currentApiParams.tech = effectiveTechnology;
+    }
+    if (company) {
+        currentApiParams.company = company;
+    }
+    if (status === 'active') {
+        currentApiParams.show_active = 'true';
+    } else if (status === 'inactive') {
+        currentApiParams.show_active = 'false';
+    }
+    
+    console.log('📡 Starting API request at:', new Date().toLocaleTimeString());
+    
+    fetch(apiUrl)
+        .then(response => {
+            console.log('📡 API Response received at:', new Date().toLocaleTimeString());
+            console.log('📊 Response status:', response.status, response.statusText);
+            return response.json();
+        })
+        .then(data => {
+            console.log('📊 Data parsed at:', new Date().toLocaleTimeString());
+            console.log('📊 Response data:', {
+                features: data.features?.length || 0,
+                total: data.metadata?.total || 0,
+                processing_time: data.metadata?.processing_time || 'unknown',
+                has_viewport: data.metadata?.viewport?.has_bounds || false
+            });
+            
+            displayMapData(data);
+            updateMapStats(data);
+            isLoadingMarkers = false; // Reset loading state
+        })
+        .catch(error => {
+            console.error('❌ Error loading map data:', error);
+            console.error('📡 Failed API URL:', apiUrl);
+            document.getElementById('loading-overlay').style.display = 'none';
+            isLoadingMarkers = false; // Reset loading state
+            lastApiUrl = ''; // Reset on error to allow retry
+        });
+}
+
+// Display GeoJSON data on map
+function displayMapData(geojson) {
+    // Clear existing markers for viewport-based loading
+    clearMarkers();
+    
+    if (!geojson.features || geojson.features.length === 0) {
+        document.getElementById('loading-overlay').style.display = 'none';
+        updateMapStats({ features: [] });
+        return;
+    }
+    
+    // UK bounds filter - only show markers within reasonable UK bounds
+    const ukBounds = {
+        north: 61.0, // Shetland Islands
+        south: 49.5, // Cornwall
+        east: 2.0,   // East England
+        west: -8.5   // Northern Ireland
+    };
+    
+    // Add markers for each feature (filtered to UK bounds)
+    geojson.features.forEach(feature => {
+        const coords = feature.geometry.coordinates;
+        const props = feature.properties;
+        
+        // Filter out markers outside UK bounds
+        if (coords[1] < ukBounds.south || coords[1] > ukBounds.north || 
+            coords[0] < ukBounds.west || coords[0] > ukBounds.east) {
+            return; // Skip this marker
+        }
+        
+        
+        // Create custom marker element for Advanced Markers
+        const markerElement = document.createElement('div');
+        markerElement.style.width = '20px';
+        markerElement.style.height = '20px';
+        markerElement.style.borderRadius = '50%';
+        
+        // Use company-specific colors if available
+        if (props.tech === 'EV Charging' && evChargingColors[props.company]) {
+            // Use company-specific color for EV Charging companies
+            markerElement.style.backgroundColor = evChargingColors[props.company];
+        } else {
+            markerElement.style.backgroundColor = getTechColor(props.tech);
+        }
+        markerElement.style.cursor = 'pointer';
+        
+        // Visual indication for active/inactive status
+        if (props.active) {
+            // Active: solid color with white border
+            markerElement.style.border = '2px solid white';
+            markerElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+            markerElement.style.opacity = '1';
+        } else {
+            // Inactive: very subtle greyed-out effect
+            markerElement.style.border = '2px solid #ccc';
+            markerElement.style.opacity = '0.8';
+            markerElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+            markerElement.style.filter = 'grayscale(15%)'; // Very subtle greyscale effect
+        }
+        
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+            position: { lat: coords[1], lng: coords[0] },
+            map: null, // Don't set map directly - let clusterer handle it
+            title: props.title || 'Unknown Location',
+            content: markerElement,
+        });
+        
+        // Store technology and company info on marker for filtering
+        marker.technology = props.tech;
+        marker.company = props.company;
+        marker.is_active = props.active;
+        
+        // Info window content - detect dark mode for proper styling
+        const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const textColor = isDarkMode ? '#ffffff' : '#333333';
+        const mutedColor = isDarkMode ? '#cccccc' : '#666666';
+        const backgroundColor = isDarkMode ? '#2c2c2c' : '#ffffff';
+        
+        const statusBadge = props.active 
+            ? '<span style="background: #28a745; color: white; padding: 1px 4px; border-radius: 3px; font-size: 0.7rem;">Active</span>'
+            : '<span style="background: #6c757d; color: white; padding: 1px 4px; border-radius: 3px; font-size: 0.7rem;">Inactive</span>';
+            
+        // Standard layout for all companies - reduced font sizes for compact display
+        const infoContentHtml = '<h6 style="margin: 0 0 6px 0; color: ' + textColor + '; font-weight: 600; font-size: 0.9rem;">' + (props.title || 'Unknown Location') + '</h6>' +
+            (props.desc ? '<p style="margin: 0 0 6px 0; font-style: italic; color: ' + mutedColor + '; font-size: 0.8rem;">' + props.desc + '</p>' : '') +
+            '<p style="margin: 0 0 3px 0; color: ' + textColor + '; font-size: 0.8rem;">' + (props.tech || 'N/A') + '</p>' +
+            '<p style="margin: 0 0 3px 0; color: ' + textColor + '; font-size: 0.8rem;">' + (props.company || 'N/A') + '</p>' +
+            '<p style="margin: 0 0 3px 0; font-size: 0.8rem;">' + statusBadge + '</p>' +
+            (props.capacity_display ? '<p style="margin: 0 0 6px 0; color: ' + textColor + '; font-size: 0.8rem;">' + props.capacity_display + '</p>' : '') +
+            '<p style="margin: 4px 0 0 0; font-size: 0.75rem;">' +
+                '<a href="' + (props.url || '#') + '" target="_blank" style="color: ' + (isDarkMode ? '#64b5f6' : '#0d6efd') + ';">View Details</a>' +
+            '</p>';
+            
+        const infoContent = '<div style="max-width: 300px; background-color: ' + backgroundColor + '; color: ' + textColor + '; padding: 12px; border-radius: 8px; border: 1px solid ' + (isDarkMode ? '#555' : '#ddd') + ';">' +
+            infoContentHtml +
+        '</div>';
+        
+        marker.addListener('gmp-click', () => {
+            infoWindow.setContent(infoContent);
+            infoWindow.open({
+                anchor: marker,
+                map: map,
+            });
+        });
+        
+        markers.push(marker);
+    });
+    
+    // Show all markers - no clustering to avoid complexity and conflicts
+    markers.forEach(marker => marker.map = map);
+    
+    // Fit map to markers if we have them - but NOT when using "Search this area"
+    if (markers.length > 0 && !isSearchingCurrentArea) {
+        const bounds = new google.maps.LatLngBounds();
+        markers.forEach(marker => bounds.extend(marker.position)); // Use .position instead of getPosition()
+        
+        // Set flag to prevent auto-reload during zoom adjustment
+        isAdjustingZoom = true;
+        map.fitBounds(bounds);
+        
+        // Wait for fitBounds to complete, then adjust zoom
+        google.maps.event.addListenerOnce(map, 'idle', function() {
+            const currentZoom = map.getZoom();
+            
+            console.log('🎯 Auto-fitting bounds to markers');
+            console.log('  - Markers count:', markers.length);
+            console.log('  - Current zoom:', currentZoom);
+            
+            if (markers.length === 1) {
+                // For single markers, zoom to level 10
+                const targetZoom = Math.min(currentZoom, 10);
+                console.log('  - Single marker: setting zoom to', targetZoom);
+                map.setZoom(targetZoom);
+            } else {
+                // For multiple markers, ensure minimum zoom of 6
+                const minZoom = 6;
+                const maxZoom = 9;
+                const adjustedZoom = Math.max(minZoom, Math.min(currentZoom, maxZoom));
+                console.log('  - Multiple markers: adjusted zoom', adjustedZoom, '(from', currentZoom, ')');
+                map.setZoom(adjustedZoom);
+            }
+            
+            // Clear the flag after zoom adjustment is complete
+            setTimeout(() => {
+                isAdjustingZoom = false;
+                console.log('  - Setting isAdjustingZoom = false after bounds adjustment');
+            }, 100);
+        });
+    }
+    
+    document.getElementById('loading-overlay').style.display = 'none';
+    
+    // Ensure zoom adjustment flag is reset even if no markers were added
+    isAdjustingZoom = false;
+    
+    // Update search area button visibility
+    updateSearchAreaButton();
+}
+
+// Clear all markers
+function clearMarkers() {
+    markers.forEach(marker => marker.map = null);
+    markers = [];
+}
+
+// Flag to track if we're doing a "search this area" operation
+let isSearchingCurrentArea = false;
+
+// Search current map area (Google Maps style)
+function searchCurrentArea() {
+    console.log('🔄 Searching current area...');
+    console.log('📍 ENTRY: searchCurrentArea() at', new Date().toISOString());
+    
+    // DEBUG: Log current map state
+    if (map) {
+        const bounds = map.getBounds();
+        const zoom = map.getZoom();
+        const center = map.getCenter();
+        console.log('🗺️ Current Map State:');
+        console.log('  - Zoom:', zoom);
+        console.log('  - Center:', center.lat(), center.lng());
+        console.log('  - Bounds:', bounds ? `N:${bounds.getNorthEast().lat()}, S:${bounds.getSouthWest().lat()}, E:${bounds.getNorthEast().lng()}, W:${bounds.getSouthWest().lng()}` : 'null');
+        console.log('  - Current markers:', markers.length);
+        console.log('  - Current tech:', currentTech);
+        console.log('  - Current company:', document.getElementById('topCompanyFilter').value);
+        console.log('  - Previous API URL:', lastApiUrl);
+    }
+    
+    // Set flag to prevent auto-fitting bounds
+    isSearchingCurrentArea = true;
+    
+    console.log('🔧 Resetting lastApiUrl from:', lastApiUrl, 'to empty string');
+    lastApiUrl = ''; // Reset cache to force fresh data
+    console.log('📞 Calling loadMapData()...');
+    loadMapData();
+    
+    // Temporarily hide button and show loading state
+    const button = document.getElementById('searchAreaButton');
+    const btnElement = button ? button.querySelector('.search-area-btn') : null;
+    
+    if (btnElement) {
+        const originalText = btnElement.textContent;
+        const originalDisabled = btnElement.disabled;
+        
+        // Update button state without replacing the element
+        btnElement.textContent = 'Searching...';
+        btnElement.disabled = true;
+        
+        // Restore button after loading completes
+        setTimeout(() => {
+            console.log('📍 EXIT: searchCurrentArea() timeout callback at', new Date().toISOString());
+            console.log('  - Restoring button state');
+            console.log('  - Clearing isSearchingCurrentArea flag');
+            
+            // Restore button state without replacing the element
+            btnElement.textContent = originalText;
+            btnElement.disabled = originalDisabled;
+            
+            updateSearchAreaButton();
+            // Clear the flag after search completes
+            isSearchingCurrentArea = false;
+        }, 1500);
+    }
+    console.log('📍 EXIT: searchCurrentArea() main function at', new Date().toISOString());
+}
+
+// Show/hide search area button based on context (Google Maps style)
+function updateSearchAreaButton() {
+    const button = document.getElementById('searchAreaButton');
+    if (!button) return;
+    
+    const company = document.getElementById('topCompanyFilter').value;
+    const technology = currentTech;
+    
+    // Show button when there are active filters and markers loaded
+    // Since it's now a Google Maps control, it will stay visible in fullscreen
+    if ((company || technology) && markers.length > 0) {
+        button.style.display = 'block';
+    } else {
+        button.style.display = 'none';
+    }
+}
+
+// Update map statistics  
+function updateMapStats(data) {
+    const count = data.features ? data.features.length : 0;
+    const statsEl = document.getElementById('mapStats');
+    const infoPanel = document.querySelector('.map-info-panel');
+    
+    if (statsEl && infoPanel) {
+        if (count === 0) {
+            // Check if we have filters selected
+            const company = document.getElementById('topCompanyFilter').value;
+            const technology = currentTech;
+            
+            if (!company && !technology) {
+                statsEl.innerHTML = 'Select a technology or company to view locations';
+                infoPanel.style.display = 'block'; // Show centered message
+            } else {
+                statsEl.innerHTML = 'No locations found for current area';
+                infoPanel.style.display = 'block'; // Show centered message
+            }
+        } else {
+            // Show count with viewport context
+            const total = data.metadata?.total || count;
+            const hasViewport = data.metadata?.viewport?.has_bounds;
+            
+            if (hasViewport && total > count) {
+                statsEl.innerHTML = `${count} of ${total} locations in visible area <small class="text-muted">(zoom out or use "Search this area" for more)</small>`;
+            } else if (total > count) {
+                // Check if this is a large dataset technology
+                const technology = currentTech;
+                const largeDatasetTechs = ['Battery', 'OCGT', 'CHP', 'DSR', 'Solar', 'Biomass'];
+                const isLargeDataset = technology && largeDatasetTechs.includes(technology);
+                
+                if (isLargeDataset) {
+                    statsEl.innerHTML = `${count} of ${total} locations shown <small class="text-muted">(move map to explore more areas)</small>`;
+                } else {
+                    statsEl.innerHTML = `${count} of ${total} locations shown <small class="text-muted">(limited for performance)</small>`;
+                }
+            } else {
+                statsEl.innerHTML = `${count} locations displayed`;
+            }
+            
+            // Hide the centered message when there are results, show in bottom corner instead
+            if (window.innerWidth <= 991) {
+                infoPanel.style.display = 'none'; // Hide centered message on mobile when there are results
+            } else {
+                infoPanel.style.display = 'block'; // Keep visible on desktop
+            }
+        }
+    }
+}
+
+// Removed getMarkerIcon - using Advanced Markers with direct styling
+
+// Apply filters and reload data
+function applyFilters() {
+    // Don't reinitialize legend here - let the company change handler do it
+    // This is called from other filter changes (status changes)
+    
+    const company = document.getElementById('topCompanyFilter').value;
+    const technology = currentTech; // Use currentTech instead of dropdown
+    
+    if (company || technology) {
+        // If company is selected but no technology, default to "All"
+        if (company && !technology) {
+            currentTech = 'All';
+            // Update legend to show "All" as active
+            document.querySelectorAll('.legend-item.active').forEach(active => active.classList.remove('active'));
+            const allTechItem = document.querySelector('.legend-item[data-technology="All"]');
+            if (allTechItem) allTechItem.classList.add('active');
+        }
+        lastApiUrl = ''; // Reset cache for filter change
+        loadMapData();
+    } else {
+        // Clear map if no filters selected
+        clearMarkers();
+        document.getElementById('loading-overlay').style.display = 'none';
+        updateMapStats({ features: [] });
+    }
+}
+
+// Show filtered subtypes for a technology category (matching /map/ functionality)
+async function showFilteredSubtypes(category) {
+    console.log('Showing subtypes for:', category);
+    
+    // EV Charging now shows company subtypes via API call (removed special case)
+    
+    // Build API URL for subtypes
+    let subtypeUrl = '/api/subtypes/?category=' + encodeURIComponent(category);
+    
+    // Add current filter parameters
+    const company = document.getElementById('topCompanyFilter').value; // Updated ID
+    const status = document.getElementById('statusFilter').value;
+    
+    if (company) subtypeUrl += '&company=' + encodeURIComponent(company);
+    if (status && status !== 'all') {
+        // Map status to period for API
+        const period = status === 'active' ? 'active' : 'inactive';
+        subtypeUrl += '&period=' + encodeURIComponent(period);
+    }
+    
+    // Fetch subtypes
+    try {
+        const response = await fetch(subtypeUrl);
+        const data = await response.json();
+        // API returns {subtypes: [...], category: "...", company: "...", period: "...", count: 0}
+        const subtypes = data.subtypes || [];
+        console.log(`API returned ${subtypes.length} subtypes for ${category}:`, subtypes);
+        if (subtypes.length > 0) {
+            displaySubtypes(category, subtypes);
+        }
+        return subtypes.length > 0; // Return whether subtypes exist
+    } catch (error) {
+        console.error('Error loading subtypes:', error);
+        return false;
+    }
+}
+
+// Display subtypes in the legend
+function displaySubtypes(category, subtypes) {
+    const subtypesLegend = document.getElementById('subtypes-legend');
+    const subtypeItems = document.getElementById('subtype-items');
+    const categoryName = document.getElementById('subtype-category-name');
+    
+    console.log(`Displaying ${subtypes.length} subtypes for ${category}:`, subtypes);
+    
+    // AUTO-SELECT: If there's only one subtype, automatically select it instead of showing the menu
+    // EXCEPT for EV Charging which has too many locations and feels slow
+    if (subtypes.length === 1 && category !== 'EV Charging') {
+        const singleSubtype = typeof subtypes[0] === 'string' ? subtypes[0] : subtypes[0].name;
+        console.log(`Auto-selecting single subtype: ${category} -> ${singleSubtype}`);
+        
+        // Show loading overlay immediately for better UX
+        document.getElementById('loading-overlay').style.display = 'flex';
+        
+        // Add a small delay for auto-selection
+        setTimeout(() => {
+            selectSubtype(category, singleSubtype);
+        }, 50);
+        
+        return; // Don't show the subtypes menu
+    }
+    
+    // Update category name
+    categoryName.textContent = category + ' Subtypes';
+    
+    // Clear existing items
+    subtypeItems.innerHTML = '';
+    
+    // Add "All [Category]" option at top (except for DSR and EV Charging which have too many markers)
+    if (category !== 'DSR' && category !== 'EV Charging') {
+        const allItem = document.createElement('div');
+        allItem.className = 'subtype-item';
+        allItem.setAttribute('data-category', category);
+        allItem.setAttribute('data-subtype', 'All');
+        allItem.innerHTML = `
+            <div class="legend-color" style="background-color: ${getTechColor(category)};"></div>
+            <span>All ${category}</span>
+        `;
+        allItem.addEventListener('click', () => selectSubtype(category, 'All'));
+        subtypeItems.appendChild(allItem);
+    }
+    
+    // Add individual subtypes
+    subtypes.forEach(subtype => {
+        const item = document.createElement('div');
+        item.className = 'subtype-item';
+        item.setAttribute('data-category', category);
+        // Handle both string and object formats
+        const subtypeName = typeof subtype === 'string' ? subtype : subtype.name;
+        const subtypeCount = typeof subtype === 'string' ? '' : subtype.count;
+        
+        item.setAttribute('data-subtype', subtypeName);
+        
+        // Get appropriate color for the subtype
+        let subtypeColor;
+        if (category === 'EV Charging' && evChargingColors[subtypeName]) {
+            // Use company-specific color for EV Charging companies
+            subtypeColor = evChargingColors[subtypeName];
+        } else {
+            // Use category color for regular technology subtypes
+            subtypeColor = getTechColor(category);
+        }
+        
+        item.innerHTML = `
+            <div class="legend-color" style="background-color: ${subtypeColor};"></div>
+            <span>${subtypeName}</span>
+            ${subtypeCount ? `<span class="subtype-count">${subtypeCount}</span>` : ''}
+        `;
+        item.addEventListener('click', () => selectSubtype(category, subtypeName));
+        subtypeItems.appendChild(item);
+    });
+    
+    // Show the subtypes legend
+    subtypesLegend.style.display = 'block';
+    subtypesLegend.classList.remove('collapsed');
+    
+    // Close the mobile filter menu when subtypes are shown
+    const filterSidebar = document.querySelector('.filter-sidebar');
+    const hamburgerBar = document.querySelector('.mobile-hamburger-bar');
+    if (filterSidebar && hamburgerBar) {
+        filterSidebar.classList.remove('open');
+        hamburgerBar.classList.remove('open');
+    }
+}
+
+// Select a subtype and filter map
+function selectSubtype(category, subtype) {
+    console.log('Selected subtype:', category, subtype);
+    console.log('About to set currentTech to:', subtype);
+    
+    // For EV Charging, subtypes are company names, not technology variations
+    if (category === 'EV Charging') {
+        currentTech = 'EV Charging';
+        if (subtype === 'All') {
+            // "All EV Charging" - clear company filter to show all EV charging companies
+            currentEvChargingCompany = null;
+        } else if (subtype === 'Octopus') {
+            // Map to full company name
+            currentEvChargingCompany = 'OCTOPUS ENERGY LIMITED';
+        } else if (subtype === 'Axle') {
+            // Map to full company name
+            currentEvChargingCompany = 'AXLE ENERGY LIMITED';
+        } else if (subtype === 'Everything else') {
+            // Special case - will be handled in API
+            currentEvChargingCompany = 'Everything else';
+        } else {
+            // Other specific company selected
+            currentEvChargingCompany = subtype;
+        }
+    } else if (category === 'DSR') {
+        // For DSR, subtypes are company filters: Octopus, Axle, Everything else
+        currentTech = 'DSR';
+        currentEvChargingCompany = null;
+        currentDsrSubtype = subtype; // Store DSR subtype for API call
+    } else {
+        // Regular technology subtypes
+        currentEvChargingCompany = null;
+        currentDsrSubtype = null;
+        if (subtype === 'All') {
+            currentTech = category;
+        } else {
+            currentTech = subtype;
+        }
+    }
+    
+    
+    // Update active states
+    const subtypeItems = document.querySelectorAll('.subtype-item');
+    subtypeItems.forEach(item => item.classList.remove('active'));
+    
+    // Find and activate the selected item
+    const selectedItem = document.querySelector(`[data-category="${category}"][data-subtype="${subtype}"]`);
+    if (selectedItem) {
+        selectedItem.classList.add('active');
+    }
+    
+    // Update legend active state
+    document.querySelectorAll('.legend-item.active').forEach(active => active.classList.remove('active'));
+    const legendItem = document.querySelector(`.legend-item[data-technology="${currentTech}"]`);
+    if (legendItem) {
+        legendItem.classList.add('active');
+    }
+    
+    // Hide the subtypes legend
+    const subtypesLegend = document.getElementById('subtypes-legend');
+    if (subtypesLegend) {
+        subtypesLegend.style.display = 'none';
+    }
+    
+    // On mobile: close the hamburger menu after selection to show full map
+    if (window.innerWidth < 992) {
+        const sidebar = document.getElementById('filterSidebar');
+        const hamburgerBar = document.getElementById('hamburgerBar');
+        const hamburgerIcon = document.getElementById('hamburgerIcon');
+        
+        if (sidebar && hamburgerBar && hamburgerIcon) {
+            sidebar.classList.remove('open');
+            hamburgerBar.classList.remove('open');
+            hamburgerIcon.className = 'bi bi-list';
+        }
+    }
+    
+    // Reload map with new filter
+    lastApiUrl = ''; // Reset cache for subtype change
+    loadMapData();
+}
+
+// Technology colors (exact same as /map/)
+const techColors = {
+    'OCGT': '#ff5252',
+    'DSR': '#f57c00',
+    'EV Charging': '#e91e63',
+    'Nuclear': '#8d6e63',
+    'CHP': '#5c6bc0', 
+    'Solar': '#fdd835',
+    'Wind': '#29b6f6',
+    'Battery': '#4caf50',
+    'Biomass': '#8bc34a',
+    'Hydro': '#0097a7',
+    'Pumped Hydro': '#006064',
+    'Interconnector': '#9c27b0',
+    'Coal': '#424242',
+    'Energy from Waste': '#795548', // Brown color for Energy from Waste
+    'default': '#757575'
+};
+
+
+// EV Charging company colors
+const evChargingColors = {
+    'P3P Partners LLP': '#4caf50', // Green
+    'Veolia UK Limited': '#2196f3', // Blue
+    'SSE ENERGY SUPPLY LIMITED': '#ff5722', // Deep Orange
+    'ENERSYST LIMITED': '#9c27b0', // Purple
+    'Waterswallows Energy Limited': '#ff9800' // Orange
+};
+
+// Main technology categories for legend display (exact same as /map/)
+const mainTechCategories = ['OCGT', 'Battery', 'Solar', 'Wind', 'Nuclear', 'Biomass', 'Energy from Waste', 'CHP', 'EV Charging', 'DSR', 'Pumped Hydro', 'Hydro', 'Interconnector', 'Coal'];
+
+let currentTech = null;
+let currentEvChargingCompany = null; // Track selected EV Charging company
+let currentDsrSubtype = null; // Track selected DSR subtype (Octopus, Axle, Everything else)
+
+// Get technology color with proper mapping
+function getTechColor(technology) {
+    // Skip debug logging for performance
+    
+    // Handle technology name variations (same as search-geojson.py)
+    const techMappings = {
+        'CHP': ['CHP', 'Combined Heat and Power (CHP)', 'CHP and autogeneration'],
+        'DSR': ['DSR', 'Demand Side Response'],
+        'EV Charging': ['EV Charging'],
+        'Pumped Hydro': ['Pumped Hydro'],
+        'Battery': ['Battery', 'Battery Storage', 'Battery storage', 'Storage', 'Storage (Duration 0.5h)', 'Storage (Duration 1h)', 'Storage (Duration 1.5h)', 'Storage (Duration 2h)', 'Storage (Duration 2.5h)', 'Storage (Duration 3h)', 'Storage (Duration 3.5h)', 'Storage (Duration 4h)', 'Storage (Duration 4.5h)', 'Storage (Duration 5h)', 'Storage (Duration 5.5h)', 'Storage (Duration 6h)', 'Storage (Duration 7h)', 'Storage (Duration 8h)', 'Storage (Duration 8.5h)', 'Storage (Duration 9h)', 'Storage (Duration 9.5h)', 'Storage (Duration 12h)'],
+        'OCGT': ['Gas', 'Gas - OCGTs and reciprocating engines', 'Gas reciprocating engines', 'OCGT', 'Combined Cycle Gas Turbine (CCGT)', 'Open Cycle Gas Turbine (OCGT)', 'OCGT and Reciprocating Engines', 'OCGT and Reciprocating Engines (Fuel Type - Diesel)', 'OCGT and Reciprocating Engines (Fuel Type - Gas)', 'Reciprocating engines'],
+        'Wind': ['Wind', 'Onshore Wind', 'Offshore Wind'],
+        'Solar': ['Solar', 'Solar Photovoltaic'],
+        'Nuclear': ['Nuclear'],
+        'Hydro': ['Hydro', 'Hydro Power'],
+        'Biomass': ['Biomass', 'Coal/biomass'],
+        'Energy from Waste': ['Energy from Waste'],
+        'Interconnector': ['Interconnector', 'Interconnection', 'BritNED (Netherlands)', 'Eleclink (France)', 'EWIC (Ireland)', 'EWIC (Republic of Ireland)', 'Greenlink (Republic of Ireland)', 'IFA2 (France)', 'IFA (France)', 'Moyle (Northern Ireland)', 'NEMO (Belgium)', 'NeuConnect (Germany)', 'NSL (Norway)', 'VikingLink (Denmark)'],
+        'Coal': ['Coal']
+    };
+    
+    // Find the main technology category
+    for (const [mainTech, variations] of Object.entries(techMappings)) {
+        if (variations.includes(technology)) {
+            const color = techColors[mainTech] || techColors['default'];
+            return color;
+        }
+    }
+    
+    // Direct match
+    const color = techColors[technology] || techColors['default'];
+    return color;
+}
+
+// Initialize legend based on company selection (exact same logic as /map/)
+async function initLegend() {
+    const legendItems = document.getElementById('legend-items');
+    const legendItemsMobile = document.getElementById('legend-items-mobile');
+    if (!legendItems && !legendItemsMobile) return;
+
+    if (legendItems) legendItems.innerHTML = ''; // Clear existing desktop
+    if (legendItemsMobile) legendItemsMobile.innerHTML = ''; // Clear existing mobile
+    
+    // Check if a company is selected
+    let companySelected = false;
+    const topCompanyFilter = document.getElementById('topCompanyFilter');
+    companySelected = topCompanyFilter && topCompanyFilter.value;
+    
+    // Fetch available technologies based on current filters
+    let availableTechnologies;
+    if (!companySelected) {
+        // No company selected - show all technologies for direct technology search
+        availableTechnologies = Object.keys(techColors).filter(tech => tech !== 'default');
+        console.log(`No company selected - showing all ${availableTechnologies.length} technologies for direct search`);
+    } else {
+        // Company selected - fetch only their technologies
+        availableTechnologies = await fetchAvailableTechnologies();
+        console.log(`Company selected - fetched ${availableTechnologies.length} available technologies:`, availableTechnologies);
+    }
+
+    // Check if Axle or Octopus is selected via regular company dropdown - these should be restricted
+    const isAxleOrOctopusRegular = companySelected && (topCompanyFilter.value === 'AXLE ENERGY LIMITED' || topCompanyFilter.value === 'OCTOPUS ENERGY LIMITED');
+    
+    // Check if "Everything else" is selected - should show all technologies like no company selection
+    const isEverythingElse = companySelected && topCompanyFilter.value === 'Everything else';
+    
+    // If a company is selected (not "Everything else"), add "All Technologies" option  
+    // BUT exclude Axle and Octopus - they should only see DSR and EV Charging
+    // DON'T show "All Technologies" when no company selected - users should pick individual techs
+    if (companySelected && !isEverythingElse && !isAxleOrOctopusRegular) {
+        const allItem = document.createElement('div');
+        allItem.className = 'legend-item' + (currentTech === 'All' ? ' active' : '');
+        allItem.dataset.technology = 'All';
+        allItem.innerHTML = `
+            <div class="legend-color" style="background: linear-gradient(135deg, #e91e63, #9c27b0, #3f51b5, #2196f3, #009688, #4caf50);"></div>
+            <span>All Technologies</span>
+        `;
+        const allItemClickHandler = async () => {
+            // Set current tech and reload markers
+            currentTech = 'All';
+            currentEvChargingCompany = null; // Clear any selected EV Charging company
+            currentDsrSubtype = null; // Clear any selected DSR subtype
+            
+            // Update active state in legend - don't re-initialize the whole legend
+            document.querySelectorAll('.legend-item.active').forEach(active => active.classList.remove('active'));
+            document.querySelectorAll('.legend-item[data-technology="All"]').forEach(item => {
+                item.classList.add('active');
+            });
+            
+            // Load map data for all technologies
+            loadMapData('All');
+            
+            // Hide subtypes filter for "All" technology
+            const subtypesLegend = document.getElementById('subtypes-legend');
+            if (subtypesLegend) {
+                subtypesLegend.style.display = 'none';
+            }
+            
+            // Update mobile filter status
+            updateMobileFilterStatus();
+        };
+        
+        allItem.addEventListener('click', allItemClickHandler);
+        
+        // Add to both desktop and mobile legends
+        if (legendItems) legendItems.appendChild(allItem);
+        if (legendItemsMobile) {
+            const allItemMobile = allItem.cloneNode(true);
+            allItemMobile.addEventListener('click', allItemClickHandler);
+            legendItemsMobile.appendChild(allItemMobile);
+        }
+    }
+
+    // Add individual technology categories that are available
+    availableTechnologies.forEach(tech => {
+        const item = document.createElement('div');
+        item.className = 'legend-item' + (currentTech === tech ? ' active' : '');
+        item.dataset.technology = tech;
+        item.innerHTML = `
+            <div class="legend-color" style="background-color: ${getTechColor(tech)};"></div>
+            <span>${tech}</span>
+        `;
+        const itemClickHandler = async () => {
+            currentTech = tech; // Explicitly set currentTech
+            currentEvChargingCompany = null; // Clear any selected EV Charging company
+            currentDsrSubtype = null; // Clear any selected DSR subtype
+            
+            // Update active state in legend - don't re-initialize the whole legend
+            document.querySelectorAll('.legend-item.active').forEach(active => active.classList.remove('active'));
+            document.querySelectorAll(`.legend-item[data-technology="${tech}"]`).forEach(item => {
+                item.classList.add('active');
+            });
+            
+            // SMART UX: For technologies with many subtypes, require subtype selection
+            console.log(`[Legend Click] Checking subtypes for ${tech}`);
+            
+            // Check if a specific company is already selected
+            const companyFilter = document.getElementById('topCompanyFilter');
+            const isCompanySelected = companyFilter && companyFilter.value && companyFilter.value !== 'Everything else';
+            
+            // Technologies that always require subtype selection (skip API call for performance)
+            // When a company is selected, DSR and EV Charging don't need subtypes - they act like regular technologies
+            let alwaysRequireSubtype = ['OCGT', 'CHP', 'Gas', 'Interconnector'];
+            if (!isCompanySelected) {
+                alwaysRequireSubtype.push('DSR', 'EV Charging');
+            }
+            
+            if (alwaysRequireSubtype.includes(tech)) {
+                // Skip API call - we know these need subtype selection
+                console.log(`${tech} always requires subtype selection - showing subtypes immediately`);
+                await showFilteredSubtypes(tech);
+                clearMarkers();
+                updateMapStats({ features: [] });
+                const statsElement = document.querySelector('.performance-info p') || document.querySelector('#mapStats');
+                if (statsElement) {
+                    statsElement.innerHTML = `<i class="bi bi-arrow-down"></i> Please select a ${tech} subtype to view locations`;
+                }
+            } else {
+                // For other technologies, check subtype count
+                const hasSubtypes = await showFilteredSubtypes(tech);
+                
+                if (hasSubtypes) {
+                    // Get subtype count from the subtypes API response
+                    const subtypeUrl = '/api/subtypes/?category=' + encodeURIComponent(tech) + '&period=active';
+                    const response = await fetch(subtypeUrl);
+                    const data = await response.json();
+                    const subtypeCount = data.subtypes ? data.subtypes.length : 0;
+                    
+                    if (subtypeCount > 3) {
+                        // Many subtypes - require selection for performance
+                        console.log(`${tech} has ${subtypeCount} subtypes - requiring subtype selection`);
+                        clearMarkers();
+                        updateMapStats({ features: [] });
+                        const statsElement = document.querySelector('.performance-info p') || document.querySelector('#mapStats');
+                        if (statsElement) {
+                            statsElement.innerHTML = `<i class="bi bi-arrow-down"></i> Please select a ${tech} subtype to view locations (${subtypeCount} options available)`;
+                        }
+                    } else {
+                        // Few subtypes - safe to load all
+                        console.log(`${tech} has ${subtypeCount} subtypes - loading all immediately`);
+                        loadMapData(tech);
+                    }
+                } else {
+                    // No subtypes - load immediately
+                    console.log(`No subtypes for ${tech} - loading immediately`);
+                    console.log('Current company filter:', document.getElementById('topCompanyFilter').value);
+                    console.log('About to call loadMapData with tech:', tech);
+                    loadMapData(tech);
+                }
+            }
+            
+            // Update mobile filter status
+            updateMobileFilterStatus();
+        };
+        
+        item.addEventListener('click', itemClickHandler);
+        
+        // Add to both desktop and mobile legends
+        if (legendItems) legendItems.appendChild(item);
+        if (legendItemsMobile) {
+            const itemMobile = item.cloneNode(true);
+            itemMobile.addEventListener('click', itemClickHandler);
+            legendItemsMobile.appendChild(itemMobile);
+        }
+    });
+}
+
+// OPTIMIZED: Single API call to get all available technologies for a company
+async function fetchAvailableTechnologies() {
+    const topCompanyFilter = document.getElementById('topCompanyFilter');
+    const companyValue = topCompanyFilter ? topCompanyFilter.value : '';
+    const statusFilter = document.getElementById('statusFilter');
+    const isActive = !statusFilter || statusFilter.value !== 'inactive';
+    
+    const cmPeriod = isActive ? 'active' : 'inactive';
+    console.log('⚡ OPTIMIZED: Fetching technologies for company:', companyValue, 'period:', cmPeriod);
+    
+    try {
+        // Single API call instead of multiple sequential calls
+        const response = await fetch(`/api/company-technologies/?company=${encodeURIComponent(companyValue)}&period=${encodeURIComponent(cmPeriod)}`);
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('API error:', data.error);
+            // Fallback to all technologies
+            const allTechs = Object.keys(techColors).filter(tech => tech !== 'default');
+            return allTechs;
+        }
+        
+        const technologies = data.technologies || [];
+        console.log(`✅ FAST: Got ${technologies.length} technologies in single API call:`, technologies);
+        
+        return technologies;
+        
+    } catch (error) {
+        console.error('Error fetching available technologies:', error);
+        // Fallback to all technologies
+        const allTechs = Object.keys(techColors).filter(tech => tech !== 'default');
+        return allTechs;
+    }
+}
+
+// Setup company change handler (exact same logic as /map/)
+function setupCompanyChangeHandler() {
+    const topCompanySelect = document.getElementById('topCompanyFilter');
+    if (topCompanySelect) {
+        topCompanySelect.addEventListener('change', async () => {
+            lastApiUrl = ''; // Reset cache for company change
+            console.log('Company changed to:', topCompanySelect.value);
+            
+            
+            
+            // Re-initialize legend based on new company selection
+            await initLegend();
+            
+            // IMPROVED UX: When a company is selected, require technology selection
+            // This prevents slow loading of all company data and ensures relevant filters
+            if (topCompanySelect.value) {
+                // Clear any active technology and wait for user to select
+                currentTech = null;
+                document.querySelectorAll('.legend-item.active').forEach(active => active.classList.remove('active'));
+                
+                // Clear map and show message to select technology
+                clearMarkers();
+                updateMapStats({ features: [] });
+                
+                // Show specific guidance based on company type
+                const statsElement = document.querySelector('.performance-info p') || document.querySelector('#mapStats');
+                if (statsElement) {
+                    const isAxleOrOctopus = topCompanySelect.value === 'AXLE ENERGY LIMITED' || topCompanySelect.value === 'OCTOPUS ENERGY LIMITED';
+                    const companyShortName = topCompanySelect.value.split(' ')[0];
+                    
+                    if (isAxleOrOctopus) {
+                        statsElement.innerHTML = `<i class="bi bi-arrow-down"></i> Please select DSR or EV Charging to view ${companyShortName} locations`;
+                    } else {
+                        statsElement.innerHTML = `<i class="bi bi-arrow-down"></i> Please select a technology or "All Technologies" to view ${companyShortName} locations`;
+                    }
+                }
+            } else {
+                // No company selected, clear currentTech and load default view
+                currentTech = null;
+                clearMarkers();
+                updateMapStats({ features: [] });
+                
+                // Show default guidance message
+                const statsElement = document.querySelector('.performance-info p') || document.querySelector('#mapStats');
+                if (statsElement) {
+                    statsElement.innerHTML = `<i class="bi bi-search"></i> Select a company or use the search bar above to explore locations`;
+                }
+            }
+            
+            // Update mobile filter status
+            updateMobileFilterStatus();
+        });
+    }
+}
+
+
+// Customize search bar for map explorer
+function customizeSearchBar() {
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.placeholder = 'Search map: locations, companies, technologies...';
+        searchInput.title = 'Search for locations, companies like "ASDA", or technologies like "OCGT". Use filters below for advanced options.';
+    }
+}
+
+// Intercept search form submission for map explorer
+function interceptSearchForm() {
+    const searchForm = document.querySelector('.search-form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            const searchInput = searchForm.querySelector('input[name="q"]');
+            const query = searchInput ? searchInput.value.trim() : '';
+            
+            if (query) {
+                // Clear existing filters for search
+                clearFiltersForSearch();
+                
+                // Perform search on current map
+                performMapSearch(query);
+                
+                // Update URL for shareability
+                updateURLWithSearch(query);
+                
+                // Show search mode message
+                showSearchMode(query);
+            }
+        });
+    }
+}
+
+// Clear filters when performing a search
+function clearFiltersForSearch() {
+    // Clear technology selection
+    currentTech = null;
+    document.querySelectorAll('.legend-item.active').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Clear company selection
+    const companySelect = document.getElementById('topCompanyFilter');
+    if (companySelect) {
+        companySelect.value = '';
+        const companyText = document.getElementById('companyDropdownText');
+        if (companyText) companyText.textContent = 'All Companies';
+    }
+    
+    
+    // Clear legend (will be updated by search results)
+    const legendItems = document.getElementById('legend-items');
+    if (legendItems) {
+        legendItems.innerHTML = '<div class="legend-item"><span style="color: #6c757d; font-style: italic;">Searching...</span></div>';
+    }
+}
+
+// Perform search on the map
+function performMapSearch(query) {
+    console.log('Performing map search for:', query);
+    
+    // Show loading
+    document.getElementById('loading-overlay').style.display = 'flex';
+    
+    // Build search API URL
+    const status = document.getElementById('statusFilter').value;
+    let apiUrl = '/api/search-geojson/?limit=200&q=' + encodeURIComponent(query);
+    
+    // Add status filter
+    if (status === 'active') {
+        apiUrl += '&show_active=true';
+    } else if (status === 'inactive') {
+        apiUrl += '&show_active=false';
+    }
+    
+    console.log('Search API URL:', apiUrl);
+    
+    // Store current API parameters for pagination
+    currentApiParams = { q: query };
+    if (status === 'active') {
+        currentApiParams.show_active = 'true';
+    } else if (status === 'inactive') {
+        currentApiParams.show_active = 'false';
+    }
+    
+    // Fetch search results
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Search results:', data.metadata);
+            
+            // Extract unique technologies from search results
+            const searchTechnologies = getUniqueTechnologiesFromResults(data);
+            
+            // Update legend to show only relevant technologies
+            updateLegendForSearch(searchTechnologies);
+            
+            // Display map data and stats
+            displayMapData(data);
+            updateMapStats(data);
+        })
+        .catch(error => {
+            console.error('Error performing map search:', error);
+            document.getElementById('loading-overlay').style.display = 'none';
+        });
+}
+
+// Extract unique technologies from search results
+function getUniqueTechnologiesFromResults(data) {
+    if (!data.features || data.features.length === 0) {
+        return [];
+    }
+    
+    const technologies = new Set();
+    data.features.forEach(feature => {
+        if (feature.properties && feature.properties.tech) {
+            // Map the technology to our main categories using the same logic as the backend
+            const tech = feature.properties.tech;
+            const mappedTech = mapTechnologyToCategory(tech);
+            if (mappedTech) {
+                technologies.add(mappedTech);
+            }
+        }
+    });
+    
+    return Array.from(technologies);
+}
+
+// Map technology names to main categories (consistent with backend)
+function mapTechnologyToCategory(technology) {
+    const techMappings = {
+        'Combined Heat and Power (CHP)': 'CHP',
+        'Solar Photovoltaic': 'Solar',
+        'Onshore Wind': 'Wind',
+        'Offshore Wind': 'Wind',
+        'Open Cycle Gas Turbine (OCGT)': 'OCGT',
+        'Combined Cycle Gas Turbine (CCGT)': 'OCGT',
+        'Reciprocating engines': 'OCGT',
+        'Energy from Waste': 'Energy from Waste',
+        'Coal/biomass': 'Biomass',
+        'Storage': 'Battery',
+        'OCGT and Reciprocating Engines': 'OCGT',
+        'OCGT and Reciprocating Engines (Fuel Type - Diesel)': 'OCGT',
+        'Oil-fired steam generators': 'OCGT',
+        'Hydro': 'Hydro',
+        'Nuclear': 'Nuclear',
+        'Coal': 'Coal',
+        'Biomass': 'Biomass',
+        'Gas': 'OCGT',
+        'DSR': 'DSR',
+        'Interconnector': 'Interconnector',
+        'BritNED (Netherlands)': 'Interconnector',
+        'NEMO Link (Belgium)': 'Interconnector',
+        'IFA2 (France)': 'Interconnector',
+        'ElecLink (France)': 'Interconnector',
+        'Greenlink (Ireland)': 'Interconnector',
+        'Viking Link (Denmark)': 'Interconnector'
+    };
+    
+    // First try exact match
+    if (techMappings[technology]) {
+        return techMappings[technology];
+    }
+    
+    // Then try partial matches for common patterns
+    const lowerTech = technology.toLowerCase();
+    if (lowerTech.includes('wind')) return 'Wind';
+    if (lowerTech.includes('solar')) return 'Solar';
+    if (lowerTech.includes('gas') || lowerTech.includes('ccgt') || lowerTech.includes('ocgt')) return 'OCGT';
+    if (lowerTech.includes('energy from waste') || lowerTech.includes('waste')) return 'Energy from Waste';
+    if (lowerTech.includes('biomass')) return 'Biomass';
+    if (lowerTech.includes('battery') || lowerTech.includes('storage')) return 'Battery';
+    if (lowerTech.includes('hydro')) return 'Hydro';
+    if (lowerTech.includes('nuclear')) return 'Nuclear';
+    if (lowerTech.includes('coal')) return 'Coal';
+    if (lowerTech.includes('chp')) return 'CHP';
+    if (lowerTech.includes('dsr')) return 'DSR';
+    if (lowerTech.includes('interconnect')) return 'Interconnector';
+    
+    // Default fallback
+    return technology;
+}
+
+// Update legend to show only technologies from search results
+function updateLegendForSearch(searchTechnologies) {
+    const legendItems = document.getElementById('legend-items');
+    if (!legendItems) return;
+    
+    // Clear existing legend
+    legendItems.innerHTML = '';
+    
+    console.log('Updating legend for search technologies:', searchTechnologies);
+    
+    if (searchTechnologies.length === 0) {
+        // No results, show empty message
+        const emptyItem = document.createElement('div');
+        emptyItem.className = 'legend-item';
+        emptyItem.innerHTML = '<span style="color: #6c757d; font-style: italic;">No technology types found</span>';
+        legendItems.appendChild(emptyItem);
+        return;
+    }
+    
+    // Show only the technologies found in search results
+    searchTechnologies.forEach(tech => {
+        const techColor = getTechColor(tech);
+        if (techColor && techColor !== techColors['default']) {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            item.dataset.technology = tech;
+            item.innerHTML = `
+                <div class="legend-color" style="background-color: ${techColor};"></div>
+                <span>${tech}</span>
+            `;
+            
+            // Add click handler to filter by this technology in search results
+            item.addEventListener('click', () => {
+                // Set current tech and update legend
+                currentTech = tech;
+                document.querySelectorAll('.legend-item.active').forEach(active => active.classList.remove('active'));
+                item.classList.add('active');
+                
+                // Filter current search results by this technology
+                filterSearchResultsByTechnology(tech);
+            });
+            
+            legendItems.appendChild(item);
+        }
+    });
+}
+
+// Filter current search results by technology
+function filterSearchResultsByTechnology(selectedTech) {
+    console.log('Filtering search results by technology:', selectedTech);
+    
+    // Set currentTech and load data from server
+    if (selectedTech === 'All Technologies') {
+        currentTech = null;
+        lastApiUrl = ''; // Reset cache for technology change
+        loadMapData(); // Load all technologies for current company
+    } else {
+        currentTech = selectedTech;
+        lastApiUrl = ''; // Reset cache for technology change
+        loadMapData(selectedTech); // Load specific technology for current company
+    }
+}
+
+// Update URL with search query
+function updateURLWithSearch(query) {
+    const url = new URL(window.location);
+    url.searchParams.set('q', query);
+    window.history.pushState({}, '', url);
+}
+
+// Show search mode message
+function showSearchMode(query) {
+    // Add a search indicator to the page
+    let searchIndicator = document.getElementById('search-mode-indicator');
+    if (!searchIndicator) {
+        searchIndicator = document.createElement('div');
+        searchIndicator.id = 'search-mode-indicator';
+        searchIndicator.style.cssText = `
+            background: var(--bs-primary);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        `;
+        
+        const filterContent = document.getElementById('filterContent');
+        if (filterContent) {
+            filterContent.insertBefore(searchIndicator, filterContent.firstChild);
+        }
+    }
+    
+    searchIndicator.innerHTML = `
+        <span><i class="bi bi-search me-2"></i>Search: "${query}"</span>
+        <button onclick="clearSearch()" style="background: none; border: none; color: white; cursor: pointer;" title="Clear search">
+            <i class="bi bi-x"></i>
+        </button>
+    `;
+}
+
+// Clear search and return to filter mode
+window.clearSearch = function() {
+    // Clear search from URL
+    const url = new URL(window.location);
+    url.searchParams.delete('q');
+    window.history.pushState({}, '', url);
+    
+    // Clear search input
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) searchInput.value = '';
+    
+    // Remove search indicator
+    const searchIndicator = document.getElementById('search-mode-indicator');
+    if (searchIndicator) searchIndicator.remove();
+    
+    // Clear map
+    clearMarkers();
+    updateMapStats({ features: [] });
+    
+    // Hide loading
+    document.getElementById('loading-overlay').style.display = 'none';
+    
+    // Reset currentTech to null so filters work properly
+    currentTech = null;
+    
+    // Re-initialize legend
+    initLegend();
+    
+    // If there are existing filter selections, reload the data
+    const company = document.getElementById('topCompanyFilter').value;
+    
+    if (company) {
+        // Auto-load data if filters are selected
+        applyFilters();
+    }
+};
+
+// Smart tooltip positioning to prevent cutoff
+function initializeTooltipPositioning() {
+    const infoBubbles = document.querySelectorAll('.info-bubble');
+    
+    infoBubbles.forEach(bubble => {
+        const tooltip = bubble.querySelector('.info-tooltip');
+        if (!tooltip) return;
+        
+        bubble.addEventListener('mouseenter', function() {
+            // Reset classes
+            tooltip.classList.remove('align-right');
+            
+            // Check if tooltip would go off-screen
+            setTimeout(() => {
+                const bubbleRect = bubble.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                
+                // Check if bubble is in the right half of the viewport or close to right edge
+                const bubbleCenter = bubbleRect.left + (bubbleRect.width / 2);
+                const isInRightHalf = bubbleCenter > (viewportWidth / 2);
+                const isNearRightEdge = bubbleRect.right > (viewportWidth - 250); // 250px buffer for tooltip width
+                
+                // Apply right alignment if in right half or near right edge
+                if (isInRightHalf || isNearRightEdge) {
+                    tooltip.classList.add('align-right');
+                }
+            }, 10);
+        });
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    // Hide help button
+    setTimeout(() => {
+        const helpBtn = document.querySelector('a[data-bs-target="#helpModal"]');
+        if (helpBtn) {
+            const li = helpBtn.parentElement;
+            if (li && li.tagName === 'LI') {
+                li.style.display = 'none';
+            }
+        }
+    }, 100);
+    
+    // Customize search bar for map explorer
+    customizeSearchBar();
+    
+    // Intercept search form submission
+    interceptSearchForm();
+    
+    // Auto-expand filters on desktop
+    if (window.innerWidth >= 992) {
+        const filterContent = document.getElementById('filterContent');
+        if (filterContent) {
+            filterContent.classList.add('show');
+        }
+    }
+    
+    // Auto-open mobile hamburger menu on mobile (moved to end of initialization)
+    setTimeout(() => {
+        if (window.innerWidth < 992) {
+            const sidebar = document.getElementById('filterSidebar');
+            const hamburgerBar = document.getElementById('hamburgerBar');
+            const hamburgerIcon = document.getElementById('hamburgerIcon');
+            
+            console.log('Mobile auto-open check:', { sidebar: !!sidebar, hamburgerBar: !!hamburgerBar, hamburgerIcon: !!hamburgerIcon });
+            
+            if (sidebar && hamburgerBar && hamburgerIcon) {
+                sidebar.classList.add('open');
+                hamburgerBar.classList.add('open');
+                hamburgerIcon.className = 'bi bi-x';
+                console.log('Mobile filter menu auto-opened');
+            } else {
+                console.warn('Mobile auto-open failed - missing elements');
+            }
+        }
+    }, 100); // Small delay to ensure DOM is ready
+    
+    // Status filter value is set by Django template based on URL parameter
+    // No need to override it with JavaScript
+    
+    // Initialize technology legend (replaces static legend handlers)
+    await initLegend();
+    
+    // Setup company change handler (exactly like /map/)
+    setupCompanyChangeHandler();
+    
+    
+    // Initialize map stats with guidance message
+    updateMapStats({ features: [] });
+    
+    // Initialize modern dropdowns
+    initializeModernDropdowns();
+    
+    // Initialize mobile filter status
+    updateMobileFilterStatus();
+    
+    // Initialize smart tooltip positioning
+    initializeTooltipPositioning();
+    
+    // Check for existing search query in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const existingQuery = urlParams.get('q');
+    if (existingQuery) {
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+            searchInput.value = existingQuery;
+            // Clear filters and perform search
+            clearFiltersForSearch();
+            performMapSearch(existingQuery);
+            showSearchMode(existingQuery);
+        }
+    }
+    
+    // Handle status filter changes
+    const statusSelect = document.getElementById('statusFilter');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            // Instead of reloading page, just reload map data with new status
+            console.log('📊 Status filter changed to:', statusSelect.value);
+            
+            // Reload map data with current technology/company but new status
+            lastApiUrl = ''; // Reset cache for status change
+            loadMapData();
+            
+            // Update the URL without page reload to preserve state
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('status', statusSelect.value);
+            window.history.replaceState({}, '', '?' + urlParams.toString());
+        });
+    }
+    
+    // No technology dropdown - using legend only like /map/
+    
+    // Add close button handler for subtypes
+    const closeSubtypes = document.getElementById('close-subtypes');
+    if (closeSubtypes) {
+        closeSubtypes.addEventListener('click', function() {
+            const subtypesLegend = document.getElementById('subtypes-legend');
+            subtypesLegend.style.display = 'none';
+        });
+    }
+    
+    // Mobile legend is disabled - technology types only accessible via filter dropdown
+});
+
+// Initialize technology color indicators  
+function initializeTechnologyColors() {
+    const colorContainer = document.getElementById('technologyColors');
+    const techColors = {
+        'OCGT': '#ff5252',
+        'DSR': '#f57c00',
+        'EV Charging': '#e91e63',
+        'Nuclear': '#8d6e63',
+        'CHP': '#5c6bc0', 
+        'Solar': '#fdd835',
+        'Wind': '#29b6f6',
+        'Battery': '#4caf50',
+        'Biomass': '#8bc34a',
+        'Hydro': '#0097a7',
+        'Pumped Hydro': '#006064',
+        'Interconnector': '#9c27b0',
+        'Coal': '#424242',
+        'Energy from Waste': '#795548'
+    };
+    
+    // Create color indicators for each technology
+    Object.entries(techColors).forEach(([tech, color]) => {
+        const indicator = document.createElement('div');
+        indicator.className = 'tech-color-indicator';
+        indicator.id = `color-${tech}`;
+        indicator.style.backgroundColor = color;
+        colorContainer.appendChild(indicator);
+    });
+    
+    // Show initial color if technology is selected
+    updateTechnologyColorIndicator();
+}
+
+// Update technology color indicator based on dropdown selection
+function updateTechnologyColorIndicator() {
+    const techSelect = document.getElementById('technologyFilter');
+    const selectedTech = techSelect.value;
+    
+    // Hide all indicators
+    const indicators = document.querySelectorAll('.tech-color-indicator');
+    indicators.forEach(indicator => indicator.classList.remove('active'));
+    
+    // Show indicator for selected technology
+    if (selectedTech) {
+        const indicator = document.getElementById(`color-${selectedTech}`);
+        if (indicator) {
+            indicator.classList.add('active');
+        }
+    }
+}
+
+// === TECHNOLOGY LEGEND LOGIC (EXACTLY LIKE /MAP/) ===
+
+// Global variables for legend functionality (currentTech declared earlier)
+
+// Technology colors (declared earlier in file)
+
+// Main technology categories for legend display (declared earlier in file)
+
+// Initialize modern dropdown functionality
+function initializeModernDropdowns() {
+    // Status dropdown
+    setupModernDropdown('status', 'statusDropdownButton', 'statusDropdownMenu', 'statusDropdownText', 'statusFilter');
+    
+    // Company dropdown  
+    setupModernDropdown('company', 'companyDropdownButton', 'companyDropdownMenu', 'companyDropdownText', 'topCompanyFilter');
+    
+}
+
+function setupModernDropdown(type, buttonId, menuId, textId, hiddenSelectId) {
+    const button = document.getElementById(buttonId);
+    const menu = document.getElementById(menuId);
+    const textEl = document.getElementById(textId);
+    const hiddenSelect = document.getElementById(hiddenSelectId);
+    
+    if (!button || !menu || !textEl || !hiddenSelect) return;
+    
+    // Toggle dropdown
+    button.addEventListener('click', function(e) {
+        e.stopPropagation();
+        // Close other dropdowns
+        document.querySelectorAll('.dropdown-menu.show').forEach(openMenu => {
+            if (openMenu !== menu) openMenu.classList.remove('show');
+        });
+        menu.classList.toggle('show');
+    });
+    
+    // Handle item selection
+    menu.addEventListener('click', function(e) {
+        const item = e.target.closest('.dropdown-item');
+        if (!item) return;
+        
+        const value = item.dataset.value;
+        const text = item.textContent.trim();
+        
+        // Update hidden select
+        hiddenSelect.value = value;
+        
+        // Update display text and icon
+        if (type === 'status') {
+            updateStatusDisplay(value, textEl);
+        } else if (type === 'company') {
+            updateCompanyDisplay(value, text, textEl);
+        }
+        
+        // Update selected state
+        menu.querySelectorAll('.dropdown-item').forEach(menuItem => {
+            menuItem.classList.remove('selected');
+        });
+        item.classList.add('selected');
+        
+        // Close dropdown
+        menu.classList.remove('show');
+        
+        // Trigger change event
+        const changeEvent = new Event('change', { bubbles: true });
+        hiddenSelect.dispatchEvent(changeEvent);
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function() {
+        menu.classList.remove('show');
+    });
+}
+
+function updateStatusDisplay(value, textEl) {
+    const statusTexts = {
+        'all': 'All Years',
+        'active': 'Active (2024-25+)',
+        'inactive': 'Inactive (Pre-2024)'
+    };
+    textEl.textContent = statusTexts[value] || 'All Years';
+}
+
+function updateCompanyDisplay(value, fullText, textEl) {
+    if (!value) {
+        textEl.textContent = 'All Companies';
+    } else {
+        // Extract just the company name (remove count)
+        const companyName = fullText.split('(')[0].trim();
+        textEl.textContent = companyName;
+    }
+}
+
+
+// Handle window resize
+window.addEventListener('resize', function() {
+    if (window.innerWidth >= 992) {
+        // Desktop: always show filters
+        const filterContent = document.getElementById('filterContent');
+        if (filterContent) {
+            filterContent.classList.add('show');
+        }
+        const toggle = document.querySelector('.mobile-filter-toggle');
+        if (toggle) {
+            toggle.classList.remove('collapsed');
+        }
+    }
+});
+</script>
+
+<!-- Load Google Maps API with Advanced Markers and Places -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&loading=async&libraries=marker,places&callback=initMap"></script>
+{% endblock %}

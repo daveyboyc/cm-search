@@ -1,0 +1,61 @@
+# Block aggressive AI training bots that cause server load
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+# Welcome SEO crawlers with reasonable rate limits
+User-agent: Googlebot
+Crawl-delay: 5
+Allow: /
+# Prioritize important pages for Google
+Sitemap: https://www.capacitymarket.co.uk/sitemap.xml
+
+User-agent: Bingbot
+Crawl-delay: 10
+Allow: /
+
+User-agent: DuckDuckBot
+Crawl-delay: 10
+Allow: /
+
+# Social media crawlers (for link previews)
+User-agent: facebookexternalhit
+Crawl-delay: 5
+Allow: /
+
+User-agent: Twitterbot
+Crawl-delay: 5
+Allow: /
+
+User-agent: LinkedInBot
+Crawl-delay: 10
+Allow: /
+
+User-agent: Slackbot
+Crawl-delay: 10
+Allow: /
+
+User-agent: WhatsApp
+Crawl-delay: 5
+Allow: /
+
+# Default for all other bots - more restrictive
+User-agent: *
+Crawl-delay: 30
+Allow: /
+
+# Performance optimization: prevent crawling of heavy pages
+Disallow: /search-map/
+Disallow: /company-map/
+Disallow: /technology-map/

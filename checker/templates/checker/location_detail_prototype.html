@@ -1,0 +1,186 @@
+{% extends 'checker/base.html' %}
+{% load static %}
+
+{% block title %}{{ location_name }} - Location Detail{% endblock %}
+
+{% block content %}
+    <!-- Location Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'search' %}">Search</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ location_name }}</li>
+                </ol>
+            </nav>
+            
+            <h1 class="h2 mb-3">{{ location_name }}</h1>
+            
+            <!-- Location Summary Card -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Total Assets</h6>
+                            <p class="h4">{{ total_assets }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Total Components</h6>
+                            <p class="h4">{{ total_components }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Total Capacity</h6>
+                            <p class="h4">{{ total_capacity_mw|floatformat:2 }} MW</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Active Years</h6>
+                            <p class="h4">{{ year_range }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assets at this Location -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3">Assets at this Location</h3>
+            
+            {% for asset in assets %}
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">{{ asset.description }}</h5>
+                    <small class="text-muted">Primary Technology: {{ asset.primary_technology }} | Company: {{ asset.primary_company }}</small>
+                </div>
+                <div class="card-body">
+                    <!-- CMU Information -->
+                    {% for cmu_id, cmu_data in asset.cmus.items %}
+                    <div class="mb-4">
+                        <h6 class="text-primary">CMU ID: {{ cmu_id }}</h6>
+                        
+                        <!-- Auction Years Table -->
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Auction</th>
+                                        <th>Delivery Year</th>
+                                        <th>Component MW</th>
+                                        <th>CMU Registry MW</th>
+                                        <th>Status</th>
+                                        <th>Original Record</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for auction in cmu_data.auctions %}
+                                    <tr class="{% if not auction.derated_mw %}table-warning{% endif %}">
+                                        <td>{{ auction.auction_name }}</td>
+                                        <td>{{ auction.delivery_year }}</td>
+                                        <td>
+                                            {% if auction.derated_mw %}
+                                                {{ auction.derated_mw|floatformat:2 }} MW
+                                            {% else %}
+                                                <span class="text-muted">Not specified</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if auction.cmu_registry_mw %}
+                                                {{ auction.cmu_registry_mw|floatformat:2 }} MW
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if auction.is_duplicate %}
+                                                <span class="badge bg-warning">Possible Duplicate</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'component_detail' auction.component_id %}" 
+                                               class="btn btn-sm btn-outline-secondary">
+                                                View #{{ auction.component_id }}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Capacity Summary for this CMU -->
+                        <div class="alert alert-info mt-2">
+                            <strong>Capacity Analysis for {{ cmu_id }}:</strong>
+                            <ul class="mb-0">
+                                <li>Records with capacity data: {{ cmu_data.records_with_capacity }}/{{ cmu_data.total_records }}</li>
+                                <li>Average component capacity: {{ cmu_data.avg_capacity|floatformat:2 }} MW</li>
+                                {% if cmu_data.has_duplicates %}
+                                <li class="text-warning">⚠️ Potential duplicate records detected (same auction year with different capacity values)</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Data Quality Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Data Quality Notes</h5>
+                </div>
+                <div class="card-body">
+                    <p>This location has the following data quality considerations:</p>
+                    <ul>
+                        {% if duplicate_count > 0 %}
+                        <li>{{ duplicate_count }} potential duplicate records (same description, CMU, and auction year)</li>
+                        {% endif %}
+                        {% if missing_capacity_count > 0 %}
+                        <li>{{ missing_capacity_count }} records missing capacity data</li>
+                        {% endif %}
+                        {% if capacity_mismatch_count > 0 %}
+                        <li>{{ capacity_mismatch_count }} records where component MW differs from CMU Registry MW</li>
+                        {% endif %}
+                    </ul>
+                    
+                    <div class="alert alert-secondary mt-3">
+                        <strong>MW Display Logic:</strong> When sorting or displaying capacity, we use:
+                        <ol>
+                            <li>Component derated MW (if available)</li>
+                            <li>CMU Registry MW (if component MW not available)</li>
+                            <li>Average of similar assets at this location (if neither available)</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Section (if coordinates available) -->
+    {% if has_coordinates %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3>Location Map</h3>
+            <div id="map" style="height: 400px;" class="mb-4"></div>
+        </div>
+    </div>
+    {% endif %}
+
+<script>
+    // Add any interactive features here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Highlight duplicate rows
+        const duplicateRows = document.querySelectorAll('tr.table-warning');
+        duplicateRows.forEach(row => {
+            row.title = 'This record may be a duplicate - same auction year but different capacity data';
+        });
+    });
+</script>
+{% endblock %}

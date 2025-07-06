@@ -1,0 +1,297 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+{% load user_tags %}
+
+{% block title %}{{ company_name }}{% endblock %}
+
+{% block meta_description %}{{ company_name }} capacity market portfolio: {{ total_locations }} locations, {{ total_capacity|floatformat:0 }}MW capacity. View technologies, auction participation, and component details.{% endblock %}
+
+{% block og_title %}{{ company_name }} | UK Capacity Market{% endblock %}
+{% block og_description %}{{ company_name }} capacity market portfolio: {{ total_locations }} locations with {{ total_capacity|floatformat:0 }}MW total capacity across UK electricity auctions.{% endblock %}
+
+{% block body_class %}has-universal-navbar{% endblock %}
+
+{% block page_header %}
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+<!-- Welcome Notice for New Users -->
+{% include 'checker/includes/welcome_notice.html' %}
+{% endblock %}
+
+{% block structured_data %}
+{% if structured_data %}
+<script type="application/ld+json">
+{{ structured_data|safe }}
+</script>
+{% endif %}
+{% endblock structured_data %}
+
+{% block content %}
+<style>
+/* Mobile-responsive header layout for company pages */
+.company-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+}
+
+.map-view-btn {
+    flex-shrink: 0; /* Prevent button from shrinking */
+    white-space: nowrap;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .company-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .company-header h2 {
+        font-size: 1.5rem;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .map-view-btn {
+        align-self: center;
+        width: auto;
+    }
+    
+    .stats-line {
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    
+    .stats-line .mx-2 {
+        margin-left: 0.5rem !important;
+        margin-right: 0.5rem !important;
+    }
+}
+
+/* Very small mobile screens */
+@media (max-width: 480px) {
+    .company-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .stats-line {
+        font-size: 0.85rem;
+    }
+    
+    .stats-line span {
+        display: inline-block;
+        margin: 0.1rem 0;
+    }
+}
+</style>
+<!-- Include Universal Loading Overlay -->
+{% include 'checker/includes/universal_loading_overlay.html' %}
+    <div class="mb-4">
+        <div class="company-header">
+            <div>
+                <h2>{{ company_name }}</h2>
+                <div class="text-muted stats-line">
+                    <span>{{ total_locations }} unique locations</span>
+                    <span class="mx-2">•</span>
+                    <span>{{ total_components }} components</span>
+                    <span class="mx-2">•</span>
+                    <span>Page {{ page }} of {{ page_obj.paginator.num_pages }}</span>
+                </div>
+                <div class="content-freshness mt-1">
+                    <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i>Last updated: {% now "d M Y H:i" %} UTC
+                    </small>
+                </div>
+            </div>
+            <div>
+                {% if user|can_access_maps %}
+                    <a href="{% url 'company_detail_map' company_name=company_name %}?{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}{% if auction_filter != 'all' %}auction={{ auction_filter|urlencode }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}{% if sort_order %}sort_order={{ sort_order }}{% endif %}" 
+                       class="btn btn-success map-view-btn"
+                       title="View these results on an interactive map">
+                        <i class="bi bi-map-fill me-2"></i><span class="btn-text">Map View</span>
+                    </a>
+                {% else %}
+                    <span class="btn btn-secondary map-view-btn disabled"
+                          title="Map access requires full paid access. Trial users can access lists only.">
+                        <i class="bi bi-lock-fill me-2"></i><span class="btn-text">Map View</span>
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Unified Filter Bar -->
+    {% include 'checker/includes/filter_bar.html' with show_location_sort=True show_components_sort=True show_capacity_sort=True show_date_sort=True %}
+    
+    <!-- Results -->
+    {% if page_obj.object_list %}
+        <div class="results-list">
+            {% for location_group in page_obj.object_list %}
+                <div class="result-item mb-3 border-bottom pb-3">
+                    <h5>
+                        <a href="{% url 'location_detail' location_group.id %}" class="text-decoration-none">
+                            <i class="bi bi-geo-alt-fill me-1"></i>
+                            <span title="Click to view details for this location">{{ location_group.location }}</span>
+                        </a>
+                        <span class="text-muted ms-2">({{ location_group.component_count }} components)</span>
+                    </h5>
+
+                    <!-- Descriptions (unique with counts) -->
+                    {% if location_group.descriptions %}
+                        {% with unique_descriptions=location_group.descriptions|unique_with_counts %}
+                            {% if unique_descriptions %}
+                                {% if unique_descriptions|length == 1 %}
+                                    <!-- Single unique description -->
+                                    {% with first_desc=unique_descriptions.0 %}
+                                        <p class="mb-1">
+                                            {{ first_desc.0|truncatewords:30 }}
+                                            {% if first_desc.1 > 1 %}
+                                                <span class="text-muted">({{ first_desc.1 }})</span>
+                                            {% endif %}
+                                        </p>
+                                    {% endwith %}
+                                {% else %}
+                                    <!-- Multiple unique descriptions - show as list -->
+                                    <ul class="list-unstyled mb-1">
+                                        {% for desc, count in unique_descriptions|slice:":3" %}
+                                            <li class="text-muted">
+                                                • {{ desc|truncatewords:20 }}
+                                                {% if count > 1 %}
+                                                    ({{ count }})
+                                                {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                        {% if unique_descriptions|length > 3 %}
+                                            <li class="text-muted">
+                                                • ... and {{ unique_descriptions|length|add:"-3" }} more unique descriptions
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                {% endif %}
+                            {% else %}
+                                <p class="mb-1">No description available.</p>
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        <p class="mb-1">No description available.</p>
+                    {% endif %}
+
+                    <div>
+                        <!-- Technology Badges -->
+                        {% if location_group.technologies %}
+                            {% for tech, count in location_group.technologies.items %}
+                                <a href="{% url 'technology_detail_map' technology_name=tech %}" class="text-decoration-none">
+                                    <span class="badge me-1" style="background-color: {{ tech|technology_color }}; color: white;" title="Click to view all {{ tech }} components">{{ tech }}</span>
+                                </a>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Capacity on separate line in bold -->
+                    {% if location_group.normalized_capacity_mw %}
+                        <div class="mt-2">
+                            <strong>{{ location_group.normalized_capacity_mw|floatformat:1 }} MW</strong>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Active/Inactive status and auction years -->
+                    {% if location_group.auction_years %}
+                        <div class="mt-1">
+                            <em class="text-muted">
+                                {% if location_group.is_active %}
+                                    Active - 
+                                {% else %}
+                                    Inactive - 
+                                {% endif %}
+                                
+                                {% for year in location_group.auction_years|sort_auction_years_desc|slice:":3" %}
+                                    {{ year|shorten_auction_name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                                
+                                {% if location_group.auction_years|length > 3 %}
+                                    (and {{ location_group.auction_years|length|add:"-3" }} more)
+                                {% endif %}
+                            </em>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Summary -->
+        <div class="text-center text-muted mb-3">
+            Showing locations {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ total_locations }}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.paginator.num_pages > 1 %}
+            <nav aria-label="Search results pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&per_page={{ per_page }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&auction={{ auction_filter }}&technology={{ technology_filter }}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&auction={{ auction_filter }}&technology={{ technology_filter }}">Previous</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">First</span></li>
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    {% endif %}
+
+                    <!-- Always show first page -->
+                    {% if page_obj.number > 4 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&per_page={{ per_page }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&auction={{ auction_filter }}&technology={{ technology_filter }}">1</a>
+                        </li>
+                        {% if page_obj.number > 5 %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endif %}
+
+                    <!-- Show range around current page -->
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if num >= page_obj.number|add:"-3" and num <= page_obj.number|add:"3" %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}&per_page={{ per_page }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&auction={{ auction_filter }}&technology={{ technology_filter }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- Always show last page -->
+                    {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %}
+                        {% if page_obj.number < page_obj.paginator.num_pages|add:"-4" %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&auction={{ auction_filter }}&technology={{ technology_filter }}">{{ page_obj.paginator.num_pages }}</a>
+                        </li>
+                    {% endif %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&auction={{ auction_filter }}&technology={{ technology_filter }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&auction={{ auction_filter }}&technology={{ technology_filter }}">Last</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        <li class="page-item disabled"><span class="page-link">Last</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+        
+    {% else %}
+        <p>No locations found for this company.</p>
+    {% endif %}
+{% endblock %}

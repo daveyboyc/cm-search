@@ -1,0 +1,226 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}Test Access Status{% endblock %}
+
+{% block extra_head %}
+<style>
+    .status-container {
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    .status-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+        color: #212529;
+    }
+    .status-active {
+        border-color: #28a745;
+        background-color: #f8fff8;
+    }
+    .status-inactive {
+        border-color: #dc3545;
+        background-color: #fff8f8;
+    }
+    .access-code-display {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #28a745;
+        background-color: #e9f7e9;
+        padding: 15px;
+        border-radius: 8px;
+        border: 2px dashed #28a745;
+        margin: 20px 0;
+        letter-spacing: 1px;
+        font-family: 'Courier New', monospace;
+    }
+    .test-badge {
+        background-color: #6c757d;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+    .test-badge.active {
+        background-color: #28a745;
+    }
+    .test-badge.expired {
+        background-color: #dc3545;
+    }
+    
+    /* Dark mode styles */
+    html[data-bs-theme="dark"] .status-card {
+        background-color: #0d0d0d;
+        border-color: #4a4a4a;
+        color: #ffffff !important;
+    }
+    
+    html[data-bs-theme="dark"] .status-active {
+        background-color: #0a2e0a;
+        border-color: #28a745;
+    }
+    
+    html[data-bs-theme="dark"] .status-inactive {
+        background-color: #2e0a0a;
+        border-color: #dc3545;
+    }
+    
+    html[data-bs-theme="dark"] .status-card h1,
+    html[data-bs-theme="dark"] .status-card h3,
+    html[data-bs-theme="dark"] .status-card p {
+        color: #ffffff !important;
+    }
+    
+    html[data-bs-theme="dark"] .access-code-display {
+        background-color: #1a4a1a;
+        color: #4ade80;
+        border-color: #4ade80;
+    }
+    
+    .info-box {
+        background-color: #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        text-align: left;
+    }
+    
+    html[data-bs-theme="dark"] .info-box {
+        background-color: #2a2a2a;
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="status-container">
+    {% if test_access_active and not is_expired %}
+        <div class="status-card status-active">
+            <span class="test-badge active">TEST ACCESS ACTIVE</span>
+            
+            <h1><i class="bi bi-check-circle-fill text-success me-2"></i>Access Active</h1>
+            
+            <p class="lead">Your test access is currently <strong>active</strong></p>
+            
+            {% if access_code %}
+            <h3>Your Access Code:</h3>
+            <div class="access-code-display">
+                {{ access_code }}
+            </div>
+            {% endif %}
+            
+            {% if expiry_time %}
+            <div class="info-box">
+                <h4>Access Details:</h4>
+                <p><strong>Expires:</strong> {{ expiry_time|date:"M j, Y g:i A" }}</p>
+                <p><strong>Status:</strong> Full access to all features</p>
+                <p><strong>Type:</strong> Session-based test access</p>
+            </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="{% url 'homepage' %}" class="btn btn-success btn-lg me-3">
+                    <i class="bi bi-house-fill me-2"></i>Continue Exploring
+                </a>
+                <a href="{% url 'test_access_donation_page' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Test Again
+                </a>
+            </div>
+        </div>
+        
+    {% elif is_expired %}
+        <div class="status-card status-inactive">
+            <span class="test-badge expired">TEST ACCESS EXPIRED</span>
+            
+            <h1><i class="bi bi-x-circle-fill text-danger me-2"></i>Access Expired</h1>
+            
+            <p class="lead">Your test access has <strong>expired</strong></p>
+            
+            <div class="info-box">
+                <h4>What happened:</h4>
+                <p>Your 24-hour test access period has ended.</p>
+                <p>To continue testing, you can generate a new access code.</p>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'test_access_donation_page' %}" class="btn btn-warning btn-lg">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Get New Test Access
+                </a>
+            </div>
+        </div>
+        
+    {% else %}
+        <div class="status-card status-inactive">
+            <span class="test-badge">NO TEST ACCESS</span>
+            
+            <h1><i class="bi bi-info-circle-fill text-secondary me-2"></i>No Active Access</h1>
+            
+            <p class="lead">You don't currently have test access</p>
+            
+            <div class="info-box">
+                <h4>Get Test Access:</h4>
+                <p>To test the donation-for-access system:</p>
+                <ul>
+                    <li>Choose any contribution amount</li>
+                    <li>Complete payment via Stripe</li>
+                    <li>Receive instant 24-hour access</li>
+                </ul>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'test_access_donation_page' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-credit-card me-2"></i>Get Test Access Code
+                </a>
+            </div>
+        </div>
+    {% endif %}
+    
+    <div class="text-center mt-4">
+        <p><small>This is a test environment for experimenting with the donation-for-access model</small></p>
+        <p><small><a href="{% url 'homepage' %}">← Back to homepage</a></small></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh page every 30 seconds to check status
+        const refreshInterval = 30000; // 30 seconds
+        
+        setTimeout(function() {
+            location.reload();
+        }, refreshInterval);
+        
+        // Add click-to-copy functionality for access code
+        const accessCodeDiv = document.querySelector('.access-code-display');
+        if (accessCodeDiv) {
+            accessCodeDiv.style.cursor = 'pointer';
+            accessCodeDiv.title = 'Click to copy';
+            
+            accessCodeDiv.addEventListener('click', function() {
+                const textArea = document.createElement('textarea');
+                textArea.value = this.textContent.trim();
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // Show feedback
+                const originalText = this.textContent;
+                this.textContent = 'COPIED!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        }
+    });
+</script>
+{% endblock %} 

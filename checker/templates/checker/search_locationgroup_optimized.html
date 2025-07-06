@@ -1,0 +1,853 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+{% load user_tags %}
+
+{% block title %}Search Results - {{ query|default:"All Components" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Match the original template styling */
+    .results-list .result-item {
+        border-bottom: var(--bs-border-width) solid var(--bs-border-color-translucent);
+        padding: 15px 0;
+    }
+    
+    .results-list .result-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Company sidebar should have white background */
+    .list-group-item {
+        background-color: var(--bs-body-bg);
+    }
+    
+    /* Ensure main content area has no background */
+    .col-lg-9, .col-12 {
+        background-color: transparent !important;
+    }
+    
+    /* View on Map button styling */
+    .map-view-btn {
+        background-color: #28a745;
+        border: none;
+        padding: 10px 24px;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+        letter-spacing: 0.3px;
+    }
+    
+    .map-view-btn:not(:disabled):hover {
+        background-color: #218838;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+    
+    .map-view-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .map-view-btn i {
+        font-size: 1.1em;
+    }
+    
+    /* Fix dropdown scrolling for search pages - EXACT COPY FROM WORKING SEARCH-MAP */
+    .dropdown-menu {
+        max-height: 320px !important;
+        overflow-y: scroll !important;
+        overflow-x: hidden !important;
+        /* Ensure proper scrolling on all devices */
+        -webkit-overflow-scrolling: touch !important;
+        /* Prevent parent scrolling */
+        overscroll-behavior: contain !important;
+        /* Force dropdown to escape parent overflow constraints */
+        position: fixed !important;
+        z-index: 9999 !important;
+        /* Custom scrollbar styling for WebKit browsers */
+        scrollbar-width: thin;
+        scrollbar-color: #6c757d transparent;
+    }
+
+    .dropdown-menu::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .dropdown-menu::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .dropdown-menu::-webkit-scrollbar-thumb {
+        background-color: #6c757d;
+        border-radius: 4px;
+        opacity: 0.7;
+    }
+
+    .dropdown-menu::-webkit-scrollbar-thumb:hover {
+        background-color: #495057;
+    }
+
+    /* Ensure dropdown items don't break scrolling */
+    .dropdown-menu .dropdown-item {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block body_class %}search-page has-universal-navbar{% endblock %}
+
+{% block page_header %}
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+<!-- Welcome Notice for New Users -->
+{% include 'checker/includes/welcome_notice.html' %}
+{% endblock %}
+
+{% block content %}
+<!-- Apply semi-transparent grey background to container like original -->
+<style>
+    body.search-page .container {
+        background-color: rgba(var(--bs-body-bg-rgb), 0.92) !important;
+        padding: 30px !important;
+        border-radius: 8px !important;
+    }
+</style>
+
+<!-- Related Companies Section (Collapsible) -->
+{% if company_links %}
+<div class="related-companies-section mb-4">
+    <style>
+        .related-companies-section {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .companies-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .companies-header:hover {
+            opacity: 0.8;
+        }
+        
+        .companies-header h4 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .companies-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .company-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .company-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Style all links within company items as blue */
+        .company-item a {
+            color: #0066cc !important;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .company-item a:hover {
+            color: #0052a3 !important;
+            text-decoration: underline;
+        }
+        
+        /* Style the component count text */
+        .company-item .text-muted {
+            color: var(--bs-secondary) !important;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
+        .show-more-btn {
+            margin-top: 10px;
+            padding: 5px 15px;
+            font-size: 0.9rem;
+            background: none;
+            border: 1px solid #0066cc;
+            color: #0066cc;
+        }
+        
+        .show-more-btn:hover {
+            background-color: rgba(0, 102, 204, 0.1);
+        }
+    </style>
+    
+    <div class="companies-header" data-bs-toggle="collapse" data-bs-target="#companiesCollapse" aria-expanded="true" aria-controls="companiesCollapse">
+        <h4>
+            <i class="bi bi-building me-2"></i>
+            Related Companies ({{ company_links|length }})
+        </h4>
+        <i class="bi bi-chevron-down collapse-icon" id="collapseIcon"></i>
+    </div>
+    
+    <div class="collapse show" id="companiesCollapse">
+        <ul class="companies-list">
+            {% for link in company_links|slice:":3" %}
+                <li class="company-item">{{ link.html|safe }}</li>
+            {% endfor %}
+            
+            {% if company_links|length > 3 %}
+                <div id="moreCompanies" style="display: none;">
+                    {% for link in company_links|slice:"3:" %}
+                        <li class="company-item">{{ link.html|safe }}</li>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </ul>
+        
+        {% if company_links|length > 3 %}
+            <button class="btn show-more-btn" onclick="toggleCompanies()">
+                <span id="showMoreText">Show {{ company_links|length|add:"-3" }} more</span>
+                <span id="showLessText" style="display: none;">Show less</span>
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Handle collapse icon rotation
+    document.getElementById('companiesCollapse').addEventListener('show.bs.collapse', function () {
+        document.getElementById('collapseIcon').classList.remove('collapsed');
+    });
+    
+    document.getElementById('companiesCollapse').addEventListener('hide.bs.collapse', function () {
+        document.getElementById('collapseIcon').classList.add('collapsed');
+    });
+    
+    // Handle show more/less companies
+    function toggleCompanies() {
+        const moreCompanies = document.getElementById('moreCompanies');
+        const showMoreText = document.getElementById('showMoreText');
+        const showLessText = document.getElementById('showLessText');
+        
+        if (moreCompanies.style.display === 'none') {
+            moreCompanies.style.display = 'block';
+            showMoreText.style.display = 'none';
+            showLessText.style.display = 'inline';
+        } else {
+            moreCompanies.style.display = 'none';
+            showMoreText.style.display = 'inline';
+            showLessText.style.display = 'none';
+        }
+    }
+</script>
+{% endif %}
+
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-12">
+        <!-- Search Header -->
+            <div class="mb-4">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h2>
+                                {% if query %}
+                                    Search Results for "{{ query }}"
+                                {% else %}
+                                    All Locations
+                                {% endif %}
+                            </h2>
+                            <div class="text-muted">
+                                {{ total_locations }} unique locations ({{ total_components }} components)
+                            </div>
+                        </div>
+                        <div>
+                            {% if user|can_access_maps %}
+                                <a href="{% url 'search_map_view' %}?q={{ query|urlencode }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if auction_filter %}&auction={{ auction_filter|urlencode }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" 
+                                   class="btn btn-success map-view-btn" 
+                                   title="View these search results on an interactive map with technology and auction filters">
+                                    <i class="bi bi-map-fill me-2"></i><span class="btn-text">Map View</span>
+                                </a>
+                            {% else %}
+                                <span class="btn btn-secondary map-view-btn disabled"
+                                      title="Map access requires full paid access. Trial users can access lists only.">
+                                    <i class="bi bi-lock-fill me-2"></i><span class="btn-text">Map View</span>
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Enhanced Filter Bar with Technology and Company Filters -->
+                <div class="filter-bar mb-3">
+                    <!-- Mobile: Collapsible Filter Section -->
+                    <div class="d-md-none mb-3">
+                        <button class="btn btn-outline-primary btn-sm w-100" type="button" data-bs-toggle="collapse" data-bs-target="#mobileFilters">
+                            <i class="bi bi-funnel me-2"></i>Filters & Sorting
+                        </button>
+                    </div>
+                    
+                    <!-- Desktop: Single line filters that wrap dynamically -->
+                    <div class="d-none d-md-block">
+                        <div class="d-flex gap-3 align-items-center flex-wrap">
+                            <!-- Status Filter Dropdown -->
+                            <div class="dropdown">
+                                <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-1" 
+                                        type="button" data-bs-toggle="dropdown" 
+                                        style="border: none; background: none; color: {% if status_filter == 'all' %}#0066cc{% elif status_filter == 'active' %}#28a745{% else %}#6c757d{% endif %};">
+                                    {% if status_filter == 'all' %}
+                                        <i class="bi bi-filter-circle-fill" style="font-size: 1.1rem;"></i>
+                                        <span>All</span>
+                                    {% elif status_filter == 'active' %}
+                                        <i class="bi bi-check-circle-fill" style="font-size: 1.1rem;"></i>
+                                        <span>Active</span>
+                                    {% else %}
+                                        <i class="bi bi-x-circle-fill" style="font-size: 1.1rem;"></i>
+                                        <span>Inactive</span>
+                                    {% endif %}
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item{% if status_filter == 'all' %} active{% endif %}" href="?q={{ query|urlencode }}&{% build_filter_params 'status' %}&status=all">
+                                        <i class="bi bi-filter-circle-fill me-2" style="color: #0066cc;"></i>All
+                                    </a></li>
+                                    <li><a class="dropdown-item{% if status_filter == 'active' %} active{% endif %}" href="?q={{ query|urlencode }}&{% build_filter_params 'status' %}&status=active">
+                                        <i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Active
+                                    </a></li>
+                                    <li><a class="dropdown-item{% if status_filter == 'inactive' %} active{% endif %}" href="?q={{ query|urlencode }}&{% build_filter_params 'status' %}&status=inactive">
+                                        <i class="bi bi-x-circle-fill me-2" style="color: #6c757d;"></i>Inactive
+                                    </a></li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Auction Year Filter -->
+                            <div class="dropdown">
+                                <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-1" 
+                                        type="button" id="auctionDropdown" data-bs-toggle="dropdown" 
+                                        style="border: none; background: none; color: #0066cc;">
+                                    <i class="bi bi-calendar3" style="font-size: 1.1rem;"></i>
+                                    <span>{% if auction_filter %}{{ auction_filter }}{% else %}All Years{% endif %}</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'auction' %}">All Years</a></li>
+                                    {% for year in auction_years %}
+                                        <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'auction' %}&auction={{ year }}">{{ year }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            
+                            <!-- Technology Filter -->
+                            <div class="dropdown">
+                                <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-1" 
+                                        type="button" id="technologyDropdown" data-bs-toggle="dropdown" 
+                                        style="border: none; background: none; color: #0066cc;">
+                                    <i class="bi bi-lightning-charge" style="font-size: 1.1rem;"></i>
+                                    <span>{% if technology_filter %}{{ technology_filter }}{% else %}All Technologies{% endif %}</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'technology' %}">All Technologies</a></li>
+                                    {% for tech in technologies %}
+                                        <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'technology' %}&technology={{ tech }}">{{ tech }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            
+                            <!-- Company Filter -->
+                            <div class="dropdown">
+                                <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-1" 
+                                        type="button" id="companyDropdown" data-bs-toggle="dropdown" 
+                                        style="border: none; background: none; color: #0066cc;">
+                                    <i class="bi bi-building" style="font-size: 1.1rem;"></i>
+                                    <span>{% if company_filter %}{{ company_filter }}{% else %}All Companies{% endif %}</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'company' %}">All Companies</a></li>
+                                    {% for company in companies %}
+                                        <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'company' %}&company={{ company }}">{{ company }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            
+                            <!-- Sort by label and controls -->
+                            <span class="text-muted small">Sort by:</span>
+                            
+                            <a href="?q={{ query|urlencode }}&{% build_filter_params 'sort_by,sort_order' %}&sort_by=location&sort_order={% if sort_by == 'location' and sort_order == 'asc' %}desc{% else %}asc{% endif %}"
+                               class="text-decoration-none {% if sort_by == 'location' %}fw-bold{% endif %}"
+                               style="color: #0066cc;" title="Sort by location">
+                                A-Z{% if sort_by == 'location' %}<span style="font-size: 0.8em;">{% if sort_order == 'asc' %}↑{% else %}↓{% endif %}</span>{% endif %}
+                            </a>
+                            
+                            <a href="?q={{ query|urlencode }}&{% build_filter_params 'sort_by,sort_order' %}&sort_by=components&sort_order={% if sort_by == 'components' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                               class="text-decoration-none {% if sort_by == 'components' %}fw-bold{% endif %}"
+                               style="color: #0066cc;" title="Sort by components">
+                                Components{% if sort_by == 'components' %}<span style="font-size: 0.8em;">{% if sort_order == 'desc' %}↓{% else %}↑{% endif %}</span>{% endif %}
+                            </a>
+                            
+                            <a href="?q={{ query|urlencode }}&{% build_filter_params 'sort_by,sort_order' %}&sort_by=mw&sort_order={% if sort_by == 'mw' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                               class="text-decoration-none {% if sort_by == 'mw' %}fw-bold{% endif %}"
+                               style="color: #0066cc;" title="Sort by capacity">
+                                MW{% if sort_by == 'mw' %}<span style="font-size: 0.8em;">{% if sort_order == 'desc' %}↓{% else %}↑{% endif %}</span>{% endif %}
+                            </a>
+                            
+                            <a href="?q={{ query|urlencode }}&{% build_filter_params 'sort_by,sort_order' %}&sort_by=date&sort_order={% if sort_by == 'date' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                               class="text-decoration-none {% if sort_by == 'date' %}fw-bold{% endif %}"
+                               style="color: #0066cc;" title="Sort by date">
+                                Date{% if sort_by == 'date' %}<span style="font-size: 0.8em;">{% if sort_order == 'desc' %}↓{% else %}↑{% endif %}</span>{% endif %}
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile: Collapsible Filters -->
+                    <div class="collapse d-md-none" id="mobileFilters">
+                        <div class="card card-body">
+                            <!-- Same filter content as desktop but stacked vertically -->
+                            <div class="d-flex flex-column gap-3">
+                                <!-- Status, Auction Year -->
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <!-- Status Filter Dropdown -->
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-1" 
+                                                type="button" data-bs-toggle="dropdown" 
+                                                style="border: 1px solid {% if status_filter == 'all' %}#0066cc{% elif status_filter == 'active' %}#28a745{% else %}#6c757d{% endif %}; color: {% if status_filter == 'all' %}#0066cc{% elif status_filter == 'active' %}#28a745{% else %}#6c757d{% endif %};">
+                                            {% if status_filter == 'all' %}
+                                                <i class="bi bi-filter-circle-fill" style="font-size: 1.1rem;"></i>
+                                                <span>All</span>
+                                            {% elif status_filter == 'active' %}
+                                                <i class="bi bi-check-circle-fill" style="font-size: 1.1rem;"></i>
+                                                <span>Active</span>
+                                            {% else %}
+                                                <i class="bi bi-x-circle-fill" style="font-size: 1.1rem;"></i>
+                                                <span>Inactive</span>
+                                            {% endif %}
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item{% if status_filter == 'all' %} active{% endif %}" href="?q={{ query|urlencode }}&{% build_filter_params 'status' %}&status=all">
+                                                <i class="bi bi-filter-circle-fill me-2" style="color: #0066cc;"></i>All
+                                            </a></li>
+                                            <li><a class="dropdown-item{% if status_filter == 'active' %} active{% endif %}" href="?q={{ query|urlencode }}&{% build_filter_params 'status' %}&status=active">
+                                                <i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Active
+                                            </a></li>
+                                            <li><a class="dropdown-item{% if status_filter == 'inactive' %} active{% endif %}" href="?q={{ query|urlencode }}&{% build_filter_params 'status' %}&status=inactive">
+                                                <i class="bi bi-x-circle-fill me-2" style="color: #6c757d;"></i>Inactive
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            {% if auction_filter %}{{ auction_filter }}{% else %}All Years{% endif %}
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'auction' %}">All Years</a></li>
+                                            {% for year in auction_years %}
+                                                <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'auction' %}&auction={{ year }}">{{ year }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <!-- Technology, Company -->
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            {% if technology_filter %}{{ technology_filter }}{% else %}All Technologies{% endif %}
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'technology' %}">All Technologies</a></li>
+                                            {% for tech in technologies %}
+                                                <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'technology' %}&technology={{ tech }}">{{ tech }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            {% if company_filter %}{{ company_filter }}{% else %}All Companies{% endif %}
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'company' %}">All Companies</a></li>
+                                            {% for company in companies %}
+                                                <li><a class="dropdown-item" href="?q={{ query|urlencode }}&{% build_filter_params 'company' %}&company={{ company }}">{{ company }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <!-- Sort Options -->
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <small class="text-muted align-self-center">Sort:</small>
+                                    <a href="?q={{ query|urlencode }}&{% build_filter_params 'sort_by,sort_order' %}&sort_by=location&sort_order=asc" class="btn btn-outline-secondary btn-sm">A-Z</a>
+                                    <a href="?q={{ query|urlencode }}&{% build_filter_params 'sort_by,sort_order' %}&sort_by=components&sort_order=desc" class="btn btn-outline-secondary btn-sm">Components</a>
+                                    <a href="?q={{ query|urlencode }}&{% build_filter_params 'sort_by,sort_order' %}&sort_by=mw&sort_order=desc" class="btn btn-outline-secondary btn-sm">MW</a>
+                                    <a href="?q={{ query|urlencode }}&{% build_filter_params 'sort_by,sort_order' %}&sort_by=date&sort_order=desc" class="btn btn-outline-secondary btn-sm">Date</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Per Page Selector -->
+                <div class="d-flex justify-content-end">
+                    <form method="get" class="d-flex align-items-center">
+                        <input type="hidden" name="q" value="{{ query }}">
+                        <input type="hidden" name="sort_by" value="{{ sort_by }}">
+                        <input type="hidden" name="sort_order" value="{{ sort_order }}">
+                        <input type="hidden" name="per_page" value="25">
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results -->
+            {% if page_obj.object_list %}
+                <div class="results-list">
+                    {% for location_group in page_obj.object_list %}
+                        <div class="result-item mb-3 border-bottom pb-3">
+                            <h5>
+                                <a href="{% url 'location_detail' location_group.id %}" class="text-decoration-none">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>
+                                    <span title="Click to view details for this location">{{ location_group.location }}</span>
+                                </a>
+                                <span class="text-muted ms-2">({{ location_group.component_count }} components)</span>
+                            </h5>
+
+                            <!-- Descriptions (unique with counts) -->
+                            {% if location_group.descriptions %}
+                                {% with unique_descriptions=location_group.descriptions|unique_with_counts %}
+                                    {% if unique_descriptions %}
+                                        {% if unique_descriptions|length == 1 %}
+                                            <!-- Single unique description -->
+                                            {% with first_desc=unique_descriptions.0 %}
+                                                <p class="mb-1">
+                                                    {{ first_desc.0|truncatewords:30 }}
+                                                    {% if first_desc.1 > 1 %}
+                                                        <span class="text-muted">({{ first_desc.1 }})</span>
+                                                    {% endif %}
+                                                </p>
+                                            {% endwith %}
+                                        {% else %}
+                                            <!-- Multiple unique descriptions - show as list -->
+                                            <ul class="list-unstyled mb-1">
+                                                {% for desc, count in unique_descriptions|slice:":3" %}
+                                                    <li class="text-muted">
+                                                        • {{ desc|truncatewords:20 }}
+                                                        {% if count > 1 %}
+                                                            ({{ count }})
+                                                        {% endif %}
+                                                    </li>
+                                                {% endfor %}
+                                                {% if unique_descriptions|length > 3 %}
+                                                    <li class="text-muted">
+                                                        • ... and {{ unique_descriptions|length|add:"-3" }} more unique descriptions
+                                                    </li>
+                                                {% endif %}
+                                            </ul>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="mb-1">No description available.</p>
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                <p class="mb-1">No description available.</p>
+                            {% endif %}
+
+                            <div>
+                                <!-- Primary Company Badge -->
+                                {% if location_group.companies %}
+                                    {% for company, count in location_group.companies.items %}
+                                        {% if forloop.first %}
+                                            <a href="{% url 'company_detail_map' company_name=company %}" class="text-decoration-none">
+                                                <span class="badge bg-warning text-dark me-1" title="Click to view all components for {{ company }}">{{ company }}</span>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+
+                                <!-- Primary Technology Badge -->
+                                {% if location_group.technologies %}
+                                    {% for tech, count in location_group.technologies.items %}
+                                        {% if forloop.first %}
+                                            <a href="{% url 'technology_detail_map' technology_name=tech %}" class="text-decoration-none">
+                                                <span class="badge me-1" style="background-color: {{ tech|technology_color }}; color: white;" title="Click to view all {{ tech }} components">{{ tech }}</span>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Capacity on separate line in bold -->
+                            {% if location_group.normalized_capacity_mw %}
+                                <div class="mt-2">
+                                    <strong>{{ location_group.normalized_capacity_mw|floatformat:1 }} MW</strong>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Active/Inactive status and auction years -->
+                            {% if location_group.auction_years %}
+                                <div class="mt-1">
+                                    <em class="text-muted">
+                                        {% if location_group.auction_years|is_active_year %}
+                                            Active - 
+                                        {% else %}
+                                            Inactive - 
+                                        {% endif %}
+                                        
+                                        {% for year in location_group.auction_years|slice:":2" %}
+                                            {{ year|shorten_auction_name }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if location_group.auction_years|length > 2 %}
+                                            (and {{ location_group.auction_years|length|add:"-2" }} more)
+                                        {% endif %}
+                                    </em>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination Summary -->
+                <div class="text-center text-muted mb-3">
+                    Showing locations {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ total_locations }}
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.paginator.num_pages > 1 %}
+                    <nav aria-label="Search results pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query|urlencode }}&page=1&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Previous</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">First</span></li>
+                                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                            {% endif %}
+
+                            <!-- Always show first page -->
+                            {% if page_obj.number > 4 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query|urlencode }}&page=1&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">1</a>
+                                </li>
+                                {% if page_obj.number > 5 %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endif %}
+                            
+                            <!-- Pages around current -->
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if num == page_obj.number %}
+                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?q={{ query|urlencode }}&page={{ num }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <!-- Always show last page -->
+                            {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %}
+                                {% if page_obj.number < page_obj.paginator.num_pages|add:"-4" %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">{{ page_obj.paginator.num_pages }}</a>
+                                </li>
+                            {% endif %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Last</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">Next</span></li>
+                                <li class="page-item disabled"><span class="page-link">Last</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    No locations found matching your search criteria.
+                </div>
+                
+                <!-- Search Suggestions -->
+                {% if did_you_mean %}
+                    <p class="text-muted mt-3">
+                        Did you mean: <a href="?q={{ did_you_mean|urlencode }}" class="text-decoration-none"><em>{{ did_you_mean }}</em></a>?
+                    </p>
+                {% elif search_suggestions %}
+                    <p class="text-muted mt-3">
+                        Try searching for:
+                        {% for suggestion in search_suggestions %}
+                            <a href="?q={{ suggestion|urlencode }}" class="text-decoration-none"><em>{{ suggestion }}</em></a>{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                {% endif %}
+            {% endif %}
+            
+            <!-- Performance Metrics -->
+            <div class="mt-5 pt-3 border-top">
+                <div class="row">
+                    <div class="col-12">
+                        <h5 class="text-muted mb-3">Performance Metrics</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Total Load Time</h6>
+                                        <p class="card-text display-6">{{ api_time|floatformat:3 }}s</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Performance Breakdown</h6>
+                                        <table class="table table-sm mb-0">
+                                            <tbody>
+                                                <tr>
+                                                    <td>Company Search:</td>
+                                                    <td class="text-end">{{ timings.company_search|floatformat:3 }}s</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Location Search:</td>
+                                                    <td class="text-end">{{ timings.location_search|floatformat:3 }}s</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Pagination:</td>
+                                                    <td class="text-end">{{ timings.pagination|floatformat:3 }}s</td>
+                                                </tr>
+                                                {% if timings.component_count %}
+                                                <tr>
+                                                    <td>Component Count:</td>
+                                                    <td class="text-end">{{ timings.component_count|floatformat:3 }}s</td>
+                                                </tr>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-muted small">
+                            <p class="mb-1"><strong>Optimized Direct LocationGroup Rendering</strong></p>
+                            <p class="mb-0">This search uses direct database objects without dictionary conversion, resulting in ~90% faster load times compared to the standard search.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fix dropdown scrolling for search pages - EXACT COPY FROM WORKING SEARCH-MAP
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Search dropdown scroll fix loaded');
+    
+    // Find all dropdown menus
+    const allDropdowns = document.querySelectorAll('.dropdown-menu');
+    console.log('Found', allDropdowns.length, 'dropdown-menu elements');
+    
+    // DEBUG: Check actual applied styles
+    allDropdowns.forEach(function(dropdown, index) {
+        console.log('Dropdown', index, 'actual styles:');
+        console.log('  max-height:', window.getComputedStyle(dropdown).maxHeight);
+        console.log('  overflow-y:', window.getComputedStyle(dropdown).overflowY);
+        console.log('  position:', window.getComputedStyle(dropdown).position);
+        console.log('  z-index:', window.getComputedStyle(dropdown).zIndex);
+        console.log('  height:', window.getComputedStyle(dropdown).height);
+    });
+    
+    // Apply scroll event handling to all dropdown menus
+    allDropdowns.forEach(function(dropdown, index) {
+        console.log('Attaching scroll events to dropdown', index);
+        
+        dropdown.addEventListener('wheel', function(e) {
+            console.log('Wheel event on dropdown', index);
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            // Don't prevent default - let dropdown scroll naturally
+        }, { passive: true });
+        
+        dropdown.addEventListener('scroll', function(e) {
+            e.stopPropagation();
+        }, { passive: true });
+        
+        // Also handle mousewheel for older browsers
+        dropdown.addEventListener('mousewheel', function(e) {
+            console.log('Mousewheel event on dropdown', index);
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }, { passive: true });
+    });
+    
+    // Global capture to prevent any wheel events on dropdowns from reaching the page
+    document.addEventListener('wheel', function(e) {
+        if (e.target.closest('.dropdown-menu')) {
+            console.log('Global wheel capture - stopping propagation');
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }
+    }, { passive: true, capture: true });
+    
+    // FORCE APPLY STYLES when dropdowns are shown
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[data-bs-toggle="dropdown"]') || e.target.closest('[data-bs-toggle="dropdown"]')) {
+            console.log('Dropdown button clicked - will force styles');
+            setTimeout(function() {
+                const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+                console.log('Found', openDropdowns.length, 'open dropdowns');
+                
+                openDropdowns.forEach(function(dropdown, index) {
+                    console.log('BEFORE forcing styles on dropdown', index, ':');
+                    console.log('  Current max-height:', window.getComputedStyle(dropdown).maxHeight);
+                    console.log('  Current overflow-y:', window.getComputedStyle(dropdown).overflowY);
+                    console.log('  Current height:', dropdown.offsetHeight, 'px');
+                    
+                    // Force apply styles with high priority
+                    dropdown.style.setProperty('max-height', '320px', 'important');
+                    dropdown.style.setProperty('overflow-y', 'scroll', 'important');
+                    dropdown.style.setProperty('overflow-x', 'hidden', 'important');
+                    dropdown.style.setProperty('position', 'absolute', 'important');
+                    dropdown.style.setProperty('z-index', '1050', 'important');
+                    
+                    console.log('AFTER forcing styles on dropdown', index, ':');
+                    console.log('  New max-height:', window.getComputedStyle(dropdown).maxHeight);
+                    console.log('  New overflow-y:', window.getComputedStyle(dropdown).overflowY);
+                    console.log('  New height:', dropdown.offsetHeight, 'px');
+                });
+            }, 100); // Wait a bit for Bootstrap to finish opening
+        }
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "checker/base.html" %}
+{% load humanize %}
+
+{% block title %}{{ advert.type_display }} {{ advert.capacity_mw }}MW{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        <span class="badge bg-{% if advert.is_offer %}success{% else %}primary{% endif %} me-2">
+                            {{ advert.type_display }}
+                        </span>
+                        {{ advert.capacity_mw|floatformat:2 }}MW Capacity
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <h5>Capacity</h5>
+                            <p class="fs-4">{{ advert.capacity_display }}</p>
+                            {% if advert.capacity_flexible %}
+                                <small class="text-muted"><i class="bi bi-info-circle"></i> Negotiable/flexible</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Delivery Year</h5>
+                            <p class="fs-4">{{ advert.delivery_year }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Price</h5>
+                            <p class="fs-4">{{ advert.price_display }}/kW/year</p>
+                            {% if advert.price_estimate %}
+                                <small class="text-muted"><i class="bi bi-info-circle"></i> Indicative/estimate</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5>Description</h5>
+                    <p class="mb-4" style="white-space: pre-wrap;">{{ advert.description }}</p>
+                    
+                    <hr>
+                    
+                    {% if advert.show_email_publicly %}
+                        <div class="alert alert-primary">
+                            <h5 class="alert-heading">Contact Information</h5>
+                            <p class="mb-2"><i class="bi bi-envelope"></i> Email: <a href="mailto:{{ advert.contact_email }}">{{ advert.contact_email }}</a></p>
+                            <p class="mb-0 text-muted">Please mention the advert reference #{{ advert.pk }} in your email</p>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-primary">
+                            <h5 class="alert-heading">Contact Seller</h5>
+                            <p class="mb-3">Send a message to inquire about this listing.</p>
+                            
+                            <a href="{% url 'trades:send_message' advert.pk %}" class="btn btn-primary">
+                                <i class="bi bi-send"></i> Send Message
+                            </a>
+                            
+                            {% if not user.is_authenticated %}
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> 
+                                        <a href="{% url 'accounts:login' %}">Sign in</a> to auto-fill your email
+                                    </small>
+                                </div>
+                            {% endif %}
+                            
+                            <p class="mb-0 text-muted mt-2">Reference: #{{ advert.pk }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="row text-muted small">
+                        <div class="col-6">
+                            <i class="bi bi-calendar"></i> Posted: {{ advert.created_at|naturalday }}
+                        </div>
+                        <div class="col-6 text-end">
+                            <i class="bi bi-hourglass-split"></i> Expires: {{ advert.expires_at|naturalday }}
+                        </div>
+                    </div>
+                    
+                    {% if user == advert.user %}
+                        <hr>
+                        <div class="alert alert-info">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <i class="bi bi-person-check"></i> <strong>This is your advert</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {% if can_edit %}
+                                            You have {{ edits_remaining }} edit{{ edits_remaining|pluralize }} remaining
+                                        {% else %}
+                                            You have used all 3 edits for this period
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div>
+                                    {% if can_edit %}
+                                        <a href="{% url 'trades:edit' advert.pk %}" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-pencil"></i> Edit Advert
+                                        </a>
+                                    {% else %}
+                                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                                            <i class="bi bi-pencil"></i> No Edits Left
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if advert.days_until_expiry <= 7 and advert.days_until_expiry > 0 %}
+                                <div class="alert alert-warning mb-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-exclamation-triangle"></i> 
+                                            <strong>Expires in {{ advert.days_until_expiry }} day{{ advert.days_until_expiry|pluralize }}!</strong>
+                                            <br>
+                                            <small>Extend for £5 to get 30 more days + 3 new edits</small>
+                                        </div>
+                                        <div>
+                                            <a href="{% url 'trades:extend' advert.pk %}" class="btn btn-warning btn-sm">
+                                                <i class="bi bi-clock-history"></i> Extend (£5)
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% elif advert.days_until_expiry == 0 %}
+                                <div class="alert alert-danger mb-0">
+                                    <i class="bi bi-exclamation-circle"></i> 
+                                    <strong>Expires today!</strong> Extend now to keep your listing active.
+                                    <a href="{% url 'trades:extend' advert.pk %}" class="btn btn-danger btn-sm ms-2">
+                                        <i class="bi bi-clock-history"></i> Extend Now (£5)
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'trades:list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Listings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

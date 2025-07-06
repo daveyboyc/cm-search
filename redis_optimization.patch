@@ -1,0 +1,52 @@
+diff --git a/checker/management/commands/build_map_cache.py b/checker/management/commands/build_map_cache.py
+index c7cdb03..8768e04 100644
+--- a/checker/management/commands/build_map_cache.py
++++ b/checker/management/commands/build_map_cache.py
+@@ -61,7 +61,7 @@ class Command(BaseCommand):
+             'Solar', 
+             'Battery', 
+             'Nuclear', 
+-            'DSR', 
++            'DSR',  # Will exclude Octopus/Axle residential DSR
+             'Biomass', 
+             'Interconnector'
+         ]
+@@ -282,6 +282,16 @@ class Command(BaseCommand):
+             longitude__gte=viewport['west']
+         )
+         
++        # For DSR, exclude residential providers (Octopus and Axle) from caching
++        # These make up a large portion of DSR but are less critical for initial map views
++        if technology == 'DSR':
++            components = components.exclude(
++                company_name__in=['OCTOPUS ENERGY LIMITED', 'AXLE ENERGY LIMITED']
++            )
++            self.stdout.write(
++                f'Excluding residential DSR providers (Octopus, Axle) from cache to save memory'
++            )
++        
+         # Apply technology filter
+         if technology:
+             # Get all technologies that map to this simplified technology
+diff --git a/checker/services/map_cache.py b/checker/services/map_cache.py
+index 0022acd..bcd2aa5 100644
+--- a/checker/services/map_cache.py
++++ b/checker/services/map_cache.py
+@@ -18,11 +18,14 @@ logger = logging.getLogger(__name__)
+ 
+ # Constants for cache keys and expiration
+ MAP_DATA_KEY_PREFIX = "map_data:"
+-MAP_DATA_EXPIRATION = 60 * 60 * 24 * 7  # 7 days (in seconds)
++MAP_DATA_EXPIRATION = 60 * 60 * 24 * 2  # 2 days (reduced from 7 to save memory)
+ MAP_CLUSTER_KEY_PREFIX = "map_cluster:"
+-MAP_CLUSTER_EXPIRATION = 60 * 60 * 24 * 7  # 7 days
++MAP_CLUSTER_EXPIRATION = 60 * 60 * 24 * 2  # 2 days
+ MAP_DETAIL_KEY_PREFIX = "map_detail:"
+-MAP_DETAIL_EXPIRATION = 60 * 60 * 24 * 7  # 7 days
++MAP_DETAIL_EXPIRATION = 60 * 60 * 24 * 2  # 2 days
++
++# Residential DSR providers to exclude from caching
++RESIDENTIAL_DSR_PROVIDERS = ['OCTOPUS ENERGY LIMITED', 'AXLE ENERGY LIMITED']
+ 
+ 
+ def generate_map_cache_key(params: Dict[str, Any]) -> str:

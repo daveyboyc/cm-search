@@ -1,0 +1,321 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load checker_tags %}
+
+{% block title %}{{ cmu_name }} - CMR Capacity Auction Components{% endblock %}
+
+{% block body_class %}has-universal-navbar{% endblock %}
+
+{% block page_header %}
+<!-- Universal Navigation Bar -->
+{% include 'checker/includes/universal_navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-4">
+        <h2>CMU ID: {{ normalized_cmu_id }}</h2>
+        
+        <!-- CMU Registry Details if available -->
+        {% if cmu_data.Postcode or cmu_data.County or cmu_data.Connection_Capacity or cmu_data.Delivery_Body or cmu_data.Address %}
+        <div class="card mb-3" style="background-color: rgba(255, 255, 255, 0.9);">
+            <div class="card-body">
+                <div class="row">
+                    {% if cmu_data.Postcode %}
+                    <div class="col-md-3">
+                        <strong>Postcode:</strong> {{ cmu_data.Postcode }}
+                    </div>
+                    {% endif %}
+                    {% if cmu_data.County %}
+                    <div class="col-md-3">
+                        <strong>County:</strong> {{ cmu_data.County }}
+                    </div>
+                    {% endif %}
+                    {% if cmu_data.Connection_Capacity %}
+                    <div class="col-md-3">
+                        <strong>Connection Capacity:</strong> {{ cmu_data.Connection_Capacity }} MW
+                    </div>
+                    {% endif %}
+                    {% if cmu_data.Delivery_Body %}
+                    <div class="col-md-3">
+                        <strong>Delivery Body:</strong> {{ cmu_data.Delivery_Body }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% if cmu_data.Address %}
+                <div class="mt-2">
+                    <strong>Address:</strong> {{ cmu_data.Address }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="text-muted">
+            <span>{{ total_locations }} location{{ total_locations|pluralize }}</span>
+            <span class="mx-2">•</span>
+            <span>{{ total_components }} components</span>
+            <span class="mx-2">•</span>
+            <span>{{ total_companies }} companies</span>
+            <span class="mx-2">•</span>
+            <span>{{ total_technologies }} technologies</span>
+            <span class="mx-2">•</span>
+            <span>Page {{ page }} of {{ page_obj.paginator.num_pages }}</span>
+        </div>
+    </div>
+    
+    <!-- Filter and Sort Controls -->
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <!-- Filter Controls -->
+        <div class="d-flex gap-3 align-items-center">
+            <!-- Status Filter Toggle -->
+            {% if status_filter == 'all' %}
+                <a href="?status=active&sort_by={{ sort_by }}&sort_order={{ sort_order }}&per_page={{ per_page }}&auction={{ auction_filter }}" 
+                   class="text-decoration-none d-flex align-items-center gap-1" 
+                   title="Showing: All. Click to show Active only">
+                    <i class="bi bi-filter-circle-fill" style="color: #0066cc; font-size: 1.2rem;"></i>
+                    <span style="color: #0066cc;">All</span>
+                </a>
+            {% elif status_filter == 'active' %}
+                <a href="?status=inactive&sort_by={{ sort_by }}&sort_order={{ sort_order }}&per_page={{ per_page }}&auction={{ auction_filter }}" 
+                   class="text-decoration-none d-flex align-items-center gap-1" 
+                   title="Showing: Active only. Click to show Inactive only">
+                    <i class="bi bi-filter-circle-fill" style="color: #28a745; font-size: 1.2rem;"></i>
+                    <span style="color: #28a745;">Active</span>
+                </a>
+            {% else %}
+                <a href="?status=all&sort_by={{ sort_by }}&sort_order={{ sort_order }}&per_page={{ per_page }}&auction={{ auction_filter }}" 
+                   class="text-decoration-none d-flex align-items-center gap-1" 
+                   title="Showing: Inactive only. Click to show All">
+                    <i class="bi bi-filter-circle-fill" style="color: #6c757d; font-size: 1.2rem;"></i>
+                    <span style="color: #6c757d;">Inactive</span>
+                </a>
+            {% endif %}
+            
+            <!-- Auction Year Filter -->
+            <div class="dropdown">
+                <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-1" 
+                        type="button" id="auctionDropdown" data-bs-toggle="dropdown" 
+                        style="border: none; background: none; color: #0066cc;">
+                    <i class="bi bi-calendar3" style="font-size: 1.1rem;"></i>
+                    <span>{% if auction_filter %}{{ auction_filter }}{% else %}All Years{% endif %}</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="?auction=&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&per_page={{ per_page }}">All Years</a></li>
+                    {% for year in auction_years %}
+                        <li><a class="dropdown-item" href="?auction={{ year }}&status={{ status_filter }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&per_page={{ per_page }}">{{ year }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Sort Controls -->
+        <div class="d-flex gap-3 align-items-center">
+            <span class="text-muted small">Sort by:</span>
+            
+            <!-- A-Z Sort -->
+            <a href="?sort_by=location&sort_order={% if sort_by == 'location' and sort_order == 'asc' %}desc{% else %}asc{% endif %}&per_page={{ per_page }}&status={{ status_filter }}&auction={{ auction_filter }}"
+               class="text-decoration-none {% if sort_by == 'location' %}fw-bold{% endif %}"
+               style="color: #0066cc;"
+               title="Sort by location">
+                A-Z
+                {% if sort_by == 'location' %}
+                    <span style="font-size: 0.8em;">{% if sort_order == 'asc' %}↑{% else %}↓{% endif %}</span>
+                {% endif %}
+            </a>
+            
+            <!-- Components Sort -->
+            <a href="?sort_by=components&sort_order={% if sort_by == 'components' and sort_order == 'desc' %}asc{% else %}desc{% endif %}&per_page={{ per_page }}&status={{ status_filter }}&auction={{ auction_filter }}"
+               class="text-decoration-none {% if sort_by == 'components' %}fw-bold{% endif %}"
+               style="color: #0066cc;"
+               title="Sort by number of components">
+                Components
+                {% if sort_by == 'components' %}
+                    <span style="font-size: 0.8em;">{% if sort_order == 'desc' %}↓{% else %}↑{% endif %}</span>
+                {% endif %}
+            </a>
+            
+            <!-- MW Sort -->
+            <a href="?sort_by=capacity&sort_order={% if sort_by == 'capacity' and sort_order == 'desc' %}asc{% else %}desc{% endif %}&per_page={{ per_page }}&status={{ status_filter }}&auction={{ auction_filter }}"
+               class="text-decoration-none {% if sort_by == 'capacity' %}fw-bold{% endif %}"
+               style="color: #0066cc;"
+               title="Sort by capacity (MW)">
+                MW
+                {% if sort_by == 'capacity' %}
+                    <span style="font-size: 0.8em;">{% if sort_order == 'desc' %}↓{% else %}↑{% endif %}</span>
+                {% endif %}
+            </a>
+            
+            <!-- Date Sort -->
+            <a href="?sort_by=date&sort_order={% if sort_by == 'date' and sort_order == 'desc' %}asc{% else %}desc{% endif %}&per_page={{ per_page }}&status={{ status_filter }}&auction={{ auction_filter }}"
+               class="text-decoration-none {% if sort_by == 'date' %}fw-bold{% endif %}"
+               style="color: #0066cc;"
+               title="Sort by most recent auction year">
+                Date
+                {% if sort_by == 'date' %}
+                    <span style="font-size: 0.8em;">{% if sort_order == 'desc' %}↓{% else %}↑{% endif %}</span>
+                {% endif %}
+            </a>
+        </div>
+    </div>
+    
+    <!-- Results -->
+    {% if page_obj.object_list %}
+        <div class="results-list">
+            {% for location_group in page_obj.object_list %}
+                <div class="result-item mb-3 border-bottom pb-3">
+                    <h5>
+                        <a href="{% url 'location_detail' location_group.id %}" class="text-decoration-none">
+                            <i class="bi bi-geo-alt-fill me-1"></i>
+                            <span title="Click to view details for this location">{{ location_group.location }}</span>
+                        </a>
+                        <span class="text-muted ms-2">({{ location_group.component_count }} components)</span>
+                    </h5>
+
+                    <!-- Descriptions (unique with counts) -->
+                    {% if location_group.descriptions %}
+                        {% with unique_descriptions=location_group.descriptions|unique_with_counts %}
+                            {% if unique_descriptions %}
+                                {% if unique_descriptions|length == 1 %}
+                                    <!-- Single unique description -->
+                                    {% with first_desc=unique_descriptions.0 %}
+                                        <p class="mb-1">
+                                            {{ first_desc.0|truncatewords:30 }}
+                                            {% if first_desc.1 > 1 %}
+                                                <span class="text-muted">({{ first_desc.1 }})</span>
+                                            {% endif %}
+                                        </p>
+                                    {% endwith %}
+                                {% else %}
+                                    <!-- Multiple unique descriptions - show as list -->
+                                    <ul class="list-unstyled mb-1">
+                                        {% for desc, count in unique_descriptions|slice:":3" %}
+                                            <li class="text-muted">
+                                                • {{ desc|truncatewords:20 }}
+                                                {% if count > 1 %}
+                                                    ({{ count }})
+                                                {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                        {% if unique_descriptions|length > 3 %}
+                                            <li class="text-muted">
+                                                • ... and {{ unique_descriptions|length|add:"-3" }} more unique descriptions
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                {% endif %}
+                            {% else %}
+                                <p class="mb-1">No description available.</p>
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        <p class="mb-1">No description available.</p>
+                    {% endif %}
+
+                    <div>
+                        <!-- Company Badge -->
+                        {% if location_group.companies %}
+                            {% for company, count in location_group.companies.items %}
+                                {% if forloop.first %}
+                                    <a href="{% url 'company_detail_optimized' company_id=company|normalize %}" class="text-decoration-none">
+                                        <span class="badge bg-warning text-dark me-1">{{ company }}</span>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <!-- Technology Badges -->
+                        {% if location_group.technologies %}
+                            {% for tech, count in location_group.technologies.items %}
+                                <a href="{% url 'technology_detail_map' technology_name=tech %}" class="text-decoration-none">
+                                    <span class="badge me-1" style="background-color: {{ tech|technology_color }}; color: white;">{{ tech }}</span>
+                                </a>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Capacity on separate line in bold -->
+                    {% if location_group.normalized_capacity_mw %}
+                        <div class="mt-2">
+                            <strong>{{ location_group.normalized_capacity_mw|floatformat:1 }} MW</strong>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Active/Inactive status and auction years -->
+                    {% if location_group.auction_years %}
+                        <div class="mt-1">
+                            <em class="text-muted">
+                                {% if location_group.auction_years|last|is_active_year %}
+                                    Active - 
+                                {% else %}
+                                    Inactive - 
+                                {% endif %}
+                                
+                                {% for year in location_group.auction_years|sort_auction_years_desc|slice:":3" %}
+                                    {{ year|shorten_auction_name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                                
+                                {% if location_group.auction_years|length > 3 %}
+                                    (and {{ location_group.auction_years|length|add:"-3" }} more)
+                                {% endif %}
+                            </em>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Summary -->
+        <div class="text-center text-muted mb-3">
+            Showing locations {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ total_locations }}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.paginator.num_pages > 1 %}
+            <nav aria-label="Search results pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Previous</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">First</span></li>
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    {% endif %}
+
+                    <!-- Page numbers logic same as other templates -->
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if num >= page_obj.number|add:"-3" and num <= page_obj.number|add:"3" %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}">Last</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        <li class="page-item disabled"><span class="page-link">Last</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+        
+    {% else %}
+        <p>No locations found for this CMU.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,502 @@
+{% extends "checker/base.html" %}
+{% load static %}
+
+{% block title %}What is the UK Capacity Market? Complete FAQ Guide 2025{% endblock %}
+
+{% block meta_description %}Complete guide to the UK Capacity Market: What it is, how auctions work, who participates, and why it's essential for energy security. Updated 2025.{% endblock %}
+
+{% block og_title %}What is the UK Capacity Market? Complete FAQ Guide{% endblock %}
+{% block og_description %}Everything you need to know about the UK Capacity Market - from basics to auctions, participants, and payments. The definitive guide.{% endblock %}
+
+{% block body_class %}has-universal-navbar{% endblock %}
+
+{% block page_header %}
+{% include 'checker/includes/universal_navbar.html' %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.faq-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--bs-body-bg);
+    border-radius: 8px;
+    border: 1px solid var(--bs-border-color);
+}
+
+.faq-question {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--bs-primary);
+    margin-bottom: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: between;
+}
+
+.faq-answer {
+    line-height: 1.7;
+    color: var(--bs-body-color);
+}
+
+.quick-nav {
+    background: var(--bs-light);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.quick-nav h3 {
+    color: var(--bs-primary);
+    margin-bottom: 1rem;
+}
+
+.quick-nav ul {
+    columns: 2;
+    list-style: none;
+    padding: 0;
+}
+
+.quick-nav li {
+    margin-bottom: 0.5rem;
+    break-inside: avoid;
+}
+
+.quick-nav a {
+    text-decoration: none;
+    color: var(--bs-primary);
+    font-weight: 500;
+}
+
+.quick-nav a:hover {
+    text-decoration: underline;
+}
+
+.stats-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.timeline {
+    position: relative;
+    margin: 2rem 0;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 3rem;
+    margin-bottom: 2rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    background: var(--bs-primary);
+    border-radius: 50%;
+}
+
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 1.5rem;
+    width: 2px;
+    height: calc(100% + 1rem);
+    background: var(--bs-border-color);
+}
+
+.timeline-item:last-child::after {
+    display: none;
+}
+
+.timeline-date {
+    font-weight: bold;
+    color: var(--bs-primary);
+    margin-bottom: 0.5rem;
+}
+
+.highlight-box {
+    background: var(--bs-warning-bg-subtle);
+    border-left: 4px solid var(--bs-warning);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 4px 4px 0;
+}
+
+@media (max-width: 768px) {
+    .quick-nav ul {
+        columns: 1;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1>What is the UK Capacity Market?</h1>
+        <p class="lead">The complete guide to understanding Britain's energy security mechanism</p>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="quick-nav">
+        <h3>Quick Navigation</h3>
+        <ul>
+            <li><a href="#basics">Capacity Market Basics</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#auctions">Capacity Auctions</a></li>
+            <li><a href="#participants">Who Participates</a></li>
+            <li><a href="#payments">Payments & Revenue</a></li>
+            <li><a href="#timeline">Key Timeline</a></li>
+            <li><a href="#benefits">Benefits & Criticism</a></li>
+            <li><a href="#future">Future Outlook</a></li>
+        </ul>
+    </div>
+
+    <!-- Key Statistics -->
+    <div class="stats-box">
+        <h3 class="text-center mb-3">UK Capacity Market at a Glance</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-number">49GW</span>
+                <span class="stat-label">Total Secured Capacity</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">1,500+</span>
+                <span class="stat-label">Participating Companies</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">£2.5bn</span>
+                <span class="stat-label">Annual Market Value</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">2014</span>
+                <span class="stat-label">Market Launch Year</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1: Basics -->
+    <div id="basics" class="faq-section">
+        <h2 class="faq-question">🔋 What is the Capacity Market?</h2>
+        <div class="faq-answer">
+            <p>The <strong>UK Capacity Market</strong> is a government scheme designed to ensure Britain has enough electricity generation capacity to meet demand, especially during peak periods. Think of it as an insurance policy for the power grid.</p>
+            
+            <p>The market works by paying power generators, energy storage providers, and demand-side response providers to be available when needed, even if they're not actually generating electricity at the time.</p>
+
+            <div class="highlight-box">
+                <strong>Simple Explanation:</strong> The Capacity Market pays power stations to be "on standby" - ready to generate electricity when demand is high or when renewables aren't producing enough power.
+            </div>
+
+            <h4>Why Does It Exist?</h4>
+            <ul>
+                <li><strong>Energy Security:</strong> Guarantees power supply during peak demand</li>
+                <li><strong>Grid Stability:</strong> Maintains reliable electricity supply as renewables increase</li>
+                <li><strong>Economic Efficiency:</strong> Provides revenue certainty for power generators</li>
+                <li><strong>Consumer Protection:</strong> Prevents blackouts and price spikes</li>
+            </ul>
+
+            <p>See our complete database of <a href="{% url 'search_map_view' %}">capacity market participants</a> and <a href="{% url 'technology_list' %}">technologies</a>.</p>
+        </div>
+    </div>
+
+    <!-- Section 2: How It Works -->
+    <div id="how-it-works" class="faq-section">
+        <h2 class="faq-question">⚡ How Does the Capacity Market Work?</h2>
+        <div class="faq-answer">
+            <p>The Capacity Market operates through a competitive auction system where electricity generators and other capacity providers bid to provide capacity in future years.</p>
+
+            <h4>The Process:</h4>
+            <ol>
+                <li><strong>Capacity Assessment:</strong> National Energy System Operator (NESO) calculates how much capacity Britain needs</li>
+                <li><strong>Auction:</strong> Companies bid to provide capacity at specific prices</li>
+                <li><strong>Selection:</strong> Lowest-cost bids win capacity agreements</li>
+                <li><strong>Delivery:</strong> Providers must be available during "stress events"</li>
+                <li><strong>Payment:</strong> Annual payments for being available, plus penalties for non-delivery</li>
+            </ol>
+
+            <h4>Types of Capacity Agreements:</h4>
+            <ul>
+                <li><strong>New Build (15 years):</strong> For new power stations requiring long-term revenue certainty</li>
+                <li><strong>Refurbishing (3 years):</strong> For existing plants being upgraded</li>
+                <li><strong>Existing Plant (1 year):</strong> For operational facilities</li>
+            </ul>
+
+            <p>Browse <a href="{% url 'company_list_optimized' %}">participating companies</a> to see who's involved in capacity provision.</p>
+        </div>
+    </div>
+
+    <!-- Section 3: Auctions -->
+    <div id="auctions" class="faq-section">
+        <h2 class="faq-question">🏆 How Do Capacity Auctions Work?</h2>
+        <div class="faq-answer">
+            <p>Capacity auctions are annual competitive bidding processes where the government secures electricity capacity for future delivery years.</p>
+
+            <h4>Auction Types:</h4>
+            <ul>
+                <li><strong>Main Auction (T-4):</strong> Held 4 years before delivery, secures most capacity</li>
+                <li><strong>Transitional Auction (T-1):</strong> Held 1 year before delivery, fills remaining gaps</li>
+                <li><strong>Supplementary Auctions:</strong> Additional capacity if needed</li>
+            </ul>
+
+            <h4>Bidding Process:</h4>
+            <ol>
+                <li><strong>Pre-qualification:</strong> Providers must prove they can deliver capacity</li>
+                <li><strong>Bid Submission:</strong> Companies submit price and quantity bids</li>
+                <li><strong>Price Discovery:</strong> Auction clears at the marginal price</li>
+                <li><strong>Capacity Agreements:</strong> Successful bidders sign 15-year, 3-year, or 1-year contracts</li>
+            </ol>
+
+            <div class="highlight-box">
+                <strong>Recent Results:</strong> The 2024 T-4 auction cleared at £63/kW/year, securing 46.4GW of capacity for delivery in 2028-29.
+            </div>
+
+            <div class="highlight-box">
+                <strong>Secondary Trading:</strong> Capacity obligations can be <em>bought or sold</em> after the auction. Trading opens once agreements are issued and runs up to one working day before a potential stress event. This lets providers manage outages or new entrants acquire capacity. All trades are logged on the EMR portal and adjust monthly payments & penalty caps for both parties. <a href="{% url 'secondary_trading_guide' %}">Learn more about secondary trading →</a>
+            </div>
+
+            <p>Explore auction results by <a href="{% url 'technology_detail_map' technology_name='Gas' %}">technology type</a> or <a href="{% url 'search_map_view' %}?auction=2024">auction year</a>.</p>
+        </div>
+    </div>
+
+    <!-- Section 4: Participants -->
+    <div id="participants" class="faq-section">
+        <h2 class="faq-question">🏭 Who Participates in the Capacity Market?</h2>
+        <div class="faq-answer">
+            <p>The Capacity Market includes a diverse range of participants, from large power stations to innovative storage and demand response providers.</p>
+
+            <h4>Technology Types:</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Generation Technologies:</h5>
+                    <ul>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Gas' %}">Gas Power Stations</a> (largest share)</li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Nuclear' %}">Nuclear Power Plants</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Coal' %}">Coal Power Stations</a> (phasing out)</li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Biomass' %}">Biomass Plants</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Hydro' %}">Hydroelectric Plants</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Diesel' %}">Diesel Peakers</a> (legacy only – strict emission limits)</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Flexibility Technologies:</h5>
+                    <ul>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Battery' %}">Battery Storage Systems</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='DSR' %}">Demand Side Response</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Pumped%20Hydro' %}">Pumped Storage Hydro</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Interconnector' %}">Interconnectors</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <h4>Major Participants:</h4>
+            <ul>
+                <li><strong>Utilities:</strong> <a href="{% url 'company_detail_map' company_name='EDF ENERGY RENEWABLES LIMITED' %}">EDF Energy</a>, <a href="{% url 'company_detail_map' company_name='SSE ENERGY SUPPLY LIMITED' %}">SSE</a>, <a href="{% url 'company_detail_map' company_name='CENTRICA BUSINESS SOLUTIONS UK OPTIMISATION LIMITED' %}">Centrica</a></li>
+                <li><strong>Independent Generators:</strong> <a href="{% url 'company_detail_map' company_name='DRAX PUMPED STORAGE LIMITED' %}">Drax</a>, <a href="{% url 'company_detail_map' company_name='E.ON UK PLC' %}">E.ON UK</a></li>
+                <li><strong>Storage & Renewables:</strong> <a href="{% url 'company_detail_map' company_name='RWE RENEWABLES UK SOLAR AND STORAGE LIMITED' %}">RWE Renewables UK</a></li>
+            </ul>
+
+            <p>View all <a href="{% url 'company_list_optimized' %}">participating companies</a> and their capacity portfolios.</p>
+        </div>
+    </div>
+
+    <!-- Section 5: Payments -->
+    <div id="payments" class="faq-section">
+        <h2 class="faq-question">💰 How Are Capacity Payments Calculated?</h2>
+        <div class="faq-answer">
+            <p>Capacity payments are made to providers for being available to generate electricity when called upon by the system operator.</p>
+
+            <h4>Payment Structure:</h4>
+            <ul>
+                <li><strong>Annual Availability Payment:</strong> Fixed payment per kW of capacity per year</li>
+                <li><strong>Stress Event Performance:</strong> Must deliver when called upon</li>
+                <li><strong>Penalties:</strong> Charges for non-delivery during stress events</li>
+                <li><strong>Termination Fees:</strong> Penalties for early withdrawal</li>
+            </ul>
+
+            <div class="highlight-box">
+                <strong>Example:</strong> A 100MW gas plant winning at £63/kW/year would receive £6.3 million annually for being available, regardless of how much electricity it actually generates.
+            </div>
+
+            <h4>Payment Timeline:</h4>
+            <ul>
+                <li><strong>Monthly Payments:</strong> 1/12th of annual capacity payment</li>
+                <li><strong>Stress Event Payments:</strong> Additional payments when delivering during system stress</li>
+                <li><strong>Annual Reconciliation:</strong> Adjustment for actual performance</li>
+            </ul>
+
+            <p>The total cost is ultimately passed to consumers through electricity bills, representing about £25-30 per household per year.</p>
+        </div>
+    </div>
+
+    <!-- Section 6: Timeline -->
+    <div id="timeline" class="faq-section">
+        <h2 class="faq-question">📅 Key Capacity Market Timeline</h2>
+        <div class="faq-answer">
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">2013</div>
+                    <p>Electricity Market Reform introduces Capacity Market concept</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2014</div>
+                    <p>First capacity auction held, securing 49.3GW for 2018-19</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2018</div>
+                    <p>European Court ruling temporarily suspends the scheme</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2019</div>
+                    <p>Capacity Market relaunched with EU state aid approval</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2021</div>
+                    <p>Demand Side Response and storage become major participants</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2024</div>
+                    <p>Latest auction secures 46.4GW for 2028-29 delivery</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2025+</div>
+                    <p>Ongoing market evolution with increasing battery storage participation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 7: Benefits -->
+    <div id="benefits" class="faq-section">
+        <h2 class="faq-question">✅ Benefits and Criticisms</h2>
+        <div class="faq-answer">
+            <h4>Benefits:</h4>
+            <ul>
+                <li><strong>Energy Security:</strong> Guarantees adequate capacity to meet peak demand</li>
+                <li><strong>Investment Certainty:</strong> Provides revenue certainty for new plant investment</li>
+                <li><strong>Technology Neutral:</strong> All technologies can compete on equal terms</li>
+                <li><strong>Consumer Value:</strong> Competitive auctions drive down costs</li>
+                <li><strong>Grid Flexibility:</strong> Incentivizes flexible technologies like storage and DSR</li>
+            </ul>
+
+            <h4>Criticisms:</h4>
+            <ul>
+                <li><strong>Consumer Cost:</strong> Adds £25-30 per household to electricity bills</li>
+                <li><strong>Market Distortion:</strong> Some argue it subsidizes fossil fuel plants</li>
+                <li><strong>Complexity:</strong> Complex rules and requirements</li>
+                <li><strong>Environmental Concerns:</strong> May delay coal plant closures</li>
+            </ul>
+
+            <div class="highlight-box">
+                <strong>Overall Assessment:</strong> Most experts agree the Capacity Market is essential for energy security, especially as more intermittent renewables join the grid.
+            </div>
+
+            <div class="highlight-box">
+                <strong>Reality Check – "Technology-neutral" with caveats:</strong> The auction rules themselves do not prefer any fuel, but separate carbon-intensity (≤ 550 g CO₂/kWh) and NOx limits under MCPD/IED effectively exclude new <em>unabated diesel</em> and other high-emission plant.
+            </div>
+
+            <div class="highlight-box">
+                <strong>Proven vs Unproven DSR:</strong> Most DSR bids as <em>Unproven</em> – it secures a contract first and must pass a 30-minute turn-down test at least one month before the Delivery Year. Passing converts it to <em>Proven</em>; failure reduces or cancels the obligation and triggers penalties.
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 8: Future -->
+    <div id="future" class="faq-section">
+        <h2 class="faq-question">🔮 Future of the Capacity Market</h2>
+        <div class="faq-answer">
+            <p>The Capacity Market continues to evolve as Britain's electricity system transitions to net zero.</p>
+
+            <h4>Key Trends:</h4>
+            <ul>
+                <li><strong>Growing <a href="{% url 'technology_detail_map' technology_name='Battery' %}">Battery Storage</a>:</strong> Rapid increase in battery participation</li>
+                <li><strong>Coal Phase-out:</strong> Final coal plants closing by 2025</li>
+                <li><strong>Gas Transition:</strong> Gas plants increasingly providing flexibility rather than baseload</li>
+                <li><strong>Demand Response Growth:</strong> More industrial and commercial demand participation</li>
+                <li><strong>Hydrogen Future:</strong> Potential role for hydrogen technologies post-2030</li>
+            </ul>
+
+            <h4>Upcoming Changes:</h4>
+            <ul>
+                <li><strong>Enhanced Frequency Response:</strong> New services for grid stability</li>
+                <li><strong>Locational Capacity:</strong> Possible future regional capacity requirements</li>
+                <li><strong>Net Zero Alignment:</strong> Ensuring the market supports decarbonization goals</li>
+            </ul>
+
+            <p>Stay updated with the latest capacity market developments by exploring our <a href="{% url 'search_map_view' %}">comprehensive database</a> of participants and technologies.</p>
+        </div>
+    </div>
+
+    <!-- Related Links -->
+    <div class="card mt-5">
+        <div class="card-header">
+            <h3>Explore the Capacity Market Database</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>By Technology</h5>
+                    <ul>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Gas' %}">Gas Power Stations</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='Battery' %}">Battery Storage</a></li>
+                        <li><a href="{% url 'technology_detail_map' technology_name='DSR' %}">Demand Side Response</a></li>
+                        <li><a href="{% url 'technology_list' %}">All Technologies →</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>By Company</h5>
+                    <ul>
+                        <li><a href="{% url 'company_detail_map' company_name='EDF ENERGY RENEWABLES LIMITED' %}">EDF Energy Renewables Limited</a></li>
+                        <li><a href="{% url 'company_detail_map' company_name='SSE ENERGY SUPPLY LIMITED' %}">SSE Energy Supply Limited</a></li>
+                        <li><a href="{% url 'company_detail_map' company_name='E.ON UK PLC' %}">E.ON UK PLC</a></li>
+                        <li><a href="{% url 'company_list_optimized' %}">All Companies →</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Additional Resources</h5>
+                    <ul>
+                        <li><a href="{% url 'capacity_market_guide' %}">Detailed Market Guide</a></li>
+                        <li><a href="{% url 'secondary_trading_guide' %}">Secondary Trading Guide</a></li>
+                        <li><a href="{% url 'battery_storage_guide' %}">Battery Storage Guide</a></li>
+                        <li><a href="{% url 'search_map_view' %}">Search All Components</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

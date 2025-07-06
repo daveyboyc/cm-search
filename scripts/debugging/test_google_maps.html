@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Maps API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+            border: 2px solid #ccc;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .error {
+            background: #ffcccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            color: #cc0000;
+        }
+        .success {
+            background: #ccffcc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            color: #008800;
+        }
+    </style>
+</head>
+<body>
+    <h1>Google Maps API Test</h1>
+    
+    <div class="info">
+        <strong>API Key:</strong> {{ google_maps_api_key|slice:":10" }}...{{ google_maps_api_key|slice:"-5:" }}
+    </div>
+    
+    <div id="status" class="info">
+        Loading Google Maps...
+    </div>
+    
+    <div id="map"></div>
+    
+    <h2>Troubleshooting Steps:</h2>
+    <ol>
+        <li><strong>Check Console:</strong> Press F12 to open developer console and check for errors</li>
+        <li><strong>Verify API Key:</strong> 
+            <ul>
+                <li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a></li>
+                <li>Make sure Maps JavaScript API is enabled</li>
+                <li>Check if your API key has any restrictions</li>
+            </ul>
+        </li>
+        <li><strong>Enable Billing:</strong> Google Maps requires a billing account even for the free tier</li>
+        <li><strong>API Key Restrictions:</strong> If restricted, add <code>localhost:8000/*</code> to allowed referrers</li>
+    </ol>
+    
+    <script>
+        let map;
+        
+        function initMap() {
+            console.log('initMap called successfully');
+            document.getElementById('status').className = 'success';
+            document.getElementById('status').innerHTML = '✓ Google Maps loaded successfully!';
+            
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 51.5074, lng: -0.1278 },
+                zoom: 10
+            });
+            
+            // Add a marker
+            new google.maps.Marker({
+                position: { lat: 51.5074, lng: -0.1278 },
+                map: map,
+                title: 'London'
+            });
+        }
+        
+        function handleError() {
+            console.error('Google Maps failed to load');
+            document.getElementById('status').className = 'error';
+            document.getElementById('status').innerHTML = '✗ Google Maps failed to load - check console for errors';
+        }
+        
+        // Add error handling
+        window.gm_authFailure = function() {
+            handleError();
+            document.getElementById('status').innerHTML += '<br>Authentication failed - check your API key';
+        };
+    </script>
+    
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap"
+        onerror="handleError()">
+    </script>
+</body>
+</html>

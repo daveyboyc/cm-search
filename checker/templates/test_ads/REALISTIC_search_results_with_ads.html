@@ -1,0 +1,544 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-GB" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The easiest way to explore Capacity Market auctions — no fuss, just results.">
+    <title>Search Results | Capacity Market Search</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        /* Base styles from your actual template */
+        html[data-bs-theme="light"] {
+            --bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-opacity='0.03'%3E%3Cpolygon fill='%23000' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        html[data-bs-theme="dark"] {
+            --bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-opacity='0.1'%3E%3Cpolygon fill='%23fff' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-image: var(--bg-image);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            background-color: rgba(var(--bs-body-bg-rgb), 0.92);
+            padding: 30px;
+            border-radius: 8px;
+            flex-grow: 1;
+            width: 95%;
+            color: var(--bs-body-color);
+            margin-top: 70px !important;
+        }
+
+        /* Universal navbar styles */
+        .universal-navbar {
+            background-color: rgba(255, 255, 255, 0.98) !important;
+        }
+
+        /* Your exact component record styles */
+        .component-record {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            margin-bottom: 1.5rem;
+        }
+
+        .sort-controls {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        .sort-controls a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #0d6efd;
+        }
+        .sort-controls .active-sort {
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* REALISTIC AD STYLES - Exactly like search results */
+        
+        /* AD RESULT CARD - looks exactly like a search result */
+        .ad-result-card {
+            background: #fff5e6; /* Very subtle yellow tint */
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #ff9500; /* Orange left border to indicate ad */
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .ad-result-card::before {
+            content: "Sponsored";
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+
+        .ad-result-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a73e8; /* Google Ad blue */
+            margin-bottom: 5px;
+            text-decoration: none;
+        }
+
+        .ad-result-title:hover {
+            text-decoration: underline;
+            color: #1557b0;
+        }
+
+        .ad-result-company {
+            color: #1a73e8;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            text-decoration: none;
+        }
+
+        .ad-result-details {
+            font-size: 0.9rem;
+            color: #333;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .ad-cta-button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .ad-cta-button:hover {
+            background: #1557b0;
+            color: white;
+            text-decoration: none;
+        }
+
+        /* User status indicator */
+        .user-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        /* Regular result card styling (unchanged) */
+        .result-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .result-company {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .result-details {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .badge-container {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .capacity-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .tech-badge {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .auction-badge {
+            background: #ffc107;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px auto;
+                padding: 15px;
+                width: 98%;
+                margin-top: 85px !important;
+            }
+        }
+    </style>
+</head>
+<body class="has-universal-navbar">
+    <!-- User Status Indicator -->
+    <div class="user-status">
+        NON-SUBSCRIBER - Ads Visible
+    </div>
+
+    <!-- Universal Navigation Bar -->
+    <nav class="navbar navbar-light shadow-sm universal-navbar" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1100;">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center w-100">
+                <a class="navbar-brand d-none d-md-flex" href="/">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='12' fill='%234285f4'/%3E%3Ctext x='15' y='20' text-anchor='middle' fill='white' font-family='Arial' font-size='10' font-weight='bold'%3E⚡%3C/text%3E%3C/svg%3E" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+                    Capacity Market Search
+                </a>
+                
+                <form class="d-flex flex-grow-1 me-3 search-form" method="get" action="#">
+                    <div class="input-group">
+                        <span class="input-group-text d-md-none" style="border-right: none; border-radius: 20px 0 0 20px; background: white; padding: 0.375rem 0.5rem;">
+                            <a href="/" class="text-decoration-none">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%234285f4'/%3E%3Ctext x='12' y='16' text-anchor='middle' fill='white' font-family='Arial' font-size='8' font-weight='bold'%3E⚡%3C/text%3E%3C/svg%3E" alt="Logo" width="24" height="24">
+                            </a>
+                        </span>
+                        <input class="form-control search-input" 
+                               type="search" 
+                               name="q" 
+                               placeholder="Search locations, companies, technologies..." 
+                               value="battery"
+                               style="border-right: none;">
+                        <button class="btn btn-primary search-button" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <button class="navbar-toggler ms-auto" type="button">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="results-meta mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Search Results for "battery"</h3>
+                <span class="badge bg-info text-dark">Live Results</span>
+            </div>
+            <p class="text-muted">Found 47 components • API response time: 0.23s</p>
+        </div>
+
+        <!-- ACTUAL SEARCH RESULT #1 -->
+        <div class="result-card component-record" style="opacity: 1;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="result-title">
+                        <a href="#" class="text-decoration-none">
+                            <strong>T_DRAX-BAT-1</strong>
+                        </a>
+                    </h5>
+                    <h6 class="result-company">Drax Group plc</h6>
+                    <p class="result-details">
+                        <a href="#" class="text-decoration-none">
+                            <i class="bi bi-geo-alt-fill me-1"></i>Selby, North Yorkshire
+                        </a><br>
+                        Battery Energy Storage System providing grid stability services
+                    </p>
+                </div>
+                <div class="capacity-badge">40 MW</div>
+            </div>
+            <div class="badge-container">
+                <span class="tech-badge">Battery</span>
+                <span class="auction-badge">T-4 2025-26</span>
+                <span class="auction-badge">T-1 2024-25</span>
+            </div>
+        </div>
+
+        <!-- ACTUAL SEARCH RESULT #2 -->
+        <div class="result-card component-record" style="opacity: 1;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="result-title">
+                        <a href="#" class="text-decoration-none">
+                            <strong>T_COTTAM-BAT-1</strong>
+                        </a>
+                    </h5>
+                    <h6 class="result-company">EDF Energy Renewables</h6>
+                    <p class="result-details">
+                        <a href="#" class="text-decoration-none">
+                            <i class="bi bi-geo-alt-fill me-1"></i>Nottinghamshire
+                        </a><br>
+                        Lithium-Ion Battery Storage for frequency response
+                    </p>
+                </div>
+                <div class="capacity-badge">49.5 MW</div>
+            </div>
+            <div class="badge-container">
+                <span class="tech-badge">Battery</span>
+                <span class="auction-badge">T-4 2026-27</span>
+            </div>
+        </div>
+
+        <!-- ========== SPONSORED AD RESULT (appears as 3rd result) ========== -->
+        <div class="ad-result-card component-record" style="opacity: 1;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5>
+                        <a href="#" class="ad-result-title">
+                            <strong>Battery Storage Solutions - Tesla Megapack</strong>
+                        </a>
+                    </h5>
+                    <h6>
+                        <a href="#" class="ad-result-company">tesla.com/megapack</a>
+                    </h6>
+                    <p class="ad-result-details">
+                        <i class="bi bi-geo-alt-fill me-1" style="color: #666;"></i>Utility-Scale Energy Storage<br>
+                        Scalable battery storage for grid stability. 3MWh+ capacity, 99.5% round-trip efficiency. Used in 40+ countries for renewable integration and peak demand management.
+                    </p>
+                    <a href="#" class="ad-cta-button">Request Quote</a>
+                    <a href="#" style="margin-left: 10px; color: #1a73e8; text-decoration: none; font-size: 0.9rem;">Learn More</a>
+                </div>
+                <div style="color: #1a73e8; font-weight: 600; font-size: 0.9rem;">From £2M</div>
+            </div>
+        </div>
+
+        <!-- ACTUAL SEARCH RESULT #3 -->
+        <div class="result-card component-record" style="opacity: 1;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="result-title">
+                        <a href="#" class="text-decoration-none">
+                            <strong>T_MINETY-BAT-1</strong>
+                        </a>
+                    </h5>
+                    <h6 class="result-company">Next Energy Technologies</h6>
+                    <p class="result-details">
+                        <a href="#" class="text-decoration-none">
+                            <i class="bi bi-geo-alt-fill me-1"></i>Wiltshire
+                        </a><br>
+                        Grid-Scale Battery Storage for peak demand management
+                    </p>
+                </div>
+                <div class="capacity-badge">100 MW</div>
+            </div>
+            <div class="badge-container">
+                <span class="tech-badge">Battery</span>
+                <span class="auction-badge">T-4 2025-26</span>
+            </div>
+        </div>
+
+        <!-- ACTUAL SEARCH RESULT #4 -->
+        <div class="result-card component-record" style="opacity: 1;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="result-title">
+                        <a href="#" class="text-decoration-none">
+                            <strong>T_HART-BAT-2</strong>
+                        </a>
+                    </h5>
+                    <h6 class="result-company">Hartlepool Power Limited</h6>
+                    <p class="result-details">
+                        <a href="#" class="text-decoration-none">
+                            <i class="bi bi-geo-alt-fill me-1"></i>Hartlepool, County Durham
+                        </a><br>
+                        Battery Energy Storage with fast response capabilities
+                    </p>
+                </div>
+                <div class="capacity-badge">50 MW</div>
+            </div>
+            <div class="badge-container">
+                <span class="tech-badge">Battery</span>
+                <span class="auction-badge">T-1 2024-25</span>
+            </div>
+        </div>
+
+        <!-- ========== ANOTHER SPONSORED AD RESULT (appears as 6th result) ========== -->
+        <div class="ad-result-card component-record" style="opacity: 1;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5>
+                        <a href="#" class="ad-result-title">
+                            <strong>Energy Storage Financing - Green Investment Bank</strong>
+                        </a>
+                    </h5>
+                    <h6>
+                        <a href="#" class="ad-result-company">greeninvestment.co.uk</a>
+                    </h6>
+                    <p class="ad-result-details">
+                        <i class="bi bi-geo-alt-fill me-1" style="color: #666;"></i>UK-Wide Financing<br>
+                        Flexible financing for battery storage projects. 5-20 year terms, competitive rates. From 1MW to 100MW+ projects. Fast approval process for proven technologies.
+                    </p>
+                    <a href="#" class="ad-cta-button">Apply Now</a>
+                    <a href="#" style="margin-left: 10px; color: #1a73e8; text-decoration: none; font-size: 0.9rem;">Calculate Savings</a>
+                </div>
+                <div style="color: #1a73e8; font-weight: 600; font-size: 0.9rem;">2.5% APR</div>
+            </div>
+        </div>
+
+        <!-- ACTUAL SEARCH RESULT #5 -->
+        <div class="result-card component-record" style="opacity: 1;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="result-title">
+                        <a href="#" class="text-decoration-none">
+                            <strong>T_CAP-BAT-1</strong>
+                        </a>
+                    </h5>
+                    <h6 class="result-company">Zenobe Energy</h6>
+                    <p class="result-details">
+                        <a href="#" class="text-decoration-none">
+                            <i class="bi bi-geo-alt-fill me-1"></i>Cheshire
+                        </a><br>
+                        Lithium Battery Storage for grid services and arbitrage
+                    </p>
+                </div>
+                <div class="capacity-badge">30 MW</div>
+            </div>
+            <div class="badge-container">
+                <span class="tech-badge">Battery</span>
+                <span class="auction-badge">T-4 2027-28</span>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Search results pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">1</span>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#">2</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#">3</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Theme switcher
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+        }
+
+        // Search form handler
+        document.querySelector('.search-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const searchValue = document.querySelector('input[name="q"]').value;
+            alert(`Search submitted: "${searchValue}"\n\nResults would reload with new ads mixed in.`);
+        });
+
+        // Result click handlers
+        document.querySelectorAll('.result-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const title = this.querySelector('.result-title a strong').textContent;
+                alert(`Clicked on component: ${title}\n\nThis would open component details.`);
+            });
+            card.style.cursor = 'pointer';
+        });
+
+        // Ad click handlers
+        document.querySelectorAll('.ad-result-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (e.target.classList.contains('ad-cta-button') || e.target.tagName === 'A') {
+                    e.stopPropagation();
+                    const title = this.querySelector('.ad-result-title strong').textContent;
+                    alert(`Ad clicked: ${title}\n\nThis would open the advertiser's landing page and they would pay for the click.`);
+                }
+            });
+        });
+
+        // Badge click handlers
+        document.querySelectorAll('.badge-container .tech-badge, .badge-container .auction-badge').forEach(badge => {
+            badge.addEventListener('click', function(e) {
+                e.stopPropagation();
+                alert(`Filter by: ${this.textContent}\n\nThis would refine search results.`);
+            });
+            badge.style.cursor = 'pointer';
+        });
+
+        // Theme toggle shortcut
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 't' || e.key === 'T') {
+                toggleTheme();
+            }
+        });
+
+        console.log('REALISTIC Ad Integration Preview Loaded');
+        console.log('Ads appear as regular search results but with "Sponsored" labels');
+        console.log('Press "T" to toggle dark/light theme');
+    </script>
+    
+    <div style="position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 11px; z-index: 1000;">
+        REALISTIC AD INTEGRATION • Ads appear as search results
+    </div>
+</body>
+</html>

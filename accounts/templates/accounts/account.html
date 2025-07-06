@@ -1,0 +1,385 @@
+{% extends "checker/base.html" %}
+{% load static %}
+{% load user_tags %}
+
+{% block title %}My Account{% endblock %}
+
+{% block container_class %}custom-account-container{% endblock %}
+
+{% block content %}
+<style>
+.custom-account-container {
+    background-color: rgba(255, 255, 255, 0.92);
+    margin: 20px auto;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 1000px;
+    margin-right: 100px !important;
+}
+
+/* Dark mode styling for account container */
+html[data-bs-theme="dark"] .custom-account-container {
+    background-color: rgba(45, 55, 72, 0.92);
+}
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h4 class="mb-0">My Account</h4>
+            </div>
+            <div class="card-body">
+                <!-- Account Details Section -->
+                <div class="mb-4">
+                    <h5>Account Details</h5>
+                    <p><strong>Username:</strong> {{ user.username }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <a href="{% url 'accounts:custom_password_change' %}" class="btn btn-outline-secondary btn-sm">Change Password</a>
+                </div>
+                
+                <hr class="my-4">
+
+        {% if payment_just_completed %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <h4 class="alert-heading">🎉 Payment Successful!</h4>
+            <p class="mb-0">Your £5/year subscription has been processed successfully. You now have full unlimited access to all features!</p>
+            <hr>
+            <p class="mb-0">
+                <small>
+                    <i class="bi bi-check-circle me-1"></i>Access expires: {{ profile.paid_access_expiry_date|date:"F d, Y" }}<br>
+                    <i class="bi bi-envelope me-1"></i>Confirmation email sent to {{ user.email }}<br>
+                    <i class="bi bi-arrow-clockwise me-1"></i>Auto-renewal: Enabled (can be cancelled anytime)
+                </small>
+            </p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% elif payment_success and not has_paid_access %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <h4 class="alert-heading">⏳ Payment Processing...</h4>
+            <p class="mb-0">Your payment was successful, but access is still being activated. This usually takes 1-2 minutes.</p>
+            <hr>
+            <p class="mb-0">
+                <small>
+                    <i class="bi bi-clock me-1"></i>Please refresh this page in a moment<br>
+                    <i class="bi bi-envelope me-1"></i>You'll receive a confirmation email once activated
+                </small>
+            </p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
+                <!-- Access Status Section -->
+                <div class="mb-4">
+                    <h5>Access Status</h5>
+                <div id="access-status">
+                    {# Status message will be updated by JavaScript #}
+                    Loading access status...
+                </div>
+                <div id="access-timer" class="mt-2" style="font-weight: bold; color: var(--bs-warning);">
+                    {# Timer countdown will be displayed here #}
+                </div>
+                <div id="trial-limits" class="mt-3">
+                    {# Map timer and search count will be displayed here #}
+                </div>
+                <div id="upgrade-now-area" class="mt-3">
+                    {# Upgrade button will be visible during free trial #}
+                    <p class="text-info mb-2">Don't wait until your free access expires!</p>
+                    <a href="{% url 'accounts:payment_selection' %}" class="btn btn-warning">
+                        <i class="bi bi-credit-card-2-front-fill me-2"></i>Upgrade to Full Access
+                    </a>
+                </div>
+                <div id="payment-link-area" class="mt-3" style="display: none;">
+                     {# Payment link/button will appear here when timer expires #}
+                     <p class="text-danger mb-2">Your free access period has expired.</p>
+                     {# Link will eventually point to the payment selection view #}
+                     <a href="{% url 'accounts:payment_selection' %}" class="btn btn-warning">Get Full Access</a>
+                </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <!-- Contact Information Section -->
+                <div class="mb-0">
+                    <h5><i class="bi bi-envelope-fill me-2"></i>Need Help?</h5>
+                    <p>If you have any questions or need assistance with your account, our support team is here to help.</p>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-envelope me-2"></i>Email Us</h6>
+                            <p>For account issues, billing questions, or general support:</p>
+                            <p><a href="mailto:hello@capacitymarket.co.uk" class="btn btn-outline-primary">
+                                hello@capacitymarket.co.uk
+                            </a></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-clock me-2"></i>Response Time</h6>
+                            <p>We typically respond to all inquiries within 1-2 business days.</p>
+                            <p>For urgent matters, please include "URGENT" in your subject line.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ has_paid_access|json_script:"has-paid-access-data" }}
+{{ user.last_login|date:"U"|default:"null"|json_script:"last-login-timestamp-data" }} {# Pass last login as Unix timestamp #}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hasPaidAccessData = JSON.parse(document.getElementById('has-paid-access-data').textContent);
+    const accessStatusDiv = document.getElementById('access-status');
+    const accessTimerDiv = document.getElementById('access-timer');
+    const paymentLinkArea = document.getElementById('payment-link-area');
+    const upgradeNowArea = document.getElementById('upgrade-now-area');
+    const trialLimitsDiv = document.getElementById('trial-limits');
+    
+    let countdownInterval = null; // To store the interval ID
+    let expiryTimeout = null; // To store the timeout ID
+
+    console.log("Account page loaded. Has paid access:", hasPaidAccessData);
+
+    // --- Helper Function to Format Time ---
+    function formatTime(totalSeconds) {
+        if (totalSeconds < 0) totalSeconds = 0;
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    // --- Helper Function to Format Hours into Human-Readable Time ---
+    function formatHoursRemaining(hours) {
+        if (hours <= 0) return "0 minutes";
+        
+        const totalMinutes = Math.floor(hours * 60);
+        const days = Math.floor(totalMinutes / (24 * 60));
+        const remainingHours = Math.floor((totalMinutes % (24 * 60)) / 60);
+        const minutes = totalMinutes % 60;
+        
+        let result = [];
+        if (days > 0) {
+            result.push(`${days} day${days !== 1 ? 's' : ''}`);
+        }
+        if (remainingHours > 0) {
+            result.push(`${remainingHours} hour${remainingHours !== 1 ? 's' : ''}`);
+        }
+        if (minutes > 0 || result.length === 0) {
+            result.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+        }
+        
+        return result.join(', ');
+    }
+
+    // --- Get Search Count for Trial Users ---
+    function getTrialSearchCount() {
+        const userId = '{{ user.id|default:"" }}';
+        const trialStartTime = '{% if user.is_authenticated and user.profile and user.profile.free_access_start_time %}{{ user.profile.free_access_start_time|date:"c" }}{% else %}{% endif %}';
+        const storageKey = `trialSearches_${userId}_${trialStartTime}`;
+        
+        const searchData = localStorage.getItem(storageKey);
+        if (!searchData) {
+            return 0;
+        }
+        
+        try {
+            const data = JSON.parse(searchData);
+            return data.count || 0;
+        } catch (e) {
+            return 0;
+        }
+    }
+
+    // --- Get Map Timer Status ---
+    function getMapTimerStatus() {
+        const mapTimerStart = sessionStorage.getItem('mapTimerStartTime');
+        const mapTrialExpired = sessionStorage.getItem('mapTrialExpired');
+        
+        if (mapTrialExpired) {
+            return { status: 'expired', timeRemaining: 0 };
+        }
+        
+        if (!mapTimerStart) {
+            return { status: 'not_started', timeRemaining: 900 }; // 15 minutes
+        }
+        
+        const elapsed = Math.floor((Date.now() - parseInt(mapTimerStart)) / 1000);
+        const timeRemaining = Math.max(0, 900 - elapsed); // 15 minutes = 900 seconds
+        
+        if (timeRemaining <= 0) {
+            return { status: 'expired', timeRemaining: 0 };
+        }
+        
+        return { status: 'active', timeRemaining: timeRemaining };
+    }
+
+    // --- Update Trial Limits Display for 2-Tier System ---
+    function updateTrialLimitsDisplay() {
+        const userAccessLevel = '{{ user|user_access_level }}';
+        
+        // Hide trial limits for paid users
+        if (userAccessLevel === 'full' || hasPaidAccessData === true) {
+            trialLimitsDiv.style.display = 'none';
+            return;
+        }
+        
+        // Show monthly trial info for trial users
+        if (userAccessLevel === 'trial') {
+            const hoursRemaining = {% if user.is_authenticated and user.profile %}{{ user.profile.get_weekly_trial_hours_remaining|default:0 }}{% else %}0{% endif %};
+            const monthStart = new Date('{% if user.is_authenticated and user.profile and user.profile.trial_week_start %}{{ user.profile.trial_week_start|date:"c" }}{% else %}{% endif %}');
+            const nextReset = new Date(monthStart.getTime() + (30 * 24 * 60 * 60 * 1000));
+            
+            trialLimitsDiv.innerHTML = `
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="border rounded p-2 mb-2 bg-light">
+                            <strong>📅 Monthly Trial Status:</strong><br>
+                            <span class="text-info">Time remaining this month: ${formatHoursRemaining(hoursRemaining)}</span><br>
+                            <small class="text-muted">Resets: ${nextReset.toLocaleDateString()} at ${nextReset.toLocaleTimeString()}</small><br>
+                            <small class="text-success">✅ Full access to all features during trial</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            trialLimitsDiv.style.display = 'block';
+        } else {
+            // Hide for expired or other states
+            trialLimitsDiv.style.display = 'none';
+        }
+    }
+
+    // --- Function to Handle Timer Expiry ---
+    function handleExpiry() {
+        console.log("Monthly trial expired. Showing payment link.");
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (expiryTimeout) clearTimeout(expiryTimeout);
+        
+        // Calculate next reset date (30 days from trial start)
+        const monthStart = new Date('{% if user.is_authenticated and user.profile and user.profile.trial_week_start %}{{ user.profile.trial_week_start|date:"c" }}{% else %}{% endif %}');
+        const nextReset = new Date(monthStart.getTime() + (30 * 24 * 60 * 60 * 1000));
+        
+        // Show trial expired message with exact reset date
+        accessStatusDiv.innerHTML = `🔒 <strong>Free trial expired</strong><br><small class="text-info">Access resets on ${nextReset.toLocaleDateString()} at ${nextReset.toLocaleTimeString()}</small>`;
+        accessStatusDiv.classList.remove('text-success');
+        accessStatusDiv.classList.add('text-danger');
+        accessTimerDiv.style.display = 'none';
+        upgradeNowArea.style.display = 'none';
+        paymentLinkArea.style.display = 'block';
+        
+        // Show trial reset info
+        trialLimitsDiv.innerHTML = `
+            <div class="alert alert-warning">
+                <strong>⏰ Trial Expired</strong><br>
+                Your 1-week monthly trial is used up. You can either:<br>
+                • Wait for reset on ${nextReset.toLocaleDateString()}<br>  
+                • <a href="/accounts/payment_selection/" class="alert-link">Upgrade to £5/year unlimited access</a>
+            </div>
+        `;
+        trialLimitsDiv.style.display = 'block';
+    }
+
+    // --- Main Logic for 2-Tier System ---
+    const userAccessLevel = '{{ user|user_access_level }}';
+    const serverTrialHours = {% if user.is_authenticated and user.profile %}{{ user.profile.get_weekly_trial_hours_remaining|default:0 }}{% else %}0{% endif %};
+    
+    console.log('Debug - 2-tier system data:', {
+        userAccessLevel: userAccessLevel,
+        serverTrialHours: serverTrialHours,
+        hasPaidAccessData: hasPaidAccessData
+    });
+    
+    // Full access control is now enabled
+    if (userAccessLevel === 'full' || hasPaidAccessData === true) {
+        // Full paid users (£5/year)
+        const expiryDate = '{% if profile.paid_access_expiry_date %}{{ profile.paid_access_expiry_date|date:"F d, Y \a\t g:i A" }}{% else %}Unknown{% endif %}';
+        accessStatusDiv.innerHTML = `
+            <span class="text-success">✅ <strong>Full access active (£5/year)</strong></span><br>
+            <small class="text-muted">
+                <i class="bi bi-calendar-check me-1"></i>Subscription expires: ${expiryDate}<br>
+                <i class="bi bi-arrow-clockwise me-1"></i>Auto-renewal: Enabled (can be cancelled in Stripe)
+            </small>
+        `;
+        accessTimerDiv.style.display = 'none'; 
+        upgradeNowArea.style.display = 'none';
+        paymentLinkArea.style.display = 'none';
+        
+    } else if (userAccessLevel === 'trial') {
+        // Trial users - show monthly countdown
+        accessStatusDiv.textContent = "Free trial active (1 week per month).";
+        paymentLinkArea.style.display = 'none';
+        upgradeNowArea.style.display = 'block';
+        accessTimerDiv.style.display = 'block';
+        
+        // Convert server hours to seconds for countdown
+        let remainingSeconds = Math.max(0, Math.floor(serverTrialHours * 3600));
+        
+        const updateWeeklyTrialDisplay = () => {
+            if (remainingSeconds <= 0) {
+                handleExpiry();
+            } else {
+                accessTimerDiv.textContent = `Time remaining: ${formatTime(remainingSeconds)}`;
+                remainingSeconds--;
+            }
+        };
+        
+        updateWeeklyTrialDisplay(); // Initial display
+        countdownInterval = setInterval(updateWeeklyTrialDisplay, 1000);
+        
+        // Set timeout for when trial expires
+        if (remainingSeconds > 0) {
+            expiryTimeout = setTimeout(handleExpiry, remainingSeconds * 1000);
+        }
+        
+    } else if (userAccessLevel === 'trial_expired') {
+        // Trial expired - show payment link
+        handleExpiry();
+        
+    } else if (userAccessLevel === 'subscription_expired') {
+        // Subscription expired - show subscription renewal message
+        accessStatusDiv.innerHTML = `
+            <span class="text-danger">🔒 <strong>Subscription Expired</strong></span><br>
+            <small class="text-muted">
+                <i class="bi bi-exclamation-triangle me-1"></i>Your £5/year subscription has expired<br>
+                <i class="bi bi-x-circle me-1"></i>No trial available - must renew to continue
+            </small>
+        `;
+        accessTimerDiv.style.display = 'none';
+        upgradeNowArea.style.display = 'none';
+        paymentLinkArea.style.display = 'block';
+        
+        // Update payment link text for subscription renewal
+        const paymentLink = paymentLinkArea.querySelector('a');
+        if (paymentLink) {
+            paymentLink.textContent = 'Pay £5/Year for Unlimited Access';
+            paymentLink.href = '/accounts/payment-selection/';
+        }
+        
+        // Show subscription expiry info
+        trialLimitsDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <strong>⚠️ Subscription Expired</strong><br>
+                Your £5/year subscription has expired. To continue using the service:<br>
+                • <a href="/accounts/payment-selection/" class="alert-link">Renew your subscription now</a><br>
+                • No trial period available for expired subscribers
+            </div>
+        `;
+        trialLimitsDiv.style.display = 'block';
+        
+    } else {
+        // Unauthenticated or other states
+        accessStatusDiv.textContent = "Please log in to access features.";
+    }
+
+    // Update trial limits display initially and every 5 seconds
+    updateTrialLimitsDisplay();
+    setInterval(updateTrialLimitsDisplay, 5000);
+
+});
+</script>
+{% endblock %} 
