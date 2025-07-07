@@ -33,6 +33,10 @@ Allow: /guides/
 Allow: /companies/
 Allow: /technologies/
 
+# Google AdSense crawler - explicitly allowed for ad serving
+User-agent: Mediapartners-Google
+Allow: /
+
 # Social media crawlers for rich link previews
 User-agent: facebookexternalhit
 Crawl-delay: 3
