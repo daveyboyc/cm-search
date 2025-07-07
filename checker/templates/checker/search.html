@@ -243,6 +243,8 @@
             border-radius: 0.25rem; /* Retain for potential subtle hover background if desired later */
             transition: color 0.15s ease-in-out, text-decoration 0.15s ease-in-out;
             display: inline-block; 
+            cursor: pointer; /* Show clickable cursor */
+            user-select: none; /* Prevent text selection */
             /* Removed border and background-color from default state */
         }
 
@@ -958,15 +960,52 @@ container{% if not query %} container-initial-search{% elif query and not compan
                  });
              });
 
-            // Initialize Bootstrap Popovers
+            // Initialize Bootstrap Popovers with better configuration
             const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
-            const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
-                sanitize: false // Allow HTML in content
-            }));
+            console.log('Found popover triggers:', popoverTriggerList.length);
+            
+            const popoverList = [...popoverTriggerList].map(popoverTriggerEl => {
+                // Override the trigger to click for better reliability
+                popoverTriggerEl.setAttribute('data-bs-trigger', 'click');
+                
+                return new bootstrap.Popover(popoverTriggerEl, {
+                    sanitize: false, // Allow HTML in content
+                    trigger: 'click', // Ensure click trigger
+                    html: true // Ensure HTML is enabled
+                });
+            });
+            
+            // Add click handlers as backup
+            popoverTriggerList.forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Popover link clicked:', this.textContent);
+                });
+            });
 
             // Initialize Bootstrap Tooltips
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
             const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+            // Failsafe: Re-initialize after a delay if Bootstrap isn't ready
+            setTimeout(() => {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Popover) {
+                    console.log('Re-initializing popovers after delay...');
+                    const delayedPopoverList = document.querySelectorAll('[data-bs-toggle="popover"]');
+                    delayedPopoverList.forEach(el => {
+                        if (!bootstrap.Popover.getInstance(el)) {
+                            new bootstrap.Popover(el, {
+                                sanitize: false,
+                                trigger: 'click',
+                                html: true
+                            });
+                        }
+                    });
+                } else {
+                    console.error('Bootstrap not loaded!');
+                }
+            }, 1000);
 
         });
     </script>
