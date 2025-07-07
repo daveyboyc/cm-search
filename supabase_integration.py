@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 # Load environment variables
 load_dotenv()
 
-# Supabase PostgreSQL connection details
-DB_HOST = "aws-0-eu-west-2.pooler.supabase.com"
-DB_PORT = "6543"  # PgBouncer port for connection pooling
-DB_NAME = "postgres"
-DB_USER = "postgres.vixsiceyuolxzmqijpds"
-DB_PASSWORD = "vzIU91Rn55qgV95y"
+# Supabase PostgreSQL connection details from environment
+DB_HOST = os.environ.get('SUPABASE_DB_HOST', 'your-supabase-host.pooler.supabase.com')
+DB_PORT = os.environ.get('SUPABASE_DB_PORT', '6543')  # PgBouncer port for connection pooling
+DB_NAME = os.environ.get('SUPABASE_DB_NAME', 'postgres')
+DB_USER = os.environ.get('SUPABASE_DB_USER', 'your-supabase-user')
+DB_PASSWORD = os.environ.get('SUPABASE_DB_PASSWORD', 'your-supabase-password')
 
 def get_db_connection():
     """
