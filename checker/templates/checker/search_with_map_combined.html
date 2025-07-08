@@ -2180,17 +2180,55 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 
-// Initialize Bootstrap dropdowns explicitly
+// Initialize Bootstrap dropdowns explicitly with better error handling
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all Bootstrap dropdowns
-    const dropdownTriggerList = document.querySelectorAll('[data-bs-toggle="dropdown"]');
-    if (dropdownTriggerList.length > 0) {
-        console.log('Initializing', dropdownTriggerList.length, 'Bootstrap dropdowns');
-        const dropdownList = [...dropdownTriggerList].map(dropdownTriggerEl => new bootstrap.Dropdown(dropdownTriggerEl));
-        console.log('Bootstrap dropdowns initialized successfully:', dropdownList.length);
-    } else {
-        console.log('No Bootstrap dropdown triggers found');
+    console.log('DOM loaded, checking Bootstrap availability...');
+    
+    // Wait for Bootstrap to be fully loaded
+    function initDropdowns() {
+        if (typeof bootstrap === 'undefined') {
+            console.log('Bootstrap not yet loaded, retrying in 100ms...');
+            setTimeout(initDropdowns, 100);
+            return;
+        }
+        
+        console.log('Bootstrap loaded successfully:', bootstrap);
+        
+        // Initialize all Bootstrap dropdowns
+        const dropdownTriggerList = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+        console.log('Found', dropdownTriggerList.length, 'dropdown triggers');
+        
+        if (dropdownTriggerList.length > 0) {
+            // Debug: Log each dropdown trigger
+            dropdownTriggerList.forEach((trigger, index) => {
+                console.log(`Dropdown ${index}:`, trigger, 'parent:', trigger.parentElement);
+            });
+            
+            try {
+                const dropdownList = [...dropdownTriggerList].map(dropdownTriggerEl => {
+                    console.log('Creating dropdown for:', dropdownTriggerEl);
+                    return new bootstrap.Dropdown(dropdownTriggerEl);
+                });
+                console.log('Bootstrap dropdowns initialized successfully:', dropdownList.length);
+                
+                // Test if dropdowns are clickable
+                dropdownTriggerList.forEach((trigger, index) => {
+                    trigger.addEventListener('click', function(e) {
+                        console.log(`Dropdown ${index} clicked:`, e.target);
+                        e.stopPropagation();
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Error initializing dropdowns:', error);
+            }
+        } else {
+            console.log('No Bootstrap dropdown triggers found');
+        }
     }
+    
+    // Start initialization
+    initDropdowns();
 });
 
 // Fix dropdown scrolling for search-map pages

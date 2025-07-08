@@ -208,8 +208,8 @@
     -webkit-overflow-scrolling: touch !important;
     /* Prevent parent scrolling */
     overscroll-behavior: contain !important;
-    /* Force dropdown to escape parent overflow constraints */
-    position: fixed !important;
+    /* Use absolute positioning to work with Bootstrap */
+    position: absolute !important;
     z-index: 9999 !important;
     /* Custom scrollbar styling for WebKit browsers */
     scrollbar-width: thin;
@@ -266,7 +266,8 @@
 
 /* Fix for dropdown positioning on mobile in map view */
 @media (max-width: 768px) {
-    .filter-bar-map .dropdown-menu-scrollable {
+    .filter-bar-map .dropdown-menu-scrollable,
+    .filter-bar-map .dropdown-menu {
         position: absolute !important;
         will-change: transform;
     }
