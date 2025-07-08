@@ -3,12 +3,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    # Add project root to Python path
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    sys.path.insert(0, project_root)
-    
-    # Point to settings.py in the same directory
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings") 
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "capacity_checker.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
