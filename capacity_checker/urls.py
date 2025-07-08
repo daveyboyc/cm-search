@@ -22,7 +22,7 @@ from django.http import HttpResponse, JsonResponse
 from accounts.views import stripe_webhook_view  # Import webhook view
 
 from django.views.decorators.cache import cache_page
-from checker.utils.smart_cache import long_cache
+from checker.utils import long_cache
 from checker.sitemaps import StaticSitemap, LocationSitemap, TechnologySitemap, CompanySitemap, GuidesSitemap
 from checker.views_maintenance import maintenance_view
 import sys
