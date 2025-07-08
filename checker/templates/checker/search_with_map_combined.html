@@ -2180,6 +2180,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 
+// Initialize Bootstrap dropdowns explicitly
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all Bootstrap dropdowns
+    const dropdownTriggerList = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+    if (dropdownTriggerList.length > 0) {
+        console.log('Initializing', dropdownTriggerList.length, 'Bootstrap dropdowns');
+        const dropdownList = [...dropdownTriggerList].map(dropdownTriggerEl => new bootstrap.Dropdown(dropdownTriggerEl));
+        console.log('Bootstrap dropdowns initialized successfully:', dropdownList.length);
+    } else {
+        console.log('No Bootstrap dropdown triggers found');
+    }
+});
+
 // Fix dropdown scrolling for search-map pages
 document.addEventListener('DOMContentLoaded', function() {
     // Only fix dropdown scrolling if dropdowns exist
