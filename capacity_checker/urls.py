@@ -22,6 +22,7 @@ from django.http import HttpResponse, JsonResponse
 from accounts.views import stripe_webhook_view  # Import webhook view
 
 from django.views.decorators.cache import cache_page
+from checker.utils.smart_cache import long_cache
 from checker.sitemaps import StaticSitemap, LocationSitemap, TechnologySitemap, CompanySitemap, GuidesSitemap
 from checker.views_maintenance import maintenance_view
 import sys
@@ -38,7 +39,7 @@ sitemaps = {
     'companies': CompanySitemap,
 }
 
-@cache_page(60 * 60 * 24)  # Cache for 24 hours
+@long_cache  # 10 minute smart cache
 def ads_txt(request):
     """Serve ads.txt file for AdSense verification"""
     # Use the project root static directory (parent of BASE_DIR) to find ads.txt
@@ -52,7 +53,7 @@ def ads_txt(request):
         content = "google.com, pub-3181446379162312, DIRECT, f08c47fec0942fa0"
         return HttpResponse(content, content_type='text/plain')
 
-@cache_page(60 * 60 * 24)  # Cache for 24 hours
+@long_cache  # 10 minute smart cache
 def robots_txt(request):
     """Serve robots.txt file"""
     # robots.txt is in the parent directory's static folder
@@ -71,7 +72,7 @@ Sitemap: https://www.capacitymarket.co.uk/sitemap.xml
 """
         return HttpResponse(content, content_type='text/plain')
 
-@cache_page(60 * 60 * 24)  # Cache for 24 hours
+@long_cache  # 10 minute smart cache
 def ai_plugin_json(request):
     """Serve ai-plugin.json file for AI/ChatGPT discoverability"""
     ai_plugin_path = os.path.join(settings.STATIC_ROOT or os.path.join(settings.BASE_DIR, 'static'), '.well-known', 'ai-plugin.json')
