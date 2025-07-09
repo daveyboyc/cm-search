@@ -276,6 +276,7 @@ def smart_cache(timeout):
 
 
 # Convenience decorators with appropriate timeouts
-short_cache = smart_cache(120)  # 2 minutes
-medium_cache = smart_cache(300)  # 5 minutes  
-long_cache = smart_cache(600)  # 10 minutes
+# Reduced timeouts to save Redis memory
+short_cache = smart_cache(60)  # 1 minute (was 2)
+medium_cache = smart_cache(120)  # 2 minutes (was 5)
+long_cache = smart_cache(300)  # 5 minutes (was 10)
