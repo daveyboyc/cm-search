@@ -1059,6 +1059,22 @@
                 </div>
             </div>
             
+            <!-- DNO Boundaries Toggle -->
+            <div class="filter-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--bs-border-color);">
+                <label style="display: flex; align-items: center;">
+                    DNO Boundaries
+                    <div class="info-bubble">
+                        i
+                        <div class="info-tooltip">
+                            Show/hide Distribution Network Operator (DNO) boundaries. These are the regional electricity distribution companies in Great Britain.
+                        </div>
+                    </div>
+                </label>
+                <button id="dnoToggleBtn" class="btn btn-outline-primary w-100" onclick="toggleDNOBoundaries()">
+                    Show DNO Boundaries
+                </button>
+            </div>
+            
             <!-- Performance info (desktop only) -->
             <div class="desktop-only">
                 <small class="text-muted">
@@ -1088,6 +1104,39 @@
             </div>
             <div id="subtype-items">
                 <!-- Subtype items will be added here dynamically -->
+            </div>
+        </div>
+        
+        <!-- DNO Legend (Initially hidden) -->
+        <div class="map-legend dno-legend" id="dno-legend" style="display: none; right: 10px; top: 70px; max-width: 250px;">
+            <div class="legend-title">
+                DNO Boundaries
+            </div>
+            <div style="padding: 10px;">
+                <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                    <div style="width: 20px; height: 20px; background: #FF6B6B; border: 1px solid #333; margin-right: 8px;"></div>
+                    <small>UK Power Networks</small>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                    <div style="width: 20px; height: 20px; background: #4ECDC4; border: 1px solid #333; margin-right: 8px;"></div>
+                    <small>Northern Powergrid</small>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                    <div style="width: 20px; height: 20px; background: #45B7D1; border: 1px solid #333; margin-right: 8px;"></div>
+                    <small>Electricity North West</small>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                    <div style="width: 20px; height: 20px; background: #96CEB4; border: 1px solid #333; margin-right: 8px;"></div>
+                    <small>National Grid Electricity Distribution</small>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                    <div style="width: 20px; height: 20px; background: #FECA57; border: 1px solid #333; margin-right: 8px;"></div>
+                    <small>Scottish and Southern Electricity Networks</small>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 20px; height: 20px; background: #DDA0DD; border: 1px solid #333; margin-right: 8px;"></div>
+                    <small>SP Energy Networks</small>
+                </div>
             </div>
         </div>
         
@@ -1207,6 +1256,9 @@ window.initMap = function() {
             map.setMapTypeId(google.maps.MapTypeId.HYBRID);
         }
     });
+    
+    // Load DNO boundaries GeoJSON
+    loadDNOBoundaries();
     
     // Add search area button as a custom Google Maps control
     // This ensures it stays visible in fullscreen mode
@@ -2941,7 +2993,141 @@ window.addEventListener('resize', function() {
         }
     }
 });
+
+// DNO Boundaries Layer Management
+let dnoLayer = null;
+let dnoBoundariesVisible = false;
+
+// DNO color mapping
+const dnoColors = {
+    'UK Power Networks': '#FF6B6B',
+    'Northern Powergrid': '#4ECDC4',
+    'Electricity North West': '#45B7D1',
+    'National Grid Electricity Distribution': '#96CEB4',
+    'Scottish and Southern Electricity Networks': '#FECA57',
+    'SP Energy Networks': '#DDA0DD'
+};
+
+function loadDNOBoundaries() {
+    // Note: The GeoJSON is in British National Grid (EPSG:27700) projection
+    // Google Maps expects WGS84 (EPSG:4326), so we need to transform coordinates
+    
+    fetch('/static/data/gb_dno_boundaries.geojson')
+        .then(response => response.json())
+        .then(data => {
+            console.log('DNO boundaries loaded:', data.features.length, 'features');
+            
+            // Transform coordinates from EPSG:27700 to EPSG:4326
+            const transformedData = transformCoordinates(data);
+            
+            // Create the data layer
+            dnoLayer = new google.maps.Data();
+            dnoLayer.addGeoJson(transformedData);
+            
+            // Style the DNO boundaries
+            dnoLayer.setStyle(function(feature) {
+                const dnoName = feature.getProperty('DNO_Full');
+                return {
+                    fillColor: dnoColors[dnoName] || '#808080',
+                    fillOpacity: 0.15,
+                    strokeColor: dnoColors[dnoName] || '#808080',
+                    strokeWeight: 3,
+                    strokeOpacity: 0.9,
+                    zIndex: 100
+                };
+            });
+            
+            // Add click listener for DNO info
+            dnoLayer.addListener('click', function(event) {
+                const dnoName = event.feature.getProperty('DNO_Full');
+                const area = event.feature.getProperty('Area');
+                const name = event.feature.getProperty('Name');
+                
+                const content = `
+                    <div style="font-family: Arial, sans-serif;">
+                        <h4 style="margin: 0 0 8px 0; color: #333;">${dnoName}</h4>
+                        <p style="margin: 4px 0;"><strong>Area:</strong> ${area}</p>
+                        <p style="margin: 4px 0;"><strong>Code:</strong> ${name}</p>
+                    </div>
+                `;
+                
+                infoWindow.setContent(content);
+                infoWindow.setPosition(event.latLng);
+                infoWindow.open(map);
+            });
+            
+            console.log('DNO boundaries layer created');
+        })
+        .catch(error => {
+            console.error('Error loading DNO boundaries:', error);
+        });
+}
+
+// Accurate coordinate transformation from EPSG:27700 to EPSG:4326 using proj4js
+function transformCoordinates(geoJson) {
+    // Define the British National Grid projection (EPSG:27700)
+    proj4.defs("EPSG:27700", "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs");
+    
+    // Create a deep copy
+    const transformed = JSON.parse(JSON.stringify(geoJson));
+    
+    // Create the transformation function
+    const transform = proj4("EPSG:27700", "EPSG:4326");
+    
+    function transformPoint(coord) {
+        // proj4 expects [x, y] and returns [lon, lat]
+        return transform.forward(coord);
+    }
+    
+    // Transform all coordinates in the features
+    transformed.features.forEach(feature => {
+        if (feature.geometry.type === 'MultiPolygon') {
+            feature.geometry.coordinates = feature.geometry.coordinates.map(polygon =>
+                polygon.map(ring =>
+                    ring.map(coord => transformPoint([coord[0], coord[1]]))
+                )
+            );
+        } else if (feature.geometry.type === 'Polygon') {
+            feature.geometry.coordinates = feature.geometry.coordinates.map(ring =>
+                ring.map(coord => transformPoint([coord[0], coord[1]]))
+            );
+        }
+    });
+    
+    // Remove the CRS property as we've transformed to WGS84
+    delete transformed.crs;
+    
+    return transformed;
+}
+
+function toggleDNOBoundaries() {
+    if (!dnoLayer) {
+        console.warn('DNO layer not yet loaded');
+        return;
+    }
+    
+    dnoBoundariesVisible = !dnoBoundariesVisible;
+    dnoLayer.setMap(dnoBoundariesVisible ? map : null);
+    
+    // Show/hide the DNO legend
+    const dnoLegend = document.getElementById('dno-legend');
+    if (dnoLegend) {
+        dnoLegend.style.display = dnoBoundariesVisible ? 'block' : 'none';
+    }
+    
+    // Update button state
+    const toggleBtn = document.getElementById('dnoToggleBtn');
+    if (toggleBtn) {
+        toggleBtn.classList.toggle('active', dnoBoundariesVisible);
+        toggleBtn.classList.toggle('btn-outline-primary', !dnoBoundariesVisible);
+        toggleBtn.classList.toggle('btn-primary', dnoBoundariesVisible);
+        toggleBtn.textContent = dnoBoundariesVisible ? 'Hide DNO Boundaries' : 'Show DNO Boundaries';
+    }
+}
 </script>
+
+<!-- Load proj4js for coordinate transformation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.min.js"></script>
 
 <!-- Load Google Maps API with Advanced Markers and Places -->
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&loading=async&libraries=marker,places&callback=initMap"></script>
