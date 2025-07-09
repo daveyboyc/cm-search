@@ -12,7 +12,7 @@ from .models import Component, LocationGroup
 
 logger = logging.getLogger(__name__)
 
-@cache_page(60 * 30)  # 30 minute cache for subtypes
+# @cache_page(60 * 30)  # Disabled to prevent Redis memory issues - API is fast enough without cache
 @gzip_page
 def get_filtered_subtypes(request):
     """

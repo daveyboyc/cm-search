@@ -1094,7 +1094,7 @@ def get_cmu_details(cmu_id):
 
 @monitor_api
 @gzip_page
-@cache_page(60 * 10)  # Cache for 10 minutes
+# @cache_page(60 * 10)  # Disabled to prevent Redis memory issues - service is fast enough without cache
 def company_detail(request, company_id):
     """Displays details for a specific company, including years, auctions, and potentially components."""
     from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger

@@ -12,7 +12,7 @@ from .models import LocationGroup
 
 logger = logging.getLogger(__name__)
 
-@cache_page(60 * 10)  # 10 minute cache
+# @cache_page(60 * 10)  # Disabled to prevent Redis memory issues - API is fast enough without cache
 @gzip_page
 def get_company_technologies(request):
     """

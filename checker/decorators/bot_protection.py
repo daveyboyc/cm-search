@@ -274,10 +274,14 @@ def create_bot_optimized_response(request, response, view_func, *args, **kwargs)
             # Remove CSS classes to reduce size
             optimized_html = re.sub(r'class=["\'][^"\']*["\']', '', optimized_html, flags=re.IGNORECASE)
             
-            # Add bot-specific meta tag in head
+            # Add bot-specific meta tag in head and bot-optimized class to body
             if '<head>' in optimized_html:
                 bot_meta = '<meta name="robots" content="index,follow"><!-- Bot-optimized version: ~95% lighter -->'
                 optimized_html = optimized_html.replace('<head>', f'<head>\n{bot_meta}')
+            
+            # Add bot-optimized class to disable background images
+            if '<body' in optimized_html:
+                optimized_html = re.sub(r'<body([^>]*)>', r'<body\1 class="bot-optimized">', optimized_html)
             
             # Create new response with optimized content
             new_response = HttpResponse(optimized_html, content_type='text/html')

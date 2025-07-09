@@ -71,27 +71,55 @@
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     
     <style>
-        /* Define background image variables based on theme */
+        /* Define background image variables based on theme - Use WebP for better compression (85% smaller) */
         html[data-bs-theme="light"] {
-            --bg-image: url("{% static 'images/backgrounds/industrial_background.jpeg' %}");
+            --bg-image: url("{% static 'images/backgrounds/industrial_background.webp' %}");
+            --bg-image-fallback: url("{% static 'images/backgrounds/industrial_background.jpeg' %}");
         }
         html[data-bs-theme="dark"] {
-            --bg-image: url("{% static 'images/backgrounds/industrial_background_dark.jpeg' %}");
+            --bg-image: url("{% static 'images/backgrounds/industrial_background_dark.webp' %}");
+            --bg-image-fallback: url("{% static 'images/backgrounds/industrial_background_dark.jpeg' %}");
         }
 
         /* Apply background and flex styles to body */
         body, html {
             height: 100%; /* Needed for full height background */
             margin: 0; /* Remove default body margin */
-            /* Background image set using CSS variable */
-            background-image: var(--bg-image);
+            display: flex;
+            flex-direction: column;
+            font-family: 'Roboto', sans-serif; /* Use Roboto font */
+        }
+        
+        /* Background image with WebP support and lazy loading */
+        body {
             background-position: center;
             background-repeat: no-repeat;
             background-size: cover;
             background-attachment: fixed;
-            display: flex;
-            flex-direction: column;
-            font-family: 'Roboto', sans-serif; /* Use Roboto font */
+        }
+        
+        /* WebP support with fallback */
+        @supports (background-image: url("data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAwA0JaQAA3AA/vuUAAA=")) {
+            body {
+                background-image: var(--bg-image);
+            }
+        }
+        
+        /* JPEG fallback for browsers without WebP support */
+        @supports not (background-image: url("data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAwA0JaQAA3AA/vuUAAA=")) {
+            body {
+                background-image: var(--bg-image-fallback);
+            }
+        }
+        
+        /* Transition for smooth loading when bg-loaded class is added */
+        body.bg-loaded {
+            transition: background-image 0.3s ease-in-out;
+        }
+        
+        /* Disable background images for bots to save bandwidth */
+        .bot-optimized body {
+            background-image: none !important;
         }
 
         /* Adjust container for background */
@@ -1299,5 +1327,18 @@
         <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank" rel="noopener">Open Government Licence v3.0</a>
     </footer>
     {% endif %}
+    
+    <!-- Background image optimization for bots and performance -->
+    <script>
+    // Background images load immediately now (WebP optimization still active)
+    // Lazy loading was causing white background issues
+    // Bot optimization still prevents background loading for search engines
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!document.body.classList.contains('bot-optimized')) {
+            // Add transition class for smooth effects if needed
+            document.body.classList.add('bg-loaded');
+        }
+    });
+    </script>
 </body>
 </html>

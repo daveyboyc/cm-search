@@ -29,7 +29,7 @@ except ImportError:
 @gzip_page
 @map_access_required
 @bot_protected_view(rate='5/m')  # Strict rate limiting for bots
-@cache_page(60 * 5)  # 5 minute cache - shorter to manage memory better  
+# @cache_page(60 * 5)  # Disabled to prevent Redis memory issues - pages are fast enough without cache  
 def technology_detail_map(request, technology_name):
     """
     Technology detail view with map layout (based on search-map template)

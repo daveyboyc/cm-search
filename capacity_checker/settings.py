@@ -343,7 +343,7 @@ else:
 
 # Add Debug Toolbar Configuration
 DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+    'SHOW_TOOLBAR_CALLBACK': lambda request: False,  # Disabled for production
     'ENABLE_STACKTRACES': True,
 }
 

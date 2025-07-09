@@ -192,7 +192,7 @@ except ImportError:
 
 @monitor_api
 @gzip_page
-@cache_page(60 * 10)  # Cache for 10 minutes
+# @cache_page(60 * 10)  # Disabled to prevent Redis memory issues - pages are fast enough without cache
 def company_detail_map(request, company_name):
     """
     Map view for company locations - similar to technology map view

@@ -961,42 +961,62 @@ container{% if not query %} container-initial-search{% elif query and not compan
              });
 
             // Initialize Bootstrap Popovers with better configuration
-            const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
-            console.log('Found popover triggers:', popoverTriggerList.length);
-            
-            const popoverList = [...popoverTriggerList].map(popoverTriggerEl => {
-                // Override the trigger to click for better reliability
-                popoverTriggerEl.setAttribute('data-bs-trigger', 'click');
+            function initializePopovers() {
+                const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+                console.log('Found popover triggers:', popoverTriggerList.length);
+                console.log('Bootstrap available:', typeof bootstrap);
                 
-                return new bootstrap.Popover(popoverTriggerEl, {
-                    sanitize: false, // Allow HTML in content
-                    trigger: 'click', // Ensure click trigger
-                    html: true // Ensure HTML is enabled
+                // Check if Bootstrap is loaded
+                if (typeof bootstrap === 'undefined') {
+                    console.log('Bootstrap not yet loaded, retrying in 100ms...');
+                    setTimeout(initializePopovers, 100);
+                    return;
+                }
+                
+                // Initialize popovers
+                popoverTriggerList.forEach(popoverTriggerEl => {
+                    // Override the trigger to click for better reliability
+                    popoverTriggerEl.setAttribute('data-bs-trigger', 'click');
+                    
+                    console.log('Initializing popover for:', popoverTriggerEl.textContent.trim());
+                    
+                    new bootstrap.Popover(popoverTriggerEl, {
+                        sanitize: false, // Allow HTML in content
+                        trigger: 'click', // Ensure click trigger
+                        html: true // Ensure HTML is enabled
+                    });
                 });
-            });
+                
+                console.log('Initialized', popoverTriggerList.length, 'popovers');
+                
+                // Set up click-outside handler ONCE
+                if (!document.hasAttribute('popover-outside-click-setup')) {
+                    document.setAttribute('popover-outside-click-setup', 'true');
+                    
+                    document.addEventListener('click', function(e) {
+                        // Get all popover triggers each time (in case they change)
+                        const allPopoverTriggers = document.querySelectorAll('[data-bs-toggle="popover"]');
+                        
+                        allPopoverTriggers.forEach(trigger => {
+                            const popover = bootstrap.Popover.getInstance(trigger);
+                            if (popover) {
+                                // If click is not on the trigger and not inside popover content
+                                if (!trigger.contains(e.target)) {
+                                    const popoverTip = document.querySelector('.popover');
+                                    if (!popoverTip || !popoverTip.contains(e.target)) {
+                                        popover.hide();
+                                    }
+                                }
+                            }
+                        });
+                    });
+                    
+                    console.log('Set up click-outside handler for popovers');
+                }
+            }
             
-            // Add click handlers as backup
-            popoverTriggerList.forEach(el => {
-                el.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Popover link clicked:', this.textContent);
-                });
-            });
-            
-            // Close popovers when clicking outside
-            document.addEventListener('click', function(e) {
-                popoverTriggerList.forEach(trigger => {
-                    const popover = bootstrap.Popover.getInstance(trigger);
-                    if (popover && !trigger.contains(e.target)) {
-                        // Check if click is not inside the popover content
-                        const popoverTip = document.querySelector('.popover');
-                        if (!popoverTip || !popoverTip.contains(e.target)) {
-                            popover.hide();
-                        }
-                    }
-                });
-            });
+            // Start popover initialization
+            initializePopovers();
 
             // Initialize Bootstrap Tooltips
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
