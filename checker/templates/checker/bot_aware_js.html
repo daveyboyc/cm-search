@@ -26,18 +26,23 @@ function isBot() {
     // Additional bot detection heuristics
     // If it's an automated browser or has no plugins, it's likely a bot
     if (navigator.webdriver) return true; // Automated browser
-    if (!navigator.plugins || navigator.plugins.length === 0) return true; // No plugins
+    // NOTE: Removed plugins check as modern browsers may have 0 plugins but still be human users
+    // if (!navigator.plugins || navigator.plugins.length === 0) return true; // No plugins
     
     return false; // Likely human user
 }
 
 // Only load heavy JS for human users
 if (!isBot()) {
+    console.log('Loading Bootstrap JS for human user');
     // Load Bootstrap JS (always needed for functionality)
     const bootstrapScript = document.createElement('script');
     bootstrapScript.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js';
     bootstrapScript.integrity = 'sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz';
     bootstrapScript.crossOrigin = 'anonymous';
+    bootstrapScript.onload = function() {
+        console.log('Bootstrap JS loaded successfully');
+    };
     document.head.appendChild(bootstrapScript);
     
     // Block for heavy libraries that bots don't need
@@ -95,6 +100,9 @@ if (!isBot()) {
     bootstrapScript.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js';
     bootstrapScript.integrity = 'sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz';
     bootstrapScript.crossOrigin = 'anonymous';
+    bootstrapScript.onload = function() {
+        console.log('Bootstrap JS loaded successfully (bot path)');
+    };
     document.head.appendChild(bootstrapScript);
     
     // Stub functions for bot compatibility - only override if they don't exist
