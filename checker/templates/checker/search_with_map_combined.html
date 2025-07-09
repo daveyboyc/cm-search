@@ -2211,11 +2211,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 console.log('Bootstrap dropdowns initialized successfully:', dropdownList.length);
                 
-                // Test if dropdowns are clickable
+                // Add mutual exclusivity - close other dropdowns when one opens
                 dropdownTriggerList.forEach((trigger, index) => {
                     trigger.addEventListener('click', function(e) {
                         console.log(`Dropdown ${index} clicked:`, e.target);
-                        e.stopPropagation();
+                        
+                        // Close all other open dropdowns before this one opens
+                        dropdownTriggerList.forEach((otherTrigger, otherIndex) => {
+                            if (otherIndex !== index && otherTrigger !== trigger) {
+                                const otherDropdown = bootstrap.Dropdown.getInstance(otherTrigger);
+                                if (otherDropdown) {
+                                    otherDropdown.hide();
+                                }
+                            }
+                        });
+                    });
+                });
+                
+                // Also add Bootstrap's built-in event handling for better reliability
+                document.addEventListener('show.bs.dropdown', function(event) {
+                    // Close all other dropdowns when one is about to show
+                    dropdownTriggerList.forEach((trigger) => {
+                        if (trigger !== event.target) {
+                            const dropdown = bootstrap.Dropdown.getInstance(trigger);
+                            if (dropdown) {
+                                dropdown.hide();
+                            }
+                        }
                     });
                 });
                 
